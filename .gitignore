@@ -1,0 +1,9 @@
+.vscode/
+.cache/
+build/
+thirdparty/
+*.csv
+*.bkp
+*.jpg
+test.py
+generate.py

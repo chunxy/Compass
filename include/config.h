@@ -1,0 +1,30 @@
+#pragma once
+
+#include <string>
+
+// directories
+const std::string WORKSPACE = "/home/chunxy/repos/Compass";
+const std::string LOGS = WORKSPACE + "/logs";
+const std::string CKPS = WORKSPACE + "/checkpoints";
+
+const std::string DATA = WORKSPACE + "/data";
+const std::string RAW_DATA = DATA + "/raw";
+const std::string ATTR_DATA = DATA + "/attr";
+const std::string GT_DATA = DATA + "/gt";
+
+// attribute paths
+const std::string VALUE_PATH_TMPL = ATTR_DATA + "/{}_{:d}_{:d}.value.bin";    // {name}_{dim}_{range}
+const std::string BLABEL_PATH_TMPL = ATTR_DATA + "/{}_base_{:d}.label.bin";   // {name}_base_{range}
+const std::string QLABEL_PATH_TMPL = ATTR_DATA + "/{}_query_{:d}.label.bin";  // {name}_query_{range}
+// groundtruth paths
+const std::string HYBRID_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}_{}_{}.hybrid.gt";  // {name}_{range}_{l}_{r}_{k}
+const std::string FILTER_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}.filter.gt";        // {name}_{range}_{k}
+// workload names
+const std::string HYBRID_WORKLOAD_TMPL = "{}_{}_{}_{}_{}";  // {method}_{range}_{l}_{r}_{k}
+const std::string FILTER_WORKLOAD_TMPL = "{}_{}_{}";        // {method}_{range}_{k}
+// index names
+// const std::string COMPASS_CHECKPOINT_TMPL = "{}";                // {name}
+const std::string COMPASS_GRAPH_CHECKPOINT_TMPL = "{}_{}.hnsw";  // {M}_{efc}
+const std::string COMPASS_IVF_CHECKPOINT_TMPL = "{}.ivf";        // {nlist}
+const std::string COMPASS_IMI_CHECKPOINT_TMPL = "{}_{}.imi";     // {nsub}_{nbits}
+const std::string ACORN_CHECKPOINT_TMPL = "{}_{}_{}_{}.acorn";   // {M}_{M_beta}_{efc}_{gamma}

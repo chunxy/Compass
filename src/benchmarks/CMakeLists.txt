@@ -1,0 +1,27 @@
+# add_executable(bench_compass_1d bench_compass_1d.cpp)
+add_executable(bench_compass_r_1d bench_compass_r_1d.cpp)
+add_executable(bench_compass_r_imi_1d bench_compass_r_imi_1d.cpp)
+add_executable(bench_compass_ivf_1d bench_compass_ivf_1d.cpp)
+add_executable(bench_compass_graph_1d bench_compass_graph_1d.cpp)
+# add_executable(bench_compass_nsg bench_compass_nsg.cpp)
+
+# target_link_libraries(bench_compass_1d Boost::context Boost::filesystem)
+target_link_libraries(bench_compass_r_1d Boost::context Boost::filesystem)
+target_link_libraries(bench_compass_r_imi_1d Boost::filesystem)
+target_link_libraries(bench_compass_ivf_1d Boost::filesystem)
+target_link_libraries(bench_compass_graph_1d Boost::context Boost::filesystem)
+
+# add_executable(bench_compass bench_compass.cpp)
+add_executable(bench_compass_r bench_compass_r.cpp)
+add_executable(bench_compass_ivf bench_compass_ivf.cpp)
+add_executable(bench_compass_graph bench_compass_graph.cpp)
+
+# target_link_libraries(bench_compass Boost::context Boost::filesystem)
+target_link_libraries(bench_compass_r Boost::filesystem)
+target_link_libraries(bench_compass_ivf Boost::filesystem)
+target_link_libraries(bench_compass_graph Boost::filesystem)
+
+# add_executable(bench_balanced_ivf bench_balanced_ivf.cpp)
+add_executable(bench_acorn bench_acorn.cpp)
+target_link_libraries(bench_acorn Boost::filesystem)
+
