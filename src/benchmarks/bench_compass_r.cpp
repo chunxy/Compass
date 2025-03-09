@@ -14,7 +14,6 @@
 #include <numeric>
 #include <set>
 #include <string>
-#include <utility>
 #include <vector>
 #include "config.h"
 #include "json.hpp"
@@ -46,7 +45,7 @@ int main(int argc, char **argv) {
   std::string workload =
       fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bounds, args.u_bounds, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
-  std::string search_param = fmt::format("efs_{}_nrel_{}", args.efs, args.nrel);
+  std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", args.efs, args.nrel, args.mincomp);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
   fs::path log_root(LOGS);
@@ -75,8 +74,7 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bounds, args.u_bounds, nsat);
 
-  int nbits = 10;  // the number of bits to represent the sub-centroid
-  CompassR<float, float> comp(d, args.M, args.efc, nb, args.nlist, args.nrel, nbits);
+  CompassR<float, float> comp(d, args.M, args.efc, nb, args.nlist, args.nrel);
   fs::path ckp_root(CKPS);
   // std::string checkpoint = fmt::format(COMPASS_CHECKPOINT_TMPL, M, efc, nlist);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
@@ -121,7 +119,7 @@ int main(int argc, char **argv) {
     comp.SaveGraph(ckp_dir / graph_ckp);
   }
   fmt::print("Finished loading indices.\n");
-
+  vector<Metric> metrics(args.batchsz, Metric(nb));
   auto search_start = high_resolution_clock::system_clock::now();
 #ifndef COMPASS_DEBUG
 // #pragma omp parallel
@@ -129,7 +127,6 @@ int main(int argc, char **argv) {
 // #pragma omp taskloop
 #endif
   for (int j = 0; j < nq; j += args.batchsz) {
-    vector<Metric> metrics(args.batchsz, Metric(nb));
     comp.SearchKnn(
         xq + j * d, args.batchsz, args.k, args.l_bounds, args.u_bounds, args.efs, args.nthread, metrics
     );

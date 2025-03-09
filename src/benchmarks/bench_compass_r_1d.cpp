@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 #include "config.h"
+#include "faiss/MetricType.h"
 #include "json.hpp"
 #include "methods/CompassR1d.h"
 #include "methods/Pod.h"
@@ -45,7 +46,7 @@ int main(int argc, char **argv) {
   std::string workload =
       fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
-  std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", args.efs, args.nrel, args.min_comp);
+  std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", args.efs, args.nrel, args.mincomp);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
   fs::path log_root(LOGS);
@@ -123,6 +124,9 @@ int main(int argc, char **argv) {
   }
   fmt::print("Finished loading indices.\n");
 
+  vector<Metric> metrics(args.batchsz, Metric(nb));
+  faiss::idx_t *ranked_clusters = new faiss::idx_t[args.batchsz * args.nlist];
+  float *distances = new float[args.batchsz * args.nlist];
   auto search_start = high_resolution_clock::system_clock::now();
 #ifndef COMPASS_DEBUG
 // #pragma omp parallel
@@ -130,7 +134,6 @@ int main(int argc, char **argv) {
 // #pragma omp taskloop
 #endif
   for (int j = 0; j < nq; j += args.batchsz) {
-    vector<Metric> metrics(args.batchsz, Metric(nb));
     comp.SearchKnnV3(
         xq + j * d,
         args.batchsz,
@@ -138,9 +141,11 @@ int main(int argc, char **argv) {
         args.l_bound,
         args.u_bound,
         args.efs,
-        args.min_comp,
+        args.mincomp,
         args.nthread,
-        metrics
+        metrics,
+        ranked_clusters,
+        distances
     );
   }
   auto search_stop = high_resolution_clock::system_clock::now();
@@ -158,9 +163,11 @@ int main(int argc, char **argv) {
         args.l_bound,
         args.u_bound,
         args.efs,
-        args.min_comp,
+        args.mincomp,
         args.nthread,
-        metrics
+        metrics,
+        ranked_clusters,
+        distances
     );
     auto search_stop = high_resolution_clock::now();
 

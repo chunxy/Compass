@@ -47,6 +47,8 @@ class CompassR1d {
   vector<attr_t> attrs_;
   vector<btree::btree_map<attr_t, labeltype>> btrees_;
 
+  faiss::idx_t *assigned_clusters_;
+
   // config
   size_t nrel_;
 
@@ -79,6 +81,169 @@ class CompassR1d {
   );
 
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3(
+      const void *query,
+      const int nq,
+      const int k,
+      const attr_t &l_bound,
+      const attr_t &u_bound,
+      const int efs,
+      const int min_comp,
+      const int nthread,
+      vector<Metric> &metrics,
+      faiss::idx_t *ranked_clusters,
+      float *distances
+  ) {
+    auto efs_ = std::max(k, efs);
+    hnsw_.setEf(efs_);
+    int nprobe = ivf_->nlist;
+    // auto centroids = quantizer_.get_xb();
+    // auto dist_func = quantizer_.get_distance_computer();
+    // auto ranked_clusters = new faiss::idx_t[nq * nprobe];
+    // auto distances = new float[nq * nprobe];
+    this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
+
+    vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
+
+    // #pragma omp parallel for num_threads(nthread) schedule(static)
+    for (int q = 0; q < nq; q++) {
+      priority_queue<pair<float, int64_t>> top_candidates;
+      priority_queue<pair<float, int64_t>> candidate_set;
+
+      vector<bool> visited(hnsw_.cur_element_count, false);
+
+      RangeQuery<float> pred(l_bound, u_bound, &attrs_);
+      metrics[q].nround = 0;
+      metrics[q].ncomp = 0;
+
+      {
+        tableint currObj = hnsw_.enterpoint_node_;
+        dist_t curdist = hnsw_.fstdistfunc_(
+            (float *)query + q * ivf_->d,
+            hnsw_.getDataByInternalId(hnsw_.enterpoint_node_),
+            hnsw_.dist_func_param_
+        );
+
+        for (int level = hnsw_.maxlevel_; level > 0; level--) {
+          bool changed = true;
+          while (changed) {
+            changed = false;
+            unsigned int *data;
+
+            data = (unsigned int *)hnsw_.get_linklist(currObj, level);
+            int size = hnsw_.getListCount(data);
+            // metric_hops++;
+            // metric_distance_computations += size;
+            metrics[q].ncomp += size;
+
+            tableint *datal = (tableint *)(data + 1);
+            for (int i = 0; i < size; i++) {
+              tableint cand = datal[i];
+
+              if (cand < 0 || cand > hnsw_.max_elements_) throw std::runtime_error("cand error");
+              dist_t d = hnsw_.fstdistfunc_(
+                  (float *)query + q * ivf_->d, hnsw_.getDataByInternalId(cand), hnsw_.dist_func_param_
+              );
+
+              if (d < curdist) {
+                curdist = d;
+                currObj = cand;
+                changed = true;
+              }
+            }
+          }
+        }
+        // ranked_clusters = assigned_clusters_ + currObj * nprobe;
+        candidate_set.emplace(-curdist, currObj);
+      }
+
+      auto curr_ci = q * nprobe;
+      auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
+      auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
+
+      int cnt = 0;
+      while (true) {
+        int crel = 0;
+        // if (candidate_set.empty() || distances[curr_ci] < -candidate_set.top().first) {
+        if (candidate_set.empty() ||
+            (!top_candidates.empty() && -candidate_set.top().first > top_candidates.top().first)) {
+          while (crel < nrel_) {
+            if (itr_beg == itr_end) {
+              if (++curr_ci == (q + 1) * nprobe)
+                break;
+              else {
+                itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
+                itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
+                continue;
+              }
+            }
+
+            auto tableid = (*itr_beg).second;
+            itr_beg++;
+#ifdef USE_SSE
+            _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+#endif
+            if (visited[tableid]) continue;
+            visited[tableid] = true;
+
+            auto vect = hnsw_.getDataByInternalId(tableid);
+            auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
+            metrics[q].ncomp++;
+            crel++;
+
+            auto upper_bound =
+                top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+            if (top_candidates.size() < efs || dist < upper_bound) {
+              candidate_set.emplace(-dist, tableid);
+              top_candidates.emplace(dist, tableid);
+              metrics[q].is_ivf_ppsl[tableid] = true;
+              if (top_candidates.size() > efs_) top_candidates.pop();
+            }
+          }
+          metrics[q].nround++;
+        }
+
+        hnsw_.ReentrantSearchKnn(
+            (float *)query + q * ivf_->d,
+            k,
+            -1,
+            top_candidates,
+            candidate_set,
+            visited,
+            &pred,
+            std::ref(metrics[q].ncomp),
+            std::ref(metrics[q].is_graph_ppsl)
+        );
+        // if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) ||
+        //     curr_ci >= (q + 1) * nprobe) {
+        if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
+          break;
+        }
+      }
+
+      while (top_candidates.size() > k) top_candidates.pop();
+      size_t sz = top_candidates.size();
+      // vector<std::pair<dist_t, labeltype>> result(sz);
+      while (!top_candidates.empty()) {
+        results[q][--sz] = top_candidates.top();
+        top_candidates.pop();
+      }
+    }
+
+    return results;
+  }
+
+  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3WithoutProfiling(
+      const void *query,
+      const int nq,
+      const int k,
+      const attr_t &l_bound,
+      const attr_t &u_bound,
+      const int efs,
+      const int min_comp,
+      const int nthread
+  );
+
+  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV4(
       const void *query,
       const int nq,
       const int k,
@@ -137,11 +302,11 @@ int CompassR1d<dist_t, attr_t>::AddGraphPoint(const void *data_point, labeltype 
 template <typename dist_t, typename attr_t>
 int CompassR1d<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attr) {
   // ivf_->add(n, (float *)data);  // add_sa_codes
-  auto assigned_clusters = new faiss::idx_t[n * 1];
-  ivf_->quantizer->assign(n, (float *)data, assigned_clusters, 1);
+  assigned_clusters_ = new faiss::idx_t[n * ivf_->nlist];
+  ivf_->quantizer->assign(n, (float *)data, assigned_clusters_, ivf_->nlist);
   for (int i = 0; i < n; i++) {
     attrs_[labels[i]] = attr[i];
-    btrees_[assigned_clusters[i]].insert(std::make_pair(attr[i], labels[i]));
+    btrees_[assigned_clusters_[i * ivf_->nlist]].insert(std::make_pair(attr[i], labels[i]));
   }
   return n;
 }
@@ -452,7 +617,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
 }
 
 template <typename dist_t, typename attr_t>
-vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::SearchKnnV3(
+vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::SearchKnnV3WithoutProfiling(
     const void *query,
     const int nq,
     const int k,
@@ -460,8 +625,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
     const attr_t &u_bound,
     const int efs,
     const int min_comp,
-    const int nthread,
-    vector<Metric> &metrics
+    const int nthread
 ) {
   auto efs_ = std::max(k, efs);
   hnsw_.setEf(efs_);
@@ -489,8 +653,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
     RangeQuery<float> pred(l_bound, u_bound, &attrs_);
     size_t total_proposed = 0;
     size_t max_dist_comp = 10;
-    metrics[q].nround = 0;
-    metrics[q].tcontext = 0;
+    int ncomp = 0;
 
     // int min_comp = 1000;
 
@@ -517,7 +680,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
 
           auto vect = hnsw_.getDataByInternalId(tableid);
           auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
-          metrics[q].ncomp++;
           crel++;
 
           auto upper_bound =
@@ -525,27 +687,18 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
           if (top_candidates.size() < efs || dist < upper_bound) {
             candidate_set.emplace(-dist, tableid);
             top_candidates.emplace(dist, tableid);
-            metrics[q].is_ivf_ppsl[tableid] = true;
+            // metrics[q].is_ivf_ppsl[tableid] = true;
             // metrics[q].is_ivf_ppsl[label] = true;
             if (top_candidates.size() > efs_) top_candidates.pop();
           }
         }
-        metrics[q].nround++;
+        // metrics[q].nround++;
       }
 
-      hnsw_.ReentrantSearchKnn(
-          (float *)query + q * ivf_->d,
-          k,
-          -1,
-          top_candidates,
-          candidate_set,
-          visited,
-          &pred,
-          std::ref(metrics[q].ncomp),
-          std::ref(metrics[q].is_graph_ppsl)
+      hnsw_.ReentrantSearchKnnWithoutProfiling(
+          (float *)query + q * ivf_->d, k, -1, top_candidates, candidate_set, visited, &pred, ncomp
       );
-      if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) || curr_ci >= (q + 1) * nprobe)
-        break;
+      if ((top_candidates.size() >= efs_ && min_comp - ncomp < 0) || curr_ci >= (q + 1) * nprobe) break;
     }
 
     while (top_candidates.size() > k) top_candidates.pop();

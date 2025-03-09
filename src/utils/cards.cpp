@@ -22,6 +22,14 @@ static const std::string glove100_bpath = "/home/chunxy/datasets/glove100/glove1
 static const std::string glove100_qpath = "/home/chunxy/datasets/glove100/glove100_query.fvecs";
 static const std::string glove100_gpath = "/home/chunxy/datasets/glove100/glove100_groundtruth.ivecs";
 
+static const std::string audio_bpath = "/home/chunxy/datasets/audio/audio_base.fvecs";
+static const std::string audio_qpath = "/home/chunxy/datasets/audio/audio_query.fvecs";
+static const std::string audio_gpath = "/home/chunxy/datasets/audio/audio_groundtruth.ivecs";
+
+static const std::string video_bpath = "/home/chunxy/datasets/video/video_base.fvecs";
+static const std::string video_qpath = "/home/chunxy/datasets/video/video_query.fvecs";
+static const std::string video_gpath = "/home/chunxy/datasets/video/video_groundtruth.ivecs";
+
 DataCard siftsmall_1_10_int32{
     "siftsmall",
     siftsmall_bpath,
@@ -597,6 +605,34 @@ DataCard glove100_2_10000_float32{
     "float32",
 };
 
+DataCard audio_1_10000_float32{
+    "audio",
+    audio_bpath,
+    audio_qpath,
+    audio_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
+DataCard video_1_10000_float32{
+    "video",
+    video_bpath,
+    video_qpath,
+    video_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
 // DataCard deep10m_1_10000_float32{
 //     "crawl",
 //     crawl_bpath,
@@ -652,5 +688,7 @@ std::map<std::string, DataCard> name_to_card{
     {"glove100_1_500_int32", glove100_1_500_int32},
     {"glove100_1_1000_int32", glove100_1_1000_int32},
     {"glove100_1_10000_float32", glove100_1_10000_float32},
-    {"glove100_2_10000_float32", glove100_2_10000_float32},
+    {"glove100_1_10000_float32", glove100_1_10000_float32},
+    {"audio_1_10000_float32", audio_1_10000_float32},
+    {"video_1_10000_float32", video_1_10000_float32},
 };

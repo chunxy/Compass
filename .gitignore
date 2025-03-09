@@ -1,9 +1,15 @@
 .vscode/
 .cache/
+__pycache__/
 build/
 thirdparty/
 *.csv
 *.bkp
 *.jpg
 test.py
+test_bisect.py
 generate.py
+/*.sh
+src/tests/test_rng/
+src/tests/test_hnsw/
+src/tests/test_reentrant_hnsw/

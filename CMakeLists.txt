@@ -15,7 +15,6 @@ endif()
 
 if(AVX_SUPPORTED)
     message(STATUS "AVX supported")
-    # add_definitions("-DUSE_AVX")
 endif()
 
 find_package(OpenMP)
@@ -72,7 +71,7 @@ link_libraries(fmt::fmt-header-only Boost::program_options)
 # ENDIF(NOSIMD)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mavx -mavx2 -ftree-vectorize")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ftree-vectorize")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g -DCOMPASS_DEBUG")
 
 add_subdirectory(src)

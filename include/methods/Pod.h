@@ -11,14 +11,16 @@ namespace po = boost::program_options;
 struct IvfGraph1dArgs {
   std::string datacard;
   float l_bound, u_bound;
-  int k;
-  int M;
-  int efc;
-  int nlist;  // the number of coarse clusters
-  int nrel;   // the number of candidates proposed by IVF per round
-  int efs;
-  int min_comp = 1000;
-  int nprobe;
+  int k = 100;
+  int M = 32;
+  int efc = 100;
+  int nlist = 1000;  // the number of coarse clusters
+  int nsub = 4;
+  int nbits = 4;
+  int nrel = 100;  // the number of candidates proposed by IVF per round
+  int efs = 100;
+  int mincomp = 1000;
+  int nprobe = 100;
   int nthread = 1;
   int batchsz = 100;
 
@@ -35,11 +37,13 @@ struct IvfGraph1dArgs {
     optional_configs.add_options()("M", po::value<decltype(M)>(&M));
     optional_configs.add_options()("efc", po::value<decltype(efc)>(&efc));
     optional_configs.add_options()("nlist", po::value<decltype(nlist)>(&nlist));
+    optional_configs.add_options()("nsub", po::value<decltype(nsub)>(&nsub));
+    optional_configs.add_options()("nbits", po::value<decltype(nbits)>(&nbits));
     // index search parameters
     optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs));
     optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe));
     optional_configs.add_options()("nrel", po::value<decltype(nrel)>(&nrel));
-    optional_configs.add_options()("mincomp", po::value<decltype(min_comp)>(&min_comp));
+    optional_configs.add_options()("mincomp", po::value<decltype(mincomp)>(&mincomp));
     // system parameters
     optional_configs.add_options()("nthread", po::value<decltype(nthread)>(&nthread));
     optional_configs.add_options()("batchsz", po::value<decltype(batchsz)>(&batchsz));
@@ -62,8 +66,8 @@ struct IvfGraph2dArgs {
   int nlist;  // the number of coarse clusters
   int efs;
   int nprobe;
-  int nrel;   // the number of candidates proposed by IVF per round
-  int min_comp = 1000;
+  int nrel;  // the number of candidates proposed by IVF per round
+  int mincomp = 1000;
   int nthread = 1;
   int batchsz = 100;
 
@@ -84,7 +88,7 @@ struct IvfGraph2dArgs {
     optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs));
     optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe));
     optional_configs.add_options()("nrel", po::value<decltype(nrel)>(&nrel));
-    optional_configs.add_options()("mincomp", po::value<decltype(min_comp)>(&min_comp));
+    optional_configs.add_options()("mincomp", po::value<decltype(mincomp)>(&mincomp));
     // system parameters
     optional_configs.add_options()("nthread", po::value<decltype(nthread)>(&nthread));
     optional_configs.add_options()("batchsz", po::value<decltype(batchsz)>(&batchsz));

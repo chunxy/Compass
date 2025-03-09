@@ -17,7 +17,7 @@
 #include <vector>
 #include "config.h"
 #include "json.hpp"
-#include "methods/CompassRImi1d.h"
+#include "methods/CompassF1d.h"
 #include "methods/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
@@ -37,14 +37,14 @@ int main(int argc, char **argv) {
   int nb = c.n_base;         // number of database vectors
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
-  assert(nq % batch_sz == 0);
+  assert(nq % args.batchsz == 0);
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
-  std::string method = "CompassRImi1d";
+  std::string method = "CompassF1d";
   std::string workload =
       fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
-  std::string build_param = fmt::format("M_{}_efc_{}_nsub_{}_nbits_{}", args.M, args.efc, args.nsub, args.nbits);
+  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
   std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", args.efs, args.nrel, args.mincomp);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
@@ -76,21 +76,22 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  CompassRImi1d<float, float> comp(d, args.M, args.efc, nb, args.nsub, args.nbits, args.nrel);
+  int nbits = 10;  // the number of bits to represent the sub-centroid
+  CompassF1d<float, float> comp(d, args.M, args.efc, nb, args.nlist, args.nrel, nbits);
   fs::path ckp_root(CKPS);
   // std::string checkpoint = fmt::format(COMPASS_CHECKPOINT_TMPL, M, efc, nlist);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
-  std::string ivf_ckp = fmt::format(COMPASS_IMI_CHECKPOINT_TMPL, args.nsub, args.nbits);
+  std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
   fs::path ckp_dir = ckp_root / method / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
-    fmt::print("Finished loading IMI index.\n");
+    fmt::print("Finished loading IVF index.\n");
   } else {
     auto train_ivf_start = high_resolution_clock::now();
     comp.TrainIvf(nb, xb);
     auto train_ivf_stop = high_resolution_clock::now();
     fmt::print(
-        "Finished training IMI, took {} microseconds.\n",
+        "Finished training IVF, took {} microseconds.\n",
         duration_cast<microseconds>(train_ivf_stop - train_ivf_start).count()
     );
     comp.SaveIvf(ckp_dir / ivf_ckp);

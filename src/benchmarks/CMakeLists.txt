@@ -1,6 +1,8 @@
 # add_executable(bench_compass_1d bench_compass_1d.cpp)
 add_executable(bench_compass_r_1d bench_compass_r_1d.cpp)
 add_executable(bench_compass_r_imi_1d bench_compass_r_imi_1d.cpp)
+add_executable(bench_compass_f_1d bench_compass_f_1d.cpp)
+
 add_executable(bench_compass_ivf_1d bench_compass_ivf_1d.cpp)
 add_executable(bench_compass_graph_1d bench_compass_graph_1d.cpp)
 # add_executable(bench_compass_nsg bench_compass_nsg.cpp)
@@ -8,6 +10,7 @@ add_executable(bench_compass_graph_1d bench_compass_graph_1d.cpp)
 # target_link_libraries(bench_compass_1d Boost::context Boost::filesystem)
 target_link_libraries(bench_compass_r_1d Boost::context Boost::filesystem)
 target_link_libraries(bench_compass_r_imi_1d Boost::filesystem)
+target_link_libraries(bench_compass_f_1d Boost::filesystem)
 target_link_libraries(bench_compass_ivf_1d Boost::filesystem)
 target_link_libraries(bench_compass_graph_1d Boost::context Boost::filesystem)
 

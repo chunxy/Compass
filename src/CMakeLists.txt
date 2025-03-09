@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ADDITIONAL_CFLAGS}")
 
 add_subdirectory(utils)
 add_subdirectory(methods)

@@ -62,7 +62,7 @@ void load_hybrid_query_gt(
     const int k,
     vector<vector<labeltype>> &hybrid_topks
 ) {
-  std::string gt_path = fmt::format(HYBRID_GT_PATH_TMPL, c.name, c.attr_range, l_bounds, u_bounds, k);
+  std::string gt_path = fmt::format(HYBRID_GT_PATH_TMPL, c.name, c.attr_range, l_bounds, u_bounds, 100);
 
   assert(std::ifstream(gt_path).good());
   hybrid_topks.resize(c.n_queries);
@@ -70,8 +70,9 @@ void load_hybrid_query_gt(
   IVecItrReader groundtruth_it(gt_path);
   while (!groundtruth_it.HasEnded()) {
     auto topk = groundtruth_it.Next();
-    hybrid_topks[i].resize(topk.size());
-    for (int j = 0; j < topk.size(); j++) {
+    assert(k <= topk.size());
+    hybrid_topks[i].resize(k);
+    for (int j = 0; j < k; j++) {
       hybrid_topks[i][j] = topk[j];
     }
     i++;
