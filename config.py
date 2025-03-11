@@ -3,9 +3,9 @@ from collections import namedtuple
 from itertools import product
 
 
-
 # Directories
-logs = Path("/home/chunxy/repos/Compass/logs")
+logs_100 = Path("/home/chunxy/repos/Compass/logs_100")
+logs_10 = Path("/home/chunxy/repos/Compass/logs_10")
 
 # Names
 ONED_METHODS = {"CompassR1d", "CompassRImi1d", "CompassIvf1d", "CompassGraph1d", "Serf", "iRangeGraph"}
@@ -22,18 +22,18 @@ TWOD_PASSRATES = {
 
 # Templates
 METHOD_WORKLOAD_TMPL = {
-  # "Compass1d": "{}_10000_{}_{}_100",
-  # "Acorn": "{}_{}_100",
-  "CompassR1d": "{}_10000_{}_{}_100",
-  "CompassRImi1d": "{}_10000_{}_{}_100",
-  "CompassIvf1d": "{}_10000_{}_{}_100",
-  "CompassGraph1d": "{}_10000_{}_{}_100",
-  "Serf": "{}_{}_{}_100",
-  "iRangeGraph": "{}_{}_{}_100",
-  "CompassR": "{}_10000_{{{}, {}}}_{{{}, {}}}_100",
-  "CompassGraph": "{}_10000_{{{}, {}}}_{{{}, {}}}_100",
-  "CompassIvf": "{}_10000_{{{}, {}}}_{{{}, {}}}_100",
-  "iRangeGraph2d": "{}_{}_{}_100",
+  # "Compass1d": "{}_10000_{}_{}_{}",
+  # "Acorn": "{}_{}_{}",
+  "CompassR1d": "{}_10000_{}_{}_{}",
+  "CompassRImi1d": "{}_10000_{}_{}_{}",
+  "CompassIvf1d": "{}_10000_{}_{}_{}",
+  "CompassGraph1d": "{}_10000_{}_{}_{}",
+  "Serf": "{}_{}_{}_{}",
+  "iRangeGraph": "{}_{}_{}_{}",
+  "CompassR": "{}_10000_{{{}, {}}}_{{{}, {}}}_{}",
+  "CompassGraph": "{}_10000_{{{}, {}}}_{{{}, {}}}_{}",
+  "CompassIvf": "{}_10000_{{{}, {}}}_{{{}, {}}}_{}",
+  "iRangeGraph2d": "{}_{}_{}_{}",
 }
 
 METHOD_BUILD_TMPL = {
@@ -149,30 +149,30 @@ typical_irange_graph_2d_ranges = [
 
 CompassBuild = namedtuple("CompassBuild", ["M", "efc", "nlist"])
 typical_compass_1d_builds = [
-  # CompassBuild(16, 100, 500),
-  # CompassBuild(16, 100, 1000),
   # CompassBuild(16, 200, 500),
   # CompassBuild(16, 200, 1000),
-  # CompassBuild(32, 100, 500),
-  CompassBuild(32, 100, 1000),
+  # CompassBuild(32, 100, 1000),
   # CompassBuild(32, 200, 500),
   CompassBuild(32, 200, 1000),
   # CompassBuild(64, 100, 500),
-  CompassBuild(64, 100, 1000),
+  # CompassBuild(64, 100, 1000),
   # CompassBuild(64, 200, 500),
-  CompassBuild(64, 200, 1000),
+  # CompassBuild(64, 200, 1000),
 ]
 
 CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
 typical_compass_1d_searches = [
   CompassSearch(100, 500, 1000),
+  CompassSearch(110, 500, 1000),
   CompassSearch(120, 500, 1000),
+  CompassSearch(130, 500, 1000),
   CompassSearch(140, 500, 1000),
   CompassSearch(150, 500, 1000),
   CompassSearch(160, 500, 1000),
   CompassSearch(180, 500, 1000),
   CompassSearch(200, 500, 1000),
   CompassSearch(250, 500, 1000),
+  CompassSearch(300, 500, 1000),
 ]
 
 typical_compass_2d_searches = [
@@ -259,34 +259,39 @@ typical_serf_builds = [
 SerfSearch = namedtuple("SerfSearch", ["efs"])
 typical_serf_searches = [
   SerfSearch(100),
+  SerfSearch(110),
   SerfSearch(120),
+  SerfSearch(130),
   SerfSearch(140),
   SerfSearch(150),
   SerfSearch(160),
   SerfSearch(180),
   SerfSearch(200),
+  SerfSearch(250),
+  SerfSearch(300),
 ]
 
 iRangeGraphBuild = namedtuple("iRangeGraphBuild", ["M", "efc"])
 typical_i_range_graph_builds = [
-  iRangeGraphBuild(16, 100),
+  # iRangeGraphBuild(16, 100),
   iRangeGraphBuild(16, 200),
-  iRangeGraphBuild(32, 100),
+  # iRangeGraphBuild(32, 100),
   iRangeGraphBuild(32, 200),
 ]
 
 iRangeGraphSearch = namedtuple("iRangeGraphSearch", ["efs"])
 typical_i_range_graph_searches = [
   iRangeGraphSearch(100),
+  iRangeGraphSearch(110),
   iRangeGraphSearch(120),
+  iRangeGraphSearch(130),
   iRangeGraphSearch(140),
+  iRangeGraphSearch(150),
   iRangeGraphSearch(160),
   iRangeGraphSearch(180),
   iRangeGraphSearch(200),
   iRangeGraphSearch(250),
   iRangeGraphSearch(300),
-  # iRangeGraphSearch(400),
-  # iRangeGraphSearch(500),
 ]
 
 # Mappings

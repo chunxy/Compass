@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 #include <limits>
 #include <queue>
 #include <unordered_map>
@@ -47,7 +48,7 @@ class CompassR1d {
   vector<attr_t> attrs_;
   vector<btree::btree_map<attr_t, labeltype>> btrees_;
 
-  faiss::idx_t *assigned_clusters_;
+  faiss::idx_t *ranked_clusters_;
 
   // config
   size_t nrel_;
@@ -100,7 +101,7 @@ class CompassR1d {
     // auto dist_func = quantizer_.get_distance_computer();
     // auto ranked_clusters = new faiss::idx_t[nq * nprobe];
     // auto distances = new float[nq * nprobe];
-    this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
+    // this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 
@@ -152,11 +153,11 @@ class CompassR1d {
             }
           }
         }
-        // ranked_clusters = assigned_clusters_ + currObj * nprobe;
+        ranked_clusters = ranked_clusters_ + currObj * nprobe;
         candidate_set.emplace(-curdist, currObj);
       }
 
-      auto curr_ci = q * nprobe;
+      auto curr_ci = 0;
       auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
       auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
 
@@ -168,7 +169,7 @@ class CompassR1d {
             (!top_candidates.empty() && -candidate_set.top().first > top_candidates.top().first)) {
           while (crel < nrel_) {
             if (itr_beg == itr_end) {
-              if (++curr_ci == (q + 1) * nprobe)
+              if (++curr_ci == nprobe)
                 break;
               else {
                 itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
@@ -215,7 +216,7 @@ class CompassR1d {
         );
         // if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) ||
         //     curr_ci >= (q + 1) * nprobe) {
-        if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
+        if ((top_candidates.size() >= efs_) || curr_ci >= nprobe) {
           break;
         }
       }
@@ -230,6 +231,47 @@ class CompassR1d {
     }
 
     return results;
+  }
+
+  void LoadGraph(fs::path path) { this->hnsw_.loadIndex(path.string(), &this->space_); }
+
+  void LoadIvf(fs::path path) {
+    auto ivf_file = fopen(path.c_str(), "r");
+    auto index = faiss::read_index(ivf_file);
+    this->ivf_ = dynamic_cast<faiss::IndexIVFFlat *>(index);
+  }
+
+  void LoadRanking(fs::path path, attr_t *attrs) {
+    std::ifstream in(path.string());
+    ranked_clusters_ = new faiss::idx_t[hnsw_.max_elements_ * ivf_->nlist];
+    for (int i = 0; i < hnsw_.max_elements_; i++) {
+      for (int j = 0; j < ivf_->nlist; j++) {
+        in.read((char *)(ranked_clusters_ + i * ivf_->nlist + j), sizeof(faiss::idx_t));
+      }
+    }
+    for (int i = 0; i < hnsw_.max_elements_; i++) {
+      attrs_[i] = attrs[i];
+      btrees_[ranked_clusters_[i * ivf_->nlist]].insert(std::make_pair(attrs[i], (labeltype)i));
+    }
+  }
+
+  void SaveGraph(fs::path path) {
+    fs::create_directories(path.parent_path());
+    this->hnsw_.saveIndex(path.string());
+  }
+
+  void SaveIvf(fs::path path) {
+    fs::create_directories(path.parent_path());
+    faiss::write_index(dynamic_cast<faiss::Index *>(this->ivf_), path.c_str());
+  }
+
+  void SaveRanking(fs::path path) {
+    std::ofstream out(path.string());
+    for (int i = 0; i < hnsw_.max_elements_; i++) {
+      for (int j = 0; j < ivf_->nlist; j++) {
+        out.write((char *)(ranked_clusters_ + i * ivf_->nlist + j), sizeof(faiss::idx_t));
+      }
+    }
   }
 
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3WithoutProfiling(
@@ -254,11 +296,6 @@ class CompassR1d {
       const int nthread,
       vector<Metric> &metrics
   );
-
-  void SaveGraph(fs::path path);
-  void SaveIvf(fs::path path);
-  void LoadGraph(fs::path path);
-  void LoadIvf(fs::path path);
 };
 
 template <typename dist_t, typename attr_t>
@@ -302,11 +339,11 @@ int CompassR1d<dist_t, attr_t>::AddGraphPoint(const void *data_point, labeltype 
 template <typename dist_t, typename attr_t>
 int CompassR1d<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attr) {
   // ivf_->add(n, (float *)data);  // add_sa_codes
-  assigned_clusters_ = new faiss::idx_t[n * ivf_->nlist];
-  ivf_->quantizer->assign(n, (float *)data, assigned_clusters_, ivf_->nlist);
+  ranked_clusters_ = new faiss::idx_t[n * ivf_->nlist];
+  ivf_->quantizer->assign(n, (float *)data, ranked_clusters_, ivf_->nlist);
   for (int i = 0; i < n; i++) {
     attrs_[labels[i]] = attr[i];
-    btrees_[assigned_clusters_[i * ivf_->nlist]].insert(std::make_pair(attr[i], labels[i]));
+    btrees_[ranked_clusters_[i * ivf_->nlist]].insert(std::make_pair(attr[i], labels[i]));
   }
   return n;
 }
@@ -713,28 +750,4 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
   delete[] ranked_clusters;
   delete[] distances;
   return results;
-}
-
-template <typename dist_t, typename attr_t>
-void CompassR1d<dist_t, attr_t>::LoadGraph(fs::path path) {
-  this->hnsw_.loadIndex(path.string(), &this->space_);
-}
-
-template <typename dist_t, typename attr_t>
-void CompassR1d<dist_t, attr_t>::LoadIvf(fs::path path) {
-  auto ivf_file = fopen(path.c_str(), "r");
-  auto index = faiss::read_index(ivf_file);
-  this->ivf_ = dynamic_cast<faiss::IndexIVFFlat *>(index);
-}
-
-template <typename dist_t, typename attr_t>
-void CompassR1d<dist_t, attr_t>::SaveGraph(fs::path path) {
-  fs::create_directories(path.parent_path());
-  this->hnsw_.saveIndex(path.string());
-}
-
-template <typename dist_t, typename attr_t>
-void CompassR1d<dist_t, attr_t>::SaveIvf(fs::path path) {
-  fs::create_directories(path.parent_path());
-  faiss::write_index(dynamic_cast<faiss::Index *>(this->ivf_), path.c_str());
 }

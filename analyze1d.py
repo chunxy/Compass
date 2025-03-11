@@ -9,12 +9,13 @@ import bisect
 
 from config import *
 
+K = 100
 
 def summarize_1d():
   entries = [(
-    logs / m / METHOD_WORKLOAD_TMPL[m].format(d, *rg) / METHOD_BUILD_TMPL[m].format(*b) / METHOD_SEARCH_TMPL[m].format(*r),
+    logs_100 / m / METHOD_WORKLOAD_TMPL[m].format(d, *rg, K) / METHOD_BUILD_TMPL[m].format(*b) / METHOD_SEARCH_TMPL[m].format(*r),
     m,
-    METHOD_WORKLOAD_TMPL[m].format(d, *rg),
+    METHOD_WORKLOAD_TMPL[m].format(d, *rg, K),
     d,
     METHOD_BUILD_TMPL[m].format(*b),
     METHOD_SEARCH_TMPL[m].format(*r),
@@ -50,7 +51,7 @@ def summarize_1d():
   df["qps"] = qps
   df["comp"] = comp
   df["selectivity"] = selectivities
-  df.to_csv("stats1d.csv")
+  df.to_csv(f"stats1d_{K}.csv")
 
 
 def draw_1d_qps_recall_by_dataset_selectivity():
@@ -65,7 +66,7 @@ def draw_1d_qps_recall_by_dataset_selectivity():
     "recall": float,
     "qps": float,
   }
-  df = pd.read_csv("stats1d.csv", dtype=types)
+  df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in ONED_PASSRATES]
 
@@ -90,7 +91,7 @@ def draw_1d_qps_recall_by_dataset_selectivity():
 
     # fig.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
     fig.legend(loc='outside right upper')
-    fig.savefig("figures/{}-{:.1%}-QPS-Recall.jpg".format(dataset.upper(), selectivity), dpi=200)
+    fig.savefig("figures_{K}/{}-{:.1%}-QPS-Recall.jpg".format(dataset.upper(), selectivity), dpi=200)
     plt.close()
 
 
@@ -107,7 +108,7 @@ def draw_1d_comp_recall_by_dataset_selectivity():
     "recall": float,
     "comp": float,
   }
-  df = pd.read_csv("stats1d.csv", dtype=types)
+  df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in ONED_PASSRATES]
 
@@ -131,7 +132,7 @@ def draw_1d_comp_recall_by_dataset_selectivity():
         plt.title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
 
     plt.gcf().legend(loc="outside right upper")
-    plt.savefig("figures/{}-{:.1%}-Comp-Recall.jpg".format(dataset.upper(), selectivity), dpi=200)
+    plt.savefig("figures_{K}/{}-{:.1%}-Comp-Recall.jpg".format(dataset.upper(), selectivity), dpi=200)
     plt.close()
 
 
@@ -147,7 +148,7 @@ def draw_1d_by_dataset():
     "recall": float,
     "qps": float,
   }
-  df = pd.read_csv("stats1d.csv", dtype=types)
+  df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectivities = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 0.9]
   for dataset in DATASETS:
@@ -188,7 +189,7 @@ def draw_1d_by_dataset():
       ax.set_ylabel('Recall')
       ax.set_zlabel('QPS')
       break
-    fig.savefig("figures/{}.jpg".format(dataset.upper()), dpi=200)
+    fig.savefig("figures_{K}/{}.jpg".format(dataset.upper()), dpi=200)
     plt.close()
     break
 
@@ -205,7 +206,7 @@ def draw_1d_by_dataset_method():
     "recall": float,
     "qps": float,
   }
-  df = pd.read_csv("stats1d.csv", dtype=types)
+  df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.5", "0.6", "0.7", "0.8", "0.9"]
   for dataset in DATASETS:
@@ -239,7 +240,7 @@ def draw_1d_by_dataset_method():
       ax.set_ylabel('Selectivity')
       ax.set_zlabel('QPS')
       fig.set_size_inches(10, 10)
-      fig.savefig("figures/{}-{}.jpg".format(dataset.upper(), m), dpi=200)
+      fig.savefig("figures_{K}/{}-{}.jpg".format(dataset.upper(), m), dpi=200)
       ax.cla()
 
 
@@ -256,7 +257,7 @@ def draw_1d_by_dataset_eric():
     "qps": float,
     "comp": float,
   }
-  df = pd.read_csv("stats1d.csv", dtype=types)
+  df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
   for dataset in DATASETS:
@@ -296,7 +297,7 @@ def draw_1d_by_dataset_eric():
     fig.set_size_inches(15, 10)
     handles, labels = ax0.get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside right upper")
-    fig.savefig("figures/{}-QPS-Comp.jpg".format(dataset.upper()), dpi=200)
+    fig.savefig("figures_{K}/{}-QPS-Comp.jpg".format(dataset.upper()), dpi=200)
     ax0.cla()
     ax1.cla()
 
@@ -313,13 +314,13 @@ def draw_1d_by_selected_dataset_adverse():
     "recall": float,
     "comp": float,
   }
-  df = pd.read_csv("stats1d.csv", dtype=types)
+  df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   SELECTED_DATASETS = ["sift", "crawl", "audio", "video"]
   SELECTED_PASSRATES = ["0.01", "0.5", "1.0"]
   SELECTED_BUILDS = {
     "CompassR1d": CompassBuild(32, 200, 1000),
-    "iRangeGraph": iRangeGraphBuild(32, 100),
+    "iRangeGraph": iRangeGraphBuild(16, 200),
     "Serf": SerfBuild(32, 200, 500),
   }
   for passrate in SELECTED_PASSRATES:
@@ -349,7 +350,7 @@ def draw_1d_by_selected_dataset_adverse():
         axs[1, i].set_title("{}, Passrate-{:.1%}".format(d.capitalize(), selectivity))
     handles, labels = axs[0][0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside right center")
-    fig.savefig(f"figures/Adverse-Selected-Dataset-{selectivity:.1%}.jpg", dpi=200)
+    fig.savefig(f"figures_{K}/Adverse-Selected-Dataset-{selectivity:.1%}.jpg", dpi=200)
     fig.clf()
 
 def draw_1d_by_selected_dataset_favorable():
@@ -364,13 +365,13 @@ def draw_1d_by_selected_dataset_favorable():
     "recall": float,
     "comp": float,
   }
-  df = pd.read_csv("stats1d.csv", dtype=types)
+  df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   SELECTED_DATASETS = ["sift", "crawl", "audio", "video"]
   SELECTED_PASSRATES = ["0.01", "0.5", "1.0"]
   SELECTED_BUILDS = {
     "CompassR1d": CompassBuild(32, 200, 1000),
-    "iRangeGraph": iRangeGraphBuild(16, 100),
+    "iRangeGraph": iRangeGraphBuild(32, 200),
     "Serf": SerfBuild(32, 200, 500),
   }
   for passrate in SELECTED_PASSRATES:
@@ -400,14 +401,14 @@ def draw_1d_by_selected_dataset_favorable():
         axs[1, i].set_title("{}, Passrate-{:.1%}".format(d.capitalize(), selectivity))
     handles, labels = axs[0][0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside right center")
-    fig.savefig(f"figures/Favorable-Selected-Dataset-{selectivity:.1%}.jpg", dpi=200)
+    fig.savefig(f"figures_{K}/Favorable-Selected-Dataset-{selectivity:.1%}.jpg", dpi=200)
     fig.clf()
 
 plt.rcParams.update({'font.size': 15, 'legend.fontsize': 12, 'axes.labelsize': 15, 'axes.titlesize': 15, 'figure.figsize': (10, 6)})
-# summarize_1d()
+summarize_1d()
 # Adverse case for us
-# draw_1d_qps_recall_by_dataset_selectivity()
-# draw_1d_comp_recall_by_dataset_selectivity()
+draw_1d_qps_recall_by_dataset_selectivity()
+draw_1d_comp_recall_by_dataset_selectivity()
 # draw_1d_by_dataset()
 # draw_1d_by_dataset_method()
 

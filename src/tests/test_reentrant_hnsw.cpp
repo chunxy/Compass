@@ -16,7 +16,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "hnswlib.h"
 #include "json.hpp"
 #include "methods/Pod.h"
 #include "methods/ReentrantHNSW.h"

@@ -11,7 +11,7 @@ from .config import *
 
 def summarize_2d():
   entries = [(
-    logs / m / METHOD_WORKLOAD_TMPL[m].format(d, *rg) / METHOD_BUILD_TMPL[m].format(*b) / METHOD_SEARCH_TMPL[m].format(*r),
+    logs_100 / m / METHOD_WORKLOAD_TMPL[m].format(d, *rg) / METHOD_BUILD_TMPL[m].format(*b) / METHOD_SEARCH_TMPL[m].format(*r),
     m,
     d,
     METHOD_WORKLOAD_TMPL[m].format(d, *rg),

@@ -4,7 +4,7 @@
 
 // directories
 const std::string WORKSPACE = "/home/chunxy/repos/Compass";
-const std::string LOGS = WORKSPACE + "/logs";
+const std::string LOGS = WORKSPACE + "/logs_{}";
 const std::string CKPS = WORKSPACE + "/checkpoints";
 
 const std::string DATA = WORKSPACE + "/data";
@@ -26,5 +26,6 @@ const std::string FILTER_WORKLOAD_TMPL = "{}_{}_{}";        // {method}_{range}_
 // const std::string COMPASS_CHECKPOINT_TMPL = "{}";                // {name}
 const std::string COMPASS_GRAPH_CHECKPOINT_TMPL = "{}_{}.hnsw";  // {M}_{efc}
 const std::string COMPASS_IVF_CHECKPOINT_TMPL = "{}.ivf";        // {nlist}
+const std::string COMPASS_RANK_CHECKPOINT_TMPL = "{}_{}.rank";   // {nb}_{nlist}
 const std::string COMPASS_IMI_CHECKPOINT_TMPL = "{}_{}.imi";     // {nsub}_{nbits}
 const std::string ACORN_CHECKPOINT_TMPL = "{}_{}_{}_{}.acorn";   // {M}_{M_beta}_{efc}_{gamma}

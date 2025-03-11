@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
   std::string search_param = fmt::format("efs_{}_nrel_{}", args.efs, args.nrel);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-  fs::path log_root(LOGS);
+  fs::path log_root(fmt::format(LOGS, args.k));
   fs::path log_dir = log_root / method / workload / build_param / search_param;
   fs::create_directories(log_dir);
 
