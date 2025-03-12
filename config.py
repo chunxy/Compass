@@ -4,8 +4,7 @@ from itertools import product
 
 
 # Directories
-logs_100 = Path("/home/chunxy/repos/Compass/logs_100")
-logs_10 = Path("/home/chunxy/repos/Compass/logs_10")
+LOGS_TMPL = "/home/chunxy/repos/Compass/logs_{}"
 
 # Names
 ONED_METHODS = {"CompassR1d", "CompassRImi1d", "CompassIvf1d", "CompassGraph1d", "Serf", "iRangeGraph"}
@@ -162,17 +161,28 @@ typical_compass_1d_builds = [
 
 CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
 typical_compass_1d_searches = [
-  CompassSearch(100, 500, 1000),
-  CompassSearch(110, 500, 1000),
-  CompassSearch(120, 500, 1000),
-  CompassSearch(130, 500, 1000),
-  CompassSearch(140, 500, 1000),
-  CompassSearch(150, 500, 1000),
-  CompassSearch(160, 500, 1000),
-  CompassSearch(180, 500, 1000),
-  CompassSearch(200, 500, 1000),
-  CompassSearch(250, 500, 1000),
-  CompassSearch(300, 500, 1000),
+  # CompassSearch(100, 500, 1000),
+  # CompassSearch(110, 500, 1000),
+  # CompassSearch(120, 500, 1000),
+  # CompassSearch(130, 500, 1000),
+  # CompassSearch(140, 500, 1000),
+  # CompassSearch(150, 500, 1000),
+  # CompassSearch(160, 500, 1000),
+  # CompassSearch(180, 500, 1000),
+  # CompassSearch(200, 500, 1000),
+  # CompassSearch(250, 500, 1000),
+  # CompassSearch(300, 500, 1000),
+  CompassSearch(10, 500, 1000),
+  CompassSearch(15, 500, 1000),
+  CompassSearch(20, 500, 1000),
+  CompassSearch(25, 500, 1000),
+  CompassSearch(30, 500, 1000),
+  CompassSearch(35, 500, 1000),
+  CompassSearch(40, 500, 1000),
+  CompassSearch(50, 500, 1000),
+  CompassSearch(60, 500, 1000),
+  CompassSearch(70, 500, 1000),
+  CompassSearch(80, 500, 1000),
 ]
 
 typical_compass_2d_searches = [
@@ -249,26 +259,36 @@ typical_serf_builds = [
   # SerfBuild(64, 100, 200),
   # SerfBuild(64, 200, 200),
   # SerfBuild(16, 100, 500),
-  # SerfBuild(16, 200, 500),
+  SerfBuild(16, 200, 500),
   # SerfBuild(32, 100, 500),
-  SerfBuild(32, 200, 500),
-  # SerfBuild(64, 100, 500),
+  SerfBuild(32, 200, 500),  # SerfBuild(64, 100, 500),
   # SerfBuild(64, 200, 500),
 ]
 
 SerfSearch = namedtuple("SerfSearch", ["efs"])
 typical_serf_searches = [
-  SerfSearch(100),
-  SerfSearch(110),
-  SerfSearch(120),
-  SerfSearch(130),
-  SerfSearch(140),
-  SerfSearch(150),
-  SerfSearch(160),
-  SerfSearch(180),
-  SerfSearch(200),
-  SerfSearch(250),
-  SerfSearch(300),
+  # SerfSearch(100),
+  # SerfSearch(110),
+  # SerfSearch(120),
+  # SerfSearch(130),
+  # SerfSearch(140),
+  # SerfSearch(150),
+  # SerfSearch(160),
+  # SerfSearch(180),
+  # SerfSearch(200),
+  # SerfSearch(250),
+  # SerfSearch(300),
+  SerfSearch(10),
+  SerfSearch(15),
+  SerfSearch(20),
+  SerfSearch(25),
+  SerfSearch(30),
+  SerfSearch(35),
+  SerfSearch(40),
+  SerfSearch(50),
+  SerfSearch(60),
+  SerfSearch(70),
+  SerfSearch(80),
 ]
 
 iRangeGraphBuild = namedtuple("iRangeGraphBuild", ["M", "efc"])
@@ -281,17 +301,28 @@ typical_i_range_graph_builds = [
 
 iRangeGraphSearch = namedtuple("iRangeGraphSearch", ["efs"])
 typical_i_range_graph_searches = [
-  iRangeGraphSearch(100),
-  iRangeGraphSearch(110),
-  iRangeGraphSearch(120),
-  iRangeGraphSearch(130),
-  iRangeGraphSearch(140),
-  iRangeGraphSearch(150),
-  iRangeGraphSearch(160),
-  iRangeGraphSearch(180),
-  iRangeGraphSearch(200),
-  iRangeGraphSearch(250),
-  iRangeGraphSearch(300),
+  # iRangeGraphSearch(100),
+  # iRangeGraphSearch(110),
+  # iRangeGraphSearch(120),
+  # iRangeGraphSearch(130),
+  # iRangeGraphSearch(140),
+  # iRangeGraphSearch(150),
+  # iRangeGraphSearch(160),
+  # iRangeGraphSearch(180),
+  # iRangeGraphSearch(200),
+  # iRangeGraphSearch(250),
+  # iRangeGraphSearch(300),
+  iRangeGraphSearch(10),
+  iRangeGraphSearch(15),
+  iRangeGraphSearch(20),
+  iRangeGraphSearch(25),
+  iRangeGraphSearch(30),
+  iRangeGraphSearch(35),
+  iRangeGraphSearch(40),
+  iRangeGraphSearch(50),
+  iRangeGraphSearch(60),
+  iRangeGraphSearch(70),
+  iRangeGraphSearch(80),
 ]
 
 # Mappings
