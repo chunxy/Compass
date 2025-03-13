@@ -13,6 +13,8 @@
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard sift_1_10000_float32 --l 100 --r 600 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard sift_1_10000_float32 --l 100 --r 1100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard sift_1_10000_float32 --l 100 --r 2100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard sift_1_10000_float32 --l 100 --r 3100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard sift_1_10000_float32 --l 100 --r 4100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard sift_1_10000_float32 --l 100 --r 5100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard sift_1_10000_float32 --l 100 --r 6100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard sift_1_10000_float32 --l 100 --r 7100 --k 100
@@ -24,6 +26,8 @@
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard gist_1_10000_float32 --l 100 --r 600 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard gist_1_10000_float32 --l 100 --r 1100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard gist_1_10000_float32 --l 100 --r 2100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard gist_1_10000_float32 --l 100 --r 3100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard gist_1_10000_float32 --l 100 --r 4100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard gist_1_10000_float32 --l 100 --r 5100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard gist_1_10000_float32 --l 100 --r 6100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard gist_1_10000_float32 --l 100 --r 7100 --k 100
@@ -35,6 +39,8 @@
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard crawl_1_10000_float32 --l 100 --r 600 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard crawl_1_10000_float32 --l 100 --r 1100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard crawl_1_10000_float32 --l 100 --r 2100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard crawl_1_10000_float32 --l 100 --r 3100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard crawl_1_10000_float32 --l 100 --r 4100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard crawl_1_10000_float32 --l 100 --r 5100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard crawl_1_10000_float32 --l 100 --r 6100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard crawl_1_10000_float32 --l 100 --r 7100 --k 100
@@ -46,6 +52,8 @@
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard glove100_1_10000_float32 --l 100 --r 600 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard glove100_1_10000_float32 --l 100 --r 1100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard glove100_1_10000_float32 --l 100 --r 2100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard glove100_1_10000_float32 --l 100 --r 3100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard glove100_1_10000_float32 --l 100 --r 4100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard glove100_1_10000_float32 --l 100 --r 5100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard glove100_1_10000_float32 --l 100 --r 6100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard glove100_1_10000_float32 --l 100 --r 7100 --k 100
@@ -57,6 +65,8 @@
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard audio_1_10000_float32 --l 100 --r 600 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard audio_1_10000_float32 --l 100 --r 1100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard audio_1_10000_float32 --l 100 --r 2100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard audio_1_10000_float32 --l 100 --r 3100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard audio_1_10000_float32 --l 100 --r 4100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard audio_1_10000_float32 --l 100 --r 5100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard audio_1_10000_float32 --l 100 --r 6100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard audio_1_10000_float32 --l 100 --r 7100 --k 100
@@ -69,6 +79,8 @@
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard video_1_10000_float32 --l 100 --r 600 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard video_1_10000_float32 --l 100 --r 1100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard video_1_10000_float32 --l 100 --r 2100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard video_1_10000_float32 --l 100 --r 3100 --k 100
+/home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard video_1_10000_float32 --l 100 --r 4100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard video_1_10000_float32 --l 100 --r 5100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard video_1_10000_float32 --l 100 --r 6100 --k 100
 /home/chunxy/repos/Compass/build/Release/src/apps/compute_groundtruth --datacard video_1_10000_float32 --l 100 --r 7100 --k 100

@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
   std::string param = fmt::format("M_{}_beta_{}_efc_{}_gamma_{}_efs_{}", M, M_beta, efc, gamma, efs);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-  fs::path log_root(fmt::format(LOGS, args.k));
+  fs::path log_root(fmt::format(LOGS, k));
   fs::path log_dir = log_root / method / workload / param;
   fs::create_directories(log_dir);
 

@@ -225,8 +225,8 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
     "comp": float,
   }
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
-  cutoff_recalls = [0.8]
-  cutoff_colors = ["b"]
+  cutoff_recalls = [0.8, 0.9]
+  cutoff_colors = ["b", "r"]
 
   selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
   for dataset in DATASETS:
@@ -378,8 +378,8 @@ plt.rcParams.update({
 draw_1d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_1d_qps_comp_fixed_recall_by_dataset_selectivity()
 
-draw_1d_by_selected_dataset_adverse()
-draw_1d_by_selected_dataset_favorable()
+# draw_1d_by_selected_dataset_adverse()
+# draw_1d_by_selected_dataset_favorable()
 
 # draw_1d_by_dataset()
 # draw_1d_by_dataset_method()
