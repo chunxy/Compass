@@ -228,7 +228,7 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
   cutoff_recalls = [0.8, 0.9]
   cutoff_colors = ["b", "r"]
 
-  selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
+  selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
   for dataset in DATASETS:
     for recall, color in zip(cutoff_recalls, cutoff_colors):
       fig, (ax0, ax1) = plt.subplots(2, layout='constrained', sharex=True)
@@ -373,7 +373,7 @@ plt.rcParams.update({
   'axes.titlesize': 15,
   'figure.figsize': (10, 6),
 })
-# summarize_1d()
+summarize_1d()
 
 draw_1d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_1d_qps_comp_fixed_recall_by_dataset_selectivity()
