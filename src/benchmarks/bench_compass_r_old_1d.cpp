@@ -1,9 +1,13 @@
 #include "config.h"
+#include "faiss/MetricType.h"
+#include "hnswlib.h"
 #include "json.hpp"
-#include "methods/CompassIvf1d.h"
+#include "methods/CompassROld1d.h"
+#include "methods/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
@@ -11,11 +15,15 @@
 #include <fmt/chrono.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <iterator>
 #include <limits>
 #include <map>
+#include <numeric>
 #include <omp.h>
 #include <set>
 #include <string>
+#include <sys/stat.h>
+#include <utility>
 #include <vector>
 
 namespace fs = boost::filesystem;
@@ -33,23 +41,26 @@ int main(int argc, char **argv) {
   int nb = c.n_base;        // number of database vectors
   int nq = c.n_queries;     // number of queries
   int ng = c.n_groundtruth; // number of computed groundtruth entries
+  assert(nq % args.batchsz == 0);
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
-  std::string method = "CompassIvf1d";
+  std::string method = "CompassROld1d";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range,
                                      args.l_bound, args.u_bound, args.k);
-  std::string build_param = fmt::format("nlist_{}", args.nlist);
-  std::string search_param = fmt::format("nprobe_{}", args.nprobe);
+  std::string build_param =
+      fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
+  std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", args.efs,
+                                         args.nrel, args.mincomp);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-  fs::path dir(fmt::format(LOGS, args.k));
-  fs::path log_dir = dir / method / workload / build_param / search_param;
+  fs::path log_root(fmt::format(LOGS, args.k));
+  fs::path log_dir = log_root / method / workload / build_param / search_param;
   fs::create_directories(log_dir);
 
-  fmt::print("Writing to {}.\n", (log_dir / out_text).string());
   fmt::print("Saving to {}.\n", (log_dir / out_json).string());
 #ifndef COMPASS_DEBUG
+  fmt::print("Writing to {}.\n", (log_dir / out_text).string());
   freopen((log_dir / out_text).c_str(), "w", stdout);
 #endif
 
@@ -65,16 +76,23 @@ int main(int argc, char **argv) {
 
   // Load groundtruth for hybrid search.
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, {args.l_bound}, {args.u_bound}, args.k, hybrid_topks);
+  load_hybrid_query_gt(c, {args.l_bound}, vector<float>{args.u_bound}, args.k,
+                       hybrid_topks);
   fmt::print("Finished loading groundtruth.\n");
 
   // Compute selectivity.
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  CompassIvf1D<float, float> comp(d, nb, args.nlist, args.nprobe, xb);
+  int nbits = 10; // the number of bits to represent the sub-centroid
+  CompassROld1d<float, float> comp(d, args.M, args.efc, nb, args.nlist,
+                                   args.nrel, nbits);
   fs::path ckp_root(CKPS);
+  std::string graph_ckp =
+      fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
+  std::string rank_ckp =
+      fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
@@ -89,42 +107,61 @@ int main(int argc, char **argv) {
     comp.SaveIvf(ckp_dir / ivf_ckp);
   }
 
-  auto build_index_start = high_resolution_clock::now();
-  std::vector<labeltype> labels(nb);
-  std::iota(labels.begin(), labels.end(), 0);
-  comp.AddIvfPoints(nb, xb, labels.data(), attrs);
-  auto build_index_stop = high_resolution_clock::now();
-  fmt::print("Finished adding points, took {} microseconds.\n",
-             duration_cast<microseconds>(build_index_stop - build_index_start)
-                 .count());
+  vector<labeltype> labels(nb);
+  std::iota(std::begin(labels), std::end(labels), 0);
+  comp.AddIvfPoints(nb, xb, labels.data(), attrs.data());
+
+  if (fs::exists(ckp_dir / graph_ckp)) {
+    comp.LoadGraph((ckp_dir / graph_ckp).string());
+    fmt::print("Finished loading graph index.\n");
+  } else {
+    auto build_index_start = high_resolution_clock::now();
+    for (int i = 0; i < nb; i++)
+      comp.AddGraphPoint(xb + i * d, i);
+    auto build_index_stop = high_resolution_clock::now();
+    fmt::print("Finished building graph, took {} microseconds.\n",
+               duration_cast<microseconds>(build_index_stop - build_index_start)
+                   .count());
+    comp.SaveGraph(ckp_dir / graph_ckp);
+  }
+  fmt::print("Finished loading indices.\n");
 
   vector<Metric> metrics(args.batchsz, Metric(nb));
-  auto search_start = high_resolution_clock::now();
+  faiss::idx_t *ranked_clusters = new faiss::idx_t[args.batchsz * args.nlist];
+  float *distances = new float[args.batchsz * args.nlist];
+
+  auto search_start = high_resolution_clock::system_clock::now();
 #ifndef COMPASS_DEBUG
-  omp_set_num_threads(args.nthread);
-#pragma omp parallel for
+// #pragma omp parallel
+// #pragma omp single
+// #pragma omp taskloop
 #endif
   for (int j = 0; j < nq; j += args.batchsz) {
-    auto rz = comp.SearchKnn(xq + j * d, args.batchsz, args.k, args.l_bound,
-                             args.u_bound, args.nprobe, metrics);
+    comp.SearchKnn(xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound,
+                   args.efs, args.mincomp, args.nthread, metrics,
+                   ranked_clusters, distances);
   }
-  auto search_stop = high_resolution_clock::now();
+  auto search_stop = high_resolution_clock::system_clock::now();
   auto search_time =
       duration_cast<microseconds>(search_stop - search_start).count();
 
   // statistics
   Stat stat(nq);
   for (int j = 0; j < nq;) {
-    // Metric metric(nb);
     vector<Metric> metrics(args.batchsz, Metric(nb));
     auto search_start = high_resolution_clock::now();
-    auto results =
-        comp.SearchKnn(xq + j * d, args.batchsz, args.k, args.l_bound,
-                       args.u_bound, args.nprobe, metrics);
+    auto results = comp.SearchKnn(
+        xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, args.efs,
+        args.mincomp, args.nthread, metrics, ranked_clusters, distances);
     auto search_stop = high_resolution_clock::now();
 
     for (int ii = 0; ii < results.size(); ii++) {
-      auto rz = results[ii];
+      int sz = results[ii].size();
+      vector<pair<float, labeltype>> rz(sz);
+      while (!results[ii].empty()) {
+        rz[--sz] = results[ii].top();
+        results[ii].pop();
+      }
       auto metric = metrics[ii];
       std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
       int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;
@@ -158,7 +195,7 @@ int main(int argc, char **argv) {
       stat.rz_min_s[j] =
           rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
       stat.rz_max_s[j] =
-          rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
+          rz.empty() ? std::numeric_limits<float>::max() : rz.back().first;
       stat.ivf_ppsl_in_rz_s[j] = ivf_ppsl_in_rz;
       stat.graph_ppsl_in_rz_s[j] = graph_ppsl_in_rz;
       stat.gt_min_s[j] = gt_min;
