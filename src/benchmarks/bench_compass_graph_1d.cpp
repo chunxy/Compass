@@ -166,11 +166,11 @@ int main(int argc, char **argv) {
 
       stat.ivf_ppsl_nums[j] = std::accumulate(metric.is_ivf_ppsl.begin(), metric.is_ivf_ppsl.end(), 0);
       stat.graph_ppsl_nums[j] = std::accumulate(metric.is_graph_ppsl.begin(), metric.is_graph_ppsl.end(), 0);
-      stat.ivf_ppsl_qlty[j] = (double)ivf_ppsl_in_tp / stat.ivf_ppsl_nums[j];
-      stat.ivf_ppsl_rate[j] = (double)ivf_ppsl_in_rz / stat.ivf_ppsl_nums[j];
-      stat.graph_ppsl_qlty[j] = (double)graph_ppsl_in_tp / stat.graph_ppsl_nums[j];
-      stat.graph_ppsl_rate[j] = (double)graph_ppsl_in_rz / stat.graph_ppsl_nums[j];
-      stat.perc_of_ivf_ppsl_in_tp[j] = (double)ivf_ppsl_in_tp / rz_gt_interse.size();
+      stat.ivf_ppsl_qlty[j] = stat.ivf_ppsl_nums[j] != 0 ? (double)ivf_ppsl_in_tp / stat.ivf_ppsl_nums[j] : 0;
+      stat.ivf_ppsl_rate[j] = stat.ivf_ppsl_nums[j] != 0 ? (double)ivf_ppsl_in_rz / stat.ivf_ppsl_nums[j] : 0;
+      stat.graph_ppsl_qlty[j] = stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_tp / stat.graph_ppsl_nums[j] : 0;
+      stat.graph_ppsl_rate[j] = stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_rz / stat.graph_ppsl_nums[j] : 0;
+      stat.perc_of_ivf_ppsl_in_tp[j] = rz_gt_interse.size() != 0 ? (double)ivf_ppsl_in_tp / rz_gt_interse.size() : 0;
       stat.perc_of_ivf_ppsl_in_rz[j] = (double)ivf_ppsl_in_rz / rz.size();
       stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
       stat.num_computations[j] = metric.ncomp;
