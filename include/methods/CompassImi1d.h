@@ -1,8 +1,8 @@
 #pragma once
 
 #include "btree_map.h"
-#include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
+#include "faiss/IndexPQ.h"
 #include "faiss/MetricType.h"
 #include "faiss/index_io.h"
 #include "hnswlib/hnswlib.h"
@@ -24,10 +24,10 @@ using std::vector;
 
 namespace fs = boost::filesystem;
 
-template <typename dist_t, typename attr_t> class CompassIvf1D {
+template <typename dist_t, typename attr_t> class CompassImi1d {
 private:
   L2Space space_;
-  faiss::IndexFlatL2 quantizer_;
+  faiss::MultiIndexQuantizer quantizer_;
   faiss::IndexIVFFlat *ivf_;
   // faiss::IndexIVFPQ ivfpq_;
 
@@ -38,11 +38,16 @@ private:
   const float *xb_;
 
 public:
-  CompassIvf1D(size_t d, size_t max_elements, size_t nlist, size_t nprobe,
-               const float *xb);
+  CompassImi1d(size_t d, size_t max_elements, size_t nsub, size_t nbits,
+               const float *xb)
+      : space_(d), quantizer_(d, nsub, nbits),
+        ivf_(new faiss::IndexIVFFlat(&quantizer_, d, 1 << (nsub * nbits))),
+        attrs_(max_elements, std::numeric_limits<attr_t>::max()),
+        btrees_((1 << (nbits * nsub)), btree::btree_map<attr_t, labeltype>()),
+        xb_(xb) {
+    ivf_->quantizer_trains_alone = true;
+  }
   int Add(const void *data_point, labeltype label, attr_t attr);
-  // void AddMultiple(size_t n, const void *data, labeltype *labels, attr_t
-  // *attrs);
   int AddIvfPoints(size_t n, const void *data, labeltype *labels,
                    const vector<attr_t> &attrs);
   void TrainIvf(size_t n, const void *data);
@@ -51,7 +56,6 @@ public:
   SearchKnn(const void *query, const int nq, const int k, const attr_t &l_bound,
             const attr_t &u_bound, const int nprobe, vector<Metric> &metrics,
             faiss::idx_t *ranked_clusters) {
-    memset(ranked_clusters, -1, sizeof(faiss::idx_t) * nq * nprobe);
     // auto centroids = quantizer_.get_xb();
     // auto dist_func = quantizer_.get_distance_computer();
     ivf_->quantizer->assign(nq, (float *)query, ranked_clusters, nprobe);
@@ -102,18 +106,7 @@ public:
 };
 
 template <typename dist_t, typename attr_t>
-CompassIvf1D<dist_t, attr_t>::CompassIvf1D(size_t d, size_t max_elements,
-                                           size_t nlist, size_t nprobe,
-                                           const float *xb)
-    : space_(d), quantizer_(d),
-      ivf_(new faiss::IndexIVFFlat(&quantizer_, d, nlist)),
-      attrs_(max_elements, std::numeric_limits<attr_t>::max()),
-      btrees_(nlist, btree::btree_map<attr_t, labeltype>()), xb_(xb) {
-  ivf_->nprobe = nprobe;
-}
-
-template <typename dist_t, typename attr_t>
-int CompassIvf1D<dist_t, attr_t>::Add(const void *data_point, labeltype label,
+int CompassImi1d<dist_t, attr_t>::Add(const void *data_point, labeltype label,
                                       attr_t attr) {
   attrs_[label] = attr;
   ivf_->add(1, (float *)data_point); // add_sa_codes
@@ -125,7 +118,7 @@ int CompassIvf1D<dist_t, attr_t>::Add(const void *data_point, labeltype label,
 }
 
 template <typename dist_t, typename attr_t>
-void CompassIvf1D<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
+void CompassImi1d<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
   ivf_->train(n, (float *)data);
   // ivfpq_.train(n, (float *)data);
   // assigned_clusters = new faiss::idx_t[n * 1];
@@ -133,7 +126,7 @@ void CompassIvf1D<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
 }
 
 template <typename dist_t, typename attr_t>
-int CompassIvf1D<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data,
+int CompassImi1d<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data,
                                                labeltype *labels,
                                                const vector<attr_t> &attrs) {
   ivf_->add(n, (float *)data); // add_sa_codes
@@ -148,13 +141,13 @@ int CompassIvf1D<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data,
 }
 
 template <typename dist_t, typename attr_t>
-void CompassIvf1D<dist_t, attr_t>::SaveIvf(fs::path path) {
+void CompassImi1d<dist_t, attr_t>::SaveIvf(fs::path path) {
   fs::create_directories(path.parent_path());
   faiss::write_index(dynamic_cast<faiss::Index *>(this->ivf_), path.c_str());
 }
 
 template <typename dist_t, typename attr_t>
-void CompassIvf1D<dist_t, attr_t>::LoadIvf(fs::path path) {
+void CompassImi1d<dist_t, attr_t>::LoadIvf(fs::path path) {
   auto ivf_file = fopen(path.c_str(), "r");
   auto index = faiss::read_index(ivf_file);
   this->ivf_ = dynamic_cast<faiss::IndexIVFFlat *>(index);

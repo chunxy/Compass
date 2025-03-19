@@ -1,6 +1,7 @@
 #include "config.h"
+#include "faiss/MetricType.h"
 #include "json.hpp"
-#include "methods/CompassIvf1d.h"
+#include "methods/CompassImi1d.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 #include <boost/filesystem.hpp>
@@ -36,10 +37,11 @@ int main(int argc, char **argv) {
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
-  std::string method = "CompassIvf1d";
+  std::string method = "CompassImi1d";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range,
                                      args.l_bound, args.u_bound, args.k);
-  std::string build_param = fmt::format("nlist_{}", args.nlist);
+  std::string build_param =
+      fmt::format("nsub_{}_nbits_{}", args.nsub, args.nbits);
   std::string search_param = fmt::format("nprobe_{}", args.nprobe);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
@@ -72,10 +74,11 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  CompassIvf1D<float, float> comp(d, nb, args.nlist, args.nprobe, xb);
+  CompassImi1d<float, float> comp(d, nb, args.nsub, args.nbits, xb);
   fs::path ckp_root(CKPS);
-  std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
-  fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
+  std::string ivf_ckp =
+      fmt::format(COMPASS_IMI_CHECKPOINT_TMPL, args.nsub, args.nbits);
+  fs::path ckp_dir = ckp_root / method / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
     fmt::print("Finished loading IVF index.\n");
@@ -99,7 +102,7 @@ int main(int argc, char **argv) {
                  .count());
 
   vector<Metric> metrics(args.batchsz, Metric(nb));
-  auto ranked_clusters = new faiss::idx_t[args.batchsz * args.nprobe];
+  faiss::idx_t *ranked_clusters = new faiss::idx_t[args.batchsz * args.nprobe];
   auto search_start = high_resolution_clock::now();
 #ifndef COMPASS_DEBUG
   // omp_set_num_threads(args.nthread);
