@@ -25,7 +25,7 @@ void load_hybrid_data(
   auto d = c.dim, nb = c.n_base, nq = c.n_queries, ng = c.n_groundtruth;
   xb = new float[d * nb];
   xq = new float[d * nq];
-  gt = new uint32_t[ng * nq];
+  // gt = new uint32_t[ng * nq];
   int i;
 
   FVecItrReader base_it(c.base_path);
@@ -42,13 +42,13 @@ void load_hybrid_data(
     memcpy(xq + i * d, next.data(), d * sizeof(float));
     i++;
   }
-  IVecItrReader groundtruth_it(c.groundtruth_path);
-  i = 0;
-  while (!groundtruth_it.HasEnded()) {
-    auto next = groundtruth_it.Next();
-    memcpy(gt + i * ng, next.data(), ng * sizeof(uint32_t));
-    i++;
-  }
+  // IVecItrReader groundtruth_it(c.groundtruth_path);
+  // i = 0;
+  // while (!groundtruth_it.HasEnded()) {
+  //   auto next = groundtruth_it.Next();
+  //   memcpy(gt + i * ng, next.data(), ng * sizeof(uint32_t));
+  //   i++;
+  // }
 
   std::string attr_path = fmt::format(VALUE_PATH_TMPL, c.name, c.attr_dim, c.attr_range);
   BinaryAttrReader<float> reader(attr_path);
