@@ -169,7 +169,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassF1d<dist_t, attr_t>::Sear
     size_t total_proposed = 0;
     size_t max_dist_comp = 10;
     metrics[q].nround = 0;
-    metrics[q].tcontext = 0;
 
     hnsw_.ReentrantSearchKnnV2(
         (float *)query + q * ivf_->d,

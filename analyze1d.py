@@ -276,12 +276,11 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
     "comp": float,
   }
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
-  cutoff_recalls = [0.8, 0.9]
-  cutoff_colors = ["b", "r"]
+  cutoff_recalls = [0.7, 0.8, 0.9]
 
   selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
   for dataset in DATASETS:
-    for recall, color in zip(cutoff_recalls, cutoff_colors):
+    for recall in cutoff_recalls:
       fig, (ax0, ax1) = plt.subplots(2, layout='constrained', sharex=True)
       ax0.set_xticks(np.arange(len(selectivities)))
       ax0.set_xticklabels(selectivities)
@@ -291,14 +290,13 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
       ax1.set_xlabel('Selectivity')
       data = df[df["dataset"] == dataset]
       for m in data.method.unique():
+        if m == "Serf": continue
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
 
-          grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].between(recall - 0.05, recall + 0.05)].groupby("selectivity",
-                                                                                                                    as_index=False)["qps"].max()
-          grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].between(recall - 0.05, recall + 0.05)].groupby("selectivity",
-                                                                                                                    as_index=False)["comp"].min()
+          grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["qps"].max()
+          grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["comp"].min()
           pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
           ax0.plot(pos_s, grouped_qps["qps"])
           ax0.scatter(pos_s, grouped_qps["qps"], label=f"{m}-{b}-{recall}", marker=METHOD_MARKER_MAPPING[m])
@@ -308,7 +306,7 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
       fig.set_size_inches(15, 10)
       handles, labels = ax0.get_legend_handles_labels()
       fig.legend(handles, labels, loc="outside right upper")
-      fig.savefig(f"figures_{K}/{dataset.upper()}-QPS-Comp-Recall-{recall:.1f}.jpg", dpi=200)
+      fig.savefig(f"figures_{K}/Recall-{recall:.1f}-{dataset.upper()}-QPS-Comp.jpg", dpi=200)
       ax0.cla()
       ax1.cla()
 

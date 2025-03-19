@@ -447,7 +447,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
     size_t total_proposed = 0;
     size_t max_dist_comp = 10;
     metrics[q].nround = 0;
-    metrics[q].tcontext = 0;
 
     while (true) {
       // break;  // TOREVERT
@@ -459,7 +458,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
           (functions[map[cluster]])();
           total_proposed += (functions[map[cluster]]).get();
           auto context_stop = steady_clock::now();
-          metrics[q].tcontext += duration_cast<microseconds>(context_stop - context_start).count();
           metrics[q].nround++;
         } else {
           cluster_set.pop();
@@ -603,7 +601,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
     size_t total_proposed = 0;
     size_t max_dist_comp = 10;
     metrics[q].nround = 0;
-    metrics[q].tcontext = 0;
 
     while (true) {
       if (candidate_set.empty() || (candidate_set.top().first < cluster_set.top().first)) {
@@ -614,7 +611,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
           (functions[map[cluster]])();
           total_proposed += (functions[map[cluster]]).get();
           auto context_stop = steady_clock::now();
-          metrics[q].tcontext += duration_cast<microseconds>(context_stop - context_start).count();
           metrics[q].nround++;
         } else {
           cluster_set.pop();

@@ -105,11 +105,11 @@ struct IvfGraph2dArgs {
 struct Metric {
   std::vector<bool> is_ivf_ppsl;
   std::vector<bool> is_graph_ppsl;
-  long tcontext;
+  std::vector<float> cand_dist;
   int nround;
   int ncomp;
 
-  Metric(int nb) : is_ivf_ppsl(nb, false), is_graph_ppsl(nb, false), nround(0), tcontext(0), ncomp(0) {}
+  Metric(int nb) : is_ivf_ppsl(nb, false), is_graph_ppsl(nb, false), cand_dist(500), nround(0), ncomp(0) {}
 };
 
 struct Stat {

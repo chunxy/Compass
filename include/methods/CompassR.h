@@ -174,7 +174,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR<dist_t, attr_t>::Search
     size_t total_proposed = 0;
     size_t max_dist_comp = 10;
     metrics[q].nround = 0;
-    metrics[q].tcontext = 0;
 
     int min_comp = 2000;
 
