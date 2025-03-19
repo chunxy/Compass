@@ -103,6 +103,57 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
     plt.close()
 
 
+def draw_1d_qps_comp_wrt_recall_by_selectivity():
+  types = {
+    "path": str,
+    "method": str,
+    "workload": str,
+    "build": str,
+    "dataset": str,
+    "selectivity": str,
+    "run": str,
+    "recall": float,
+    "qps": float,
+  }
+  df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
+
+  selectors = [df["selectivity"] == r for r in ONED_PASSRATES]
+
+  for selector in selectors:
+    if not selector.any(): continue
+    data = df[selector]
+    dataset = data["dataset"].reset_index(drop=True)[0]
+    selectivity = float(data["selectivity"].reset_index(drop=True)[0])
+
+    fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
+    for i, dataset in enumerate(DATASETS):
+      for m in data.method.unique():
+        if m == "Serf": continue
+        for b in data[data["method"] == m].build.unique():
+          data_by_m_b = data[(data["method"] == m) & (data["build"] == b) & (data["dataset"] == dataset)]
+          recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+          recall_qps = recall_qps.to_numpy()
+          axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
+          axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=METHOD_MARKER_MAPPING[m])
+          axs[0][i].set_xlabel('Recall')
+          axs[0][i].set_ylabel('QPS')
+          axs[0][i].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
+
+          comp_qps = data_by_m_b[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
+          comp_qps = comp_qps.to_numpy()
+          axs[1][i].plot(comp_qps[:, 0], comp_qps[:, 1])
+          axs[1][i].scatter(comp_qps[:, 0], comp_qps[:, 1], label=f"{m}-{b}", marker=METHOD_MARKER_MAPPING[m])
+          axs[1][i].set_xlabel('Recall')
+          axs[1][i].set_ylabel('# Comp')
+          axs[1][i].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
+
+    fig.set_size_inches(35, 10)
+    handles, labels = axs[0][0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='outside right upper')
+    fig.savefig(f"figures_{K}/All-{selectivity:.1%}-QPS-Comp-Recall.jpg", dpi=200)
+    plt.close()
+
+
 def draw_1d_by_dataset():
   types = {
     "path": str,
@@ -373,9 +424,10 @@ plt.rcParams.update({
   'axes.titlesize': 15,
   'figure.figsize': (10, 6),
 })
-summarize_1d()
+# summarize_1d()
 
 draw_1d_qps_comp_wrt_recall_by_dataset_selectivity()
+draw_1d_qps_comp_wrt_recall_by_selectivity()
 draw_1d_qps_comp_fixed_recall_by_dataset_selectivity()
 
 # draw_1d_by_selected_dataset_adverse()
