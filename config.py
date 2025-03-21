@@ -10,13 +10,7 @@ ONED_METHODS = {"CompassR1d", "CompassROld1d", "CompassRImi1d", "CompassIvf1d", 
 TWOD_METHODS = {"CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d"}
 DATASETS = {"sift", "gist", "crawl", "glove100", "audio", "video"}
 ONED_PASSRATES = {"0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"}
-TWOD_PASSRATES = {
-  "0.01",
-  "0.02",
-  "0.05",
-  "0.1",
-  "0.2",
-}
+TWOD_PASSRATES = {"0.01", "0.02", "0.05", "0.1", "0.2"}
 
 # Templates
 METHOD_WORKLOAD_TMPL = {
@@ -75,38 +69,13 @@ METHOD_PARAM_TMPL = {m: METHOD_BUILD_TMPL[m] + '_' + METHOD_SEARCH_TMPL[m] for m
 # Arguments
 RangeFilterRange = namedtuple("RangeFilterRange", ["l", "r"])
 typical_rf_ranges = [
-  RangeFilterRange(100, 200),
-  RangeFilterRange(100, 300),
-  RangeFilterRange(100, 600),
-  RangeFilterRange(100, 1100),
-  RangeFilterRange(100, 2100),
-  RangeFilterRange(100, 3100),
-  RangeFilterRange(100, 4100),
-  RangeFilterRange(100, 5100),
-  RangeFilterRange(100, 6100),
-  RangeFilterRange(100, 7100),
-  RangeFilterRange(100, 8100),
-  RangeFilterRange(100, 9100),
+  *[RangeFilterRange(100, r) for r in (200, 300, 600, 1100, 2100, 3100, 4100, 5100, 6100, 7100, 8100, 9100)],
   RangeFilterRange(0, 10000),
 ]
-
-typical_ivf_rf_ranges = [
-  RangeFilterRange(100, 200),
-  RangeFilterRange(100, 300),
-  RangeFilterRange(100, 600),
-  RangeFilterRange(100, 1100),
-]
+typical_ivf_rf_ranges = [*[RangeFilterRange(100, r) for r in (200, 300, 600, 1100)]]
 
 LabelFilterRange = namedtuple("LabelFilterRange", ["max"])
-typical_franges = [
-  LabelFilterRange(2),
-  LabelFilterRange(5),
-  LabelFilterRange(10),
-  LabelFilterRange(50),
-  LabelFilterRange(100),
-  LabelFilterRange(500),
-  LabelFilterRange(1000),
-]
+typical_franges = [*[LabelFilterRange(n) for n in (2, 5, 10, 50, 100, 500, 1000)]]
 
 WindowFilterRange = namedtuple("WindowFilterRange", ["l1", "l2", "r1", "r2"])
 typical_wranges = [
@@ -119,180 +88,85 @@ typical_wranges = [
 
 FractionRange = namedtuple("FractionRange", ["range", "ndata"])
 typical_serf_2d_ranges = [
-  FractionRange(1000, 1_000_000),
-  FractionRange(5000, 1_000_000),
-  FractionRange(10000, 1_000_000),
-  FractionRange(20000, 1_000_000),
-  FractionRange(50000, 1_000_000),
-  FractionRange(100000, 1_000_000),
-  FractionRange(200000, 1_000_000),
-  FractionRange(300000, 1_000_000),
-  FractionRange(400000, 1_000_000),
-  FractionRange(500000, 1_000_000),
-  FractionRange(600000, 1_000_000),
-  FractionRange(700000, 1_000_000),
-  FractionRange(800000, 1_000_000),
-  FractionRange(900000, 1_000_000),
-  FractionRange(1000000, 1_000_000),
-  # FractionRange(1900, 1_900_000),
-  # FractionRange(9500, 1_900_000),
-  FractionRange(19_000, 1_900_000),
-  FractionRange(38_000, 1_900_000),
-  FractionRange(95_000, 1_900_000),
-  FractionRange(190_000, 1_900_000),
-  FractionRange(380_000, 1_900_000),
-  FractionRange(570_000, 1_900_000),
-  FractionRange(760_000, 1_900_000),
-  FractionRange(950_000, 1_900_000),
-  FractionRange(1140_000, 1_900_000),
-  FractionRange(1330_000, 1_900_000),
-  FractionRange(1520_000, 1_900_000),
-  FractionRange(1710_000, 1_900_000),
-  FractionRange(1900_000, 1_900_000),
+  *[
+    FractionRange(r, 1_000_000) for r in (
+      # 1000,
+      # 5000,
+      10000,
+      20000,
+      50000,
+      100000,
+      200000,
+      300000,
+      400000,
+      500000,
+      600000,
+      700000,
+      800000,
+      900000,
+      1000000,
+    )
+  ],
+  *[
+    FractionRange(r, 1_900_000) for r in (
+      # 1900,
+      # 9500,
+      19_000,
+      38_000,
+      95_000,
+      190_000,
+      380_000,
+      570_000,
+      760_000,
+      950_000,
+      1140_000,
+      1330_000,
+      1520_000,
+      1710_000,
+      1900_000,
+    )
+  ],
 ]
 
 typical_irange_graph_2d_ranges = [
-  FractionRange(10000, 1_000_000),
-  FractionRange(20000, 1_000_000),
-  FractionRange(50000, 1_000_000),
-  FractionRange(100000, 1_000_000),
-  FractionRange(200000, 1_000_000),
-  FractionRange(19000, 1_900_000),
-  FractionRange(38000, 1_900_000),
-  FractionRange(95000, 1_900_000),
-  FractionRange(190000, 1_900_000),
-  FractionRange(380000, 1_900_000),
+  *[FractionRange(r, 1_000_000) for r in (10000, 20000, 50000, 100000, 200000)],
+  *[FractionRange(r, 1_900_000) for r in (19_000, 38_000, 95_000, 190_000, 380_000)],
 ]
 
 CompassBuild = namedtuple("CompassBuild", ["M", "efc", "nlist"])
 typical_compass_1d_builds = [
-  # CompassBuild(16, 200, 500),
-  # CompassBuild(16, 200, 1000),
-  # CompassBuild(32, 100, 1000),
-  # CompassBuild(32, 200, 500),
-  CompassBuild(32, 200, 1000),
-  # CompassBuild(64, 100, 500),
-  # CompassBuild(64, 100, 1000),
-  # CompassBuild(64, 200, 500),
-  # CompassBuild(64, 200, 1000),
+  CompassBuild(32, 200, 1000),  # *[CompassBuild(M, efc, nlist) for M, efc, nlist in product([16, 32, 64], [100, 200], [500, 100])]
 ]
 
 CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
 typical_compass_1d_searches = [
-  # CompassSearch(100, 500, 1000),
-  # CompassSearch(110, 500, 1000),
-  # CompassSearch(120, 500, 1000),
-  # CompassSearch(130, 500, 1000),
-  # CompassSearch(140, 500, 1000),
-  # CompassSearch(150, 500, 1000),
-  # CompassSearch(160, 500, 1000),
-  # CompassSearch(180, 500, 1000),
-  # CompassSearch(200, 500, 1000),
-  # CompassSearch(250, 500, 1000),
-  # CompassSearch(300, 500, 1000),
-  CompassSearch(10, 500, 1000),
-  CompassSearch(15, 500, 1000),
-  CompassSearch(20, 500, 1000),
-  CompassSearch(25, 500, 1000),
-  CompassSearch(30, 500, 1000),
-  CompassSearch(35, 500, 1000),
-  CompassSearch(40, 500, 1000),
-  CompassSearch(50, 500, 1000),
-  CompassSearch(60, 500, 1000),
-  CompassSearch(70, 500, 1000),
-  CompassSearch(80, 500, 1000),
-  CompassSearch(100, 500, 1000),
-  CompassSearch(120, 500, 1000),
-  CompassSearch(140, 500, 1000),
-  CompassSearch(160, 500, 1000),
-  CompassSearch(180, 500, 1000),
-  CompassSearch(200, 500, 1000),
+  # *[CompassSearch(efs, 500, 1000) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
+  *[CompassSearch(efs, 500, 1000) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200)],
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([20, 40, 60, 100, 200], [600, 700, 800])]
 ]
-
-typical_compass_1d_old_searches = [
-  CompassSearch(10, 500, 1000),
-  CompassSearch(20, 500, 1000),
-  CompassSearch(60, 500, 1000),
-  CompassSearch(100, 500, 1000),
-  CompassSearch(200, 500, 1000),
-]
-
-typical_compass_2d_searches = [
-  CompassSearch(100, 100, 1000),
-  CompassSearch(250, 100, 1000),
-]
+typical_compass_1d_old_searches = [*[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 40, 60, 100, 200], [500, 600, 700, 800])]]
+typical_compass_2d_searches = [CompassSearch(100, 100, 1000), CompassSearch(250, 100, 1000)]
 
 CompassRImiBuild = namedtuple("CompassRImiBuild", ["M", "efc", "nsub", "nbits"])
-typical_compass_r_imi_builds = [
-  CompassRImiBuild(16, 100, 4, 4),
-  CompassRImiBuild(16, 200, 4, 4),
-  CompassRImiBuild(32, 100, 4, 4),
-  CompassRImiBuild(32, 200, 4, 4),
-  CompassRImiBuild(64, 100, 4, 4),
-  CompassRImiBuild(64, 200, 4, 4),
-  CompassRImiBuild(16, 100, 2, 9),
-  CompassRImiBuild(16, 100, 2, 9),
-  CompassRImiBuild(16, 200, 2, 9),
-  CompassRImiBuild(16, 200, 2, 9),
-  CompassRImiBuild(32, 100, 2, 9),
-  CompassRImiBuild(32, 200, 2, 9),
-  CompassRImiBuild(64, 100, 2, 9),
-  CompassRImiBuild(64, 200, 2, 9),
-]
+typical_compass_r_imi_builds = [*[CompassRImiBuild(M, efc, *imi) for M, efc, imi in product([16, 32, 64], [100, 200], [(4, 4), (2, 9)])]]
 
 CompassIvfBuild = namedtuple("CompassIvfBuild", ["nlist"])
-typical_compass_ivf_builds = [
-  # CompassIvfBuild(100),
-  CompassIvfBuild(500),
-  CompassIvfBuild(1000),
-]
+typical_compass_ivf_builds = [*[CompassIvfBuild(nlist) for nlist in (500, 1000)]]
 
 CompassIvfSearch = namedtuple("CompassIvfSearch", ["nprobe"])
-typical_compass_ivf_searches = [
-  CompassIvfSearch(10),
-  CompassIvfSearch(20),
-  CompassIvfSearch(30),
-  CompassIvfSearch(40),
-  CompassIvfSearch(50),
-  CompassIvfSearch(100),  # CompassIvfSearch(500),
-]
+typical_compass_ivf_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 20, 30, 40, 50, 100)]]
 
 CompassImiBuild = namedtuple("CompassImiBuild", ["nsub", "nbits"])
-typical_compass_imi_builds = [
-  CompassImiBuild(2, 8),
-]
+typical_compass_imi_builds = [CompassImiBuild(2, 8)]
 
 CompassImiSearch = namedtuple("CompassImiSearch", ["nprobe"])
-typical_compass_imi_searches = [
-  CompassImiSearch(100),
-  CompassImiSearch(150),
-  CompassImiSearch(200),
-  CompassImiSearch(250),
-  CompassImiSearch(300),
-  CompassImiSearch(400),
-  CompassImiSearch(500),
-]
+typical_compass_imi_searches = [*[CompassImiSearch(nprobe) for nprobe in (100, 150, 200, 250, 300, 400, 500)]]
 
 CompassGraphBuild = namedtuple("CompassGraphBuild", ["M", "efc"])
-typical_compass_graph_builds = [
-  CompassGraphBuild(16, 100),
-  CompassGraphBuild(16, 200),
-  CompassGraphBuild(32, 100),
-  CompassGraphBuild(32, 200),
-  CompassGraphBuild(64, 100),
-  CompassGraphBuild(64, 200),
-]
+typical_compass_graph_builds = [*[CompassGraphBuild(M, efc) for M, efc in product([16, 32, 64], [100, 200])]]
 
 CompassGraphSearch = namedtuple("CompassGraphSearch", ["efs", "nrel"])
-typical_compass_graph_searches = [
-  CompassGraphSearch(100, 100),
-  CompassGraphSearch(100, 200),
-  CompassGraphSearch(200, 100),
-  CompassGraphSearch(200, 200),
-  CompassGraphSearch(300, 100),
-  CompassGraphSearch(300, 200),
-]
+typical_compass_graph_searches = [*[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 200, 300], [100, 200])]]
 
 # AcornBuild = namedtuple("AcornBuild", ["M", "beta", "efc", "gamma"])
 # typical_acorn_builds = [AcornBuild(*build) for build in product(M_s, beta_s, efc_s, gamma_s)]
@@ -302,49 +176,14 @@ typical_compass_graph_searches = [
 
 SerfBuild = namedtuple("SerfBuild", ["M", "efc", "efmax"])
 typical_serf_builds = [
-  # SerfBuild(16, 100, 200),
-  # SerfBuild(16, 200, 200),
-  # SerfBuild(32, 100, 200),
-  # SerfBuild(32, 200, 200),
-  # SerfBuild(64, 100, 200),
-  # SerfBuild(64, 200, 200),
-  # SerfBuild(16, 100, 500),
   SerfBuild(16, 200, 500),
-  # SerfBuild(32, 100, 500),
-  SerfBuild(32, 200, 500),  # SerfBuild(64, 100, 500),
-  # SerfBuild(64, 200, 500),
+  SerfBuild(32, 200, 500),  # *[SerfBuild(M, efc, efmax) for M, efc, efmax in product([16, 32, 64], [100, 200], [200, 500])],
 ]
 
 SerfSearch = namedtuple("SerfSearch", ["efs"])
 typical_serf_searches = [
-  # SerfSearch(100),
-  # SerfSearch(110),
-  # SerfSearch(120),
-  # SerfSearch(130),
-  # SerfSearch(140),
-  # SerfSearch(150),
-  # SerfSearch(160),
-  # SerfSearch(180),
-  # SerfSearch(200),
-  # SerfSearch(250),
-  # SerfSearch(300),
-  SerfSearch(10),
-  SerfSearch(15),
-  SerfSearch(20),
-  SerfSearch(25),
-  SerfSearch(30),
-  SerfSearch(35),
-  SerfSearch(40),
-  SerfSearch(50),
-  SerfSearch(60),
-  SerfSearch(70),
-  SerfSearch(80),
-  SerfSearch(100),
-  SerfSearch(120),
-  SerfSearch(140),
-  SerfSearch(160),
-  SerfSearch(180),
-  SerfSearch(200),
+  # *[SerfSearch(efs) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
+  *[SerfSearch(efs) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200)],
 ]
 
 iRangeGraphBuild = namedtuple("iRangeGraphBuild", ["M", "efc"])
@@ -357,35 +196,8 @@ typical_i_range_graph_builds = [
 
 iRangeGraphSearch = namedtuple("iRangeGraphSearch", ["efs"])
 typical_i_range_graph_searches = [
-  # iRangeGraphSearch(100),
-  # iRangeGraphSearch(110),
-  # iRangeGraphSearch(120),
-  # iRangeGraphSearch(130),
-  # iRangeGraphSearch(140),
-  # iRangeGraphSearch(150),
-  # iRangeGraphSearch(160),
-  # iRangeGraphSearch(180),
-  # iRangeGraphSearch(200),
-  # iRangeGraphSearch(250),
-  # iRangeGraphSearch(300),
-  iRangeGraphSearch(10),
-  iRangeGraphSearch(15),
-  iRangeGraphSearch(20),
-  iRangeGraphSearch(25),
-  iRangeGraphSearch(30),
-  iRangeGraphSearch(35),
-  iRangeGraphSearch(40),
-  iRangeGraphSearch(50),
-  iRangeGraphSearch(60),
-  iRangeGraphSearch(70),
-  iRangeGraphSearch(80),
-  iRangeGraphSearch(90),
-  iRangeGraphSearch(100),
-  iRangeGraphSearch(120),
-  iRangeGraphSearch(140),
-  iRangeGraphSearch(160),
-  iRangeGraphSearch(180),
-  iRangeGraphSearch(200),
+  # *[iRangeGraphSearch(efs) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
+  *[iRangeGraphSearch(efs) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200)],
 ]
 
 # Mappings

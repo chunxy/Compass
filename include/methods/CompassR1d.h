@@ -118,10 +118,8 @@ class CompassR1d {
 
       {
         tableint currObj = hnsw_.enterpoint_node_;
-        dist_t curdist = hnsw_.fstdistfunc_(
-            (float *)query + q * ivf_->d,
-            hnsw_.getDataByInternalId(hnsw_.enterpoint_node_),
-            hnsw_.dist_func_param_
+        dist_t currDist = hnsw_.fstdistfunc_(
+            (float *)query + q * ivf_->d, hnsw_.getDataByInternalId(hnsw_.enterpoint_node_), hnsw_.dist_func_param_
         );
 
         for (int level = hnsw_.maxlevel_; level > 0; level--) {
@@ -145,8 +143,8 @@ class CompassR1d {
                   (float *)query + q * ivf_->d, hnsw_.getDataByInternalId(cand), hnsw_.dist_func_param_
               );
 
-              if (d < curdist) {
-                curdist = d;
+              if (d < currDist) {
+                currDist = d;
                 currObj = cand;
                 changed = true;
               }
@@ -154,12 +152,27 @@ class CompassR1d {
           }
         }
         ranked_clusters = ranked_clusters_ + currObj * nprobe;
-        candidate_set.emplace(-curdist, currObj);
+        visited[currObj] = true;
+        candidate_set.emplace(-currDist, currObj);
+        top_candidates.emplace(currDist, currObj);
       }
 
-      auto curr_ci = 0;
-      auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
-      auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
+      int curr_ci = 0;
+      auto itr_beg = btrees_[ranked_clusters[0]].lower_bound(l_bound);
+      auto itr_end = btrees_[ranked_clusters[0]].upper_bound(u_bound);
+//       while (itr_beg != itr_end) {
+//         tableint id = (*itr_beg).second;
+//         itr_beg++;
+//         visited[id] = true;
+// #ifdef USE_SSE
+//         _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+// #endif
+//         auto vect = hnsw_.getDataByInternalId(id);
+//         auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
+//         candidate_set.emplace(-dist, id);
+//         top_candidates.emplace(dist, id);
+//       }
+//       curr_ci = 1;
 
       int cnt = 0;
       while (true) {
@@ -191,8 +204,7 @@ class CompassR1d {
             metrics[q].ncomp++;
             crel++;
 
-            auto upper_bound =
-                top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+            auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
             if (top_candidates.size() < efs || dist < upper_bound) {
               candidate_set.emplace(-dist, tableid);
               top_candidates.emplace(dist, tableid);
@@ -417,11 +429,9 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
           visited[tableid] = true;
 
           auto vect = hnsw_.getDataByInternalId(tableid);
-          auto dist =
-              space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect, space_.get_dist_func_param());
+          auto dist = space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect, space_.get_dist_func_param());
           metrics[q].ncomp++;
-          auto upper_bound =
-              top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+          auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
           if (top_candidates.size() < efs || dist < upper_bound) {
             candidate_set.emplace(-dist, tableid);
             top_candidates.emplace(dist, tableid);
@@ -561,8 +571,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
           auto vect = hnsw_.getDataByInternalId(tableid);
           auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
           metrics[q].ncomp++;
-          auto upper_bound =
-              top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+          auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
           if (top_candidates.size() < efs || dist < upper_bound) {
             candidate_set.emplace(-dist, tableid);
             top_candidates.emplace(dist, tableid);
@@ -643,8 +652,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
   delete[] ranked_clusters;
   delete[] distances;
   auto function_stop = std::chrono::steady_clock::now();
-  auto function_time =
-      std::chrono::duration_cast<std::chrono::microseconds>(function_stop - function_start).count();
+  auto function_time = std::chrono::duration_cast<std::chrono::microseconds>(function_stop - function_start).count();
   fmt::print("Function call time is {} s\n", (double)function_time / 1000'000);
   return results;
 }
@@ -715,8 +723,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
           auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
           crel++;
 
-          auto upper_bound =
-              top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+          auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
           if (top_candidates.size() < efs || dist < upper_bound) {
             candidate_set.emplace(-dist, tableid);
             top_candidates.emplace(dist, tableid);

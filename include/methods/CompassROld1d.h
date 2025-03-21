@@ -68,7 +68,8 @@ public:
             faiss::idx_t *ranked_clusters, float *distances) {
     auto efs_ = std::max(k, efs);
     hnsw_.setEf(efs_);
-    int nprobe = ivf_->nlist;
+    // int nprobe = ivf_->nlist;
+    int nprobe = 100;
     // auto centroids = quantizer_.get_xb();
     // auto dist_func = quantizer_.get_distance_computer();
     // auto ranked_clusters = new faiss::idx_t[nq * nprobe];

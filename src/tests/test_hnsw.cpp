@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
   // IvfGraph1dArgs args(argc, argv);
 
   extern std::map<std::string, DataCard> name_to_card;
-  DataCard c = name_to_card["sift_1_10000_float32"];
+  DataCard c = name_to_card["audio_1_10000_float32"];
   size_t d = c.dim;          // This has to be size_t due to dist_func() call.
   int nb = c.n_base;         // number of database vectors
   int nq = c.n_queries;      // number of queries
@@ -77,12 +77,13 @@ int main(int argc, char **argv) {
 
 
   nlohmann::json json;
-  for (auto efs : {100, 200}) {
+  for (auto efs : {600, 800, 1000}) {
+    int initial_ncomp = comp->metric_distance_computations.load();
     comp->setEf(efs);
 
     auto search_start = high_resolution_clock::system_clock::now();
     for (int j = 0; j < nq; j++) {
-      auto results = comp->searchKnnCloserFirst(xq + j * d, k);
+      auto results = comp->searchKnn(xq + j * d, k);
     }
     auto search_stop = high_resolution_clock::system_clock::now();
     auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
@@ -122,6 +123,7 @@ int main(int argc, char **argv) {
     }
     json[fmt::to_string(efs)]["recall"] = recall / nq;
     json[fmt::to_string(efs)]["qps"] = nq * 1000000. / search_time;
+    json[fmt::to_string(efs)]["num_computations"] = comp->metric_distance_computations.load() - initial_ncomp;
   }
 
   std::ofstream ofs((root / out_json).c_str());

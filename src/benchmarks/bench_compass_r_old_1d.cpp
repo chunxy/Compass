@@ -226,7 +226,6 @@ int main(int argc, char **argv) {
       stat.num_rounds[j] = metric.nround;
       stat.latencies[j] =
           duration_cast<microseconds>(search_stop - search_start).count();
-      stat.ctx_switch_time[j] = metric.tcontext;
       j++;
     }
   }
