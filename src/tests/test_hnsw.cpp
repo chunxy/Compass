@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   // assert(nq % batchsz == 0);
   int M = 32, efc = 200;
-  int k = 100;
+  int k = 10;
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
 
 
   nlohmann::json json;
-  for (auto efs : {600, 800, 1000}) {
+  for (auto efs : {10, 20, 60, 100, 200}) {
     int initial_ncomp = comp->metric_distance_computations.load();
     comp->setEf(efs);
 

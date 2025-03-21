@@ -432,6 +432,9 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
                             lowerBound = top_candidates.top().first;
                     }
                 }
+                else if (collect_metrics) {
+                    metric_distance_computations--;
+                }
             }
         }
 

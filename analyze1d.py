@@ -128,7 +128,7 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
     fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
     for i, dataset in enumerate(DATASETS):
       for m in data.method.unique():
-        if m == "Serf": continue
+        if m == "Serf" or m == "CompassR1d": continue
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b) & (data["dataset"] == dataset)]
           recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])

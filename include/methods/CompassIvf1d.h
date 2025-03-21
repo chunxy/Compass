@@ -56,7 +56,6 @@ class CompassIvf1D {
       vector<Metric> &metrics,
       faiss::idx_t *ranked_clusters
   ) {
-    memset(ranked_clusters, -1, sizeof(faiss::idx_t) * nq * nprobe);
     // auto centroids = quantizer_.get_xb();
     // auto dist_func = quantizer_.get_distance_computer();
     ivf_->quantizer->assign(nq, (float *)query, ranked_clusters, nprobe);
