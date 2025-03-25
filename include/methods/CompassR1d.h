@@ -54,7 +54,7 @@ class CompassR1d {
   size_t nrel_;
 
  public:
-  CompassR1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist, size_t nrel, size_t nbits);
+  CompassR1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist, size_t nrel);
   int AddPoint(const void *data_point, labeltype label, attr_t attr);
   int AddGraphPoint(const void *data_point, labeltype label);
   int AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attrs);
@@ -69,16 +69,6 @@ class CompassR1d {
       const int nthread,
       vector<Metric> &metrics
 
-  );
-  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV2(
-      const void *query,
-      const int nq,
-      const int k,
-      const attr_t &l_bound,
-      const attr_t &u_bound,
-      const int efs,
-      const int nthread,
-      vector<Metric> &metrics
   );
 
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3(
@@ -160,19 +150,19 @@ class CompassR1d {
       int curr_ci = 0;
       auto itr_beg = btrees_[ranked_clusters[0]].lower_bound(l_bound);
       auto itr_end = btrees_[ranked_clusters[0]].upper_bound(u_bound);
-//       while (itr_beg != itr_end) {
-//         tableint id = (*itr_beg).second;
-//         itr_beg++;
-//         visited[id] = true;
-// #ifdef USE_SSE
-//         _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
-// #endif
-//         auto vect = hnsw_.getDataByInternalId(id);
-//         auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
-//         candidate_set.emplace(-dist, id);
-//         top_candidates.emplace(dist, id);
-//       }
-//       curr_ci = 1;
+      //       while (itr_beg != itr_end) {
+      //         tableint id = (*itr_beg).second;
+      //         itr_beg++;
+      //         visited[id] = true;
+      // #ifdef USE_SSE
+      //         _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+      // #endif
+      //         auto vect = hnsw_.getDataByInternalId(id);
+      //         auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
+      //         candidate_set.emplace(-dist, id);
+      //         top_candidates.emplace(dist, id);
+      //       }
+      //       curr_ci = 1;
 
       int cnt = 0;
       while (true) {
@@ -311,15 +301,7 @@ class CompassR1d {
 };
 
 template <typename dist_t, typename attr_t>
-CompassR1d<dist_t, attr_t>::CompassR1d(
-    size_t d,
-    size_t M,
-    size_t efc,
-    size_t max_elements,
-    size_t nlist,
-    size_t nrel,
-    size_t nbits
-)
+CompassR1d<dist_t, attr_t>::CompassR1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist, size_t nrel)
     : space_(d),
       hnsw_(&space_, max_elements, M, efc),
       quantizer_(d),
@@ -429,7 +411,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
           visited[tableid] = true;
 
           auto vect = hnsw_.getDataByInternalId(tableid);
-          auto dist = space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect, space_.get_dist_func_param());
+          auto dist = hnsw_.fstdistfunc_((dist_t *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
           metrics[q].ncomp++;
           auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
           if (top_candidates.size() < efs || dist < upper_bound) {
@@ -498,162 +480,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::Sear
 
   delete[] ranked_clusters;
   delete[] distances;
-  return results;
-}
-
-template <typename dist_t, typename attr_t>
-vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::SearchKnnV2(
-    const void *query,
-    const int nq,
-    const int k,
-    const attr_t &l_bound,
-    const attr_t &u_bound,
-    const int efs,
-    const int nthread,
-    vector<Metric> &metrics
-) {
-  auto function_start = std::chrono::steady_clock::now();
-
-  auto efs_ = std::max(k, efs);
-  hnsw_.setEf(efs_);
-  int nprobe = 100;  // TOREVERT
-  // auto centroids = quantizer_.get_xb();
-  // auto dist_func = quantizer_.get_distance_computer();
-  auto ranked_clusters = new faiss::idx_t[nq * nprobe];
-  auto distances = new float[nq * nprobe];
-  this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
-
-  vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
-
-  vector<priority_queue<pair<float, int64_t>>> top_candidates_s(nq);
-  vector<priority_queue<pair<float, int64_t>>> candidate_set_s(nq);
-  vector<priority_queue<pair<float, int64_t>>> cluster_set_s(nq);
-
-  vector<vector<bool>> visited_s(nq, vector<bool>(hnsw_.cur_element_count, false));
-  vector<vector<coroutine_t::pull_type>> functions_s(nq);
-  vector<std::unordered_map<faiss::idx_t, int>> map_s(nq);
-
-  for (int q = 0; q < nq; q++) {
-    priority_queue<pair<float, int64_t>> &top_candidates = top_candidates_s[q];
-    priority_queue<pair<float, int64_t>> &candidate_set = candidate_set_s[q];
-    priority_queue<pair<float, int64_t>> &cluster_set = cluster_set_s[q];
-
-    for (int i = 0; i < nprobe; i++) {
-      if (ranked_clusters[q * nprobe + i] == -1) break;
-      cluster_set.emplace(-distances[q * nprobe + i], ranked_clusters[q * nprobe + i]);
-    }
-    vector<bool> &visited = visited_s[q];
-
-    vector<coroutine_t::pull_type> &functions = functions_s[q];
-    functions.reserve(nprobe);
-    std::unordered_map<faiss::idx_t, int> &map = map_s[q];
-    for (int i = 0; i < nprobe; i++) {
-      auto cluster_push = [&, i, q](coroutine_t::push_type &push) {
-        push(0);
-        int crel = 0;
-        size_t efs = std::max((size_t)std::abs(k), hnsw_.ef_);
-
-        auto cluster = ranked_clusters[q * nprobe + i];
-        if (cluster == -1) push(crel);
-        auto rel_beg = btrees_[cluster].lower_bound(l_bound);
-        auto rel_end = btrees_[cluster].upper_bound(u_bound);
-        auto targets = vector<std::pair<attr_t, labeltype>>(rel_beg, rel_end);
-        // std::random_shuffle(targets.begin(), targets.end());
-
-        for (size_t i = 0; i < targets.size(); i++) {
-          auto label = targets[i].second;
-          // assert(hnsw_.label_lookup_.find(label) != hnsw_.label_lookup_.end());
-          auto tableid = hnsw_.label_lookup_[label];
-          assert(label == tableid);
-          if (visited[tableid]) continue;
-          visited[tableid] = true;
-
-          auto vect = hnsw_.getDataByInternalId(tableid);
-          auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
-          metrics[q].ncomp++;
-          auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
-          if (top_candidates.size() < efs || dist < upper_bound) {
-            candidate_set.emplace(-dist, tableid);
-            top_candidates.emplace(dist, tableid);
-            metrics[q].is_ivf_ppsl[label] = true;
-            if (top_candidates.size() > efs_) top_candidates.pop();
-            if (++crel >= nrel_) {
-              push(crel);
-              crel = 0;
-            }
-          }
-        }
-        push(crel);
-      };
-      coroutine_t::pull_type coroutine(cluster_push);
-      functions.push_back(std::move(coroutine));
-      // functions.emplace_back(coroutine_t::pull_type(cluster_push));
-      // functions.emplace(std::piecewise_construct, std::forward_as_tuple(ranked_clusters[i]),
-      // std::forward_as_tuple(cluster_push));
-      map.emplace(ranked_clusters[i], i);
-    }
-  }
-
-#ifndef COMPASS_DEBUG
-// #pragma omp parallel for num_threads(nthread) schedule(static)
-#endif
-  for (int q = 0; q < nq; q++) {
-    priority_queue<pair<float, int64_t>> &top_candidates = top_candidates_s[q];
-    priority_queue<pair<float, int64_t>> &candidate_set = candidate_set_s[q];
-    priority_queue<pair<float, int64_t>> &cluster_set = cluster_set_s[q];
-
-    vector<bool> &visited = visited_s[q];
-    vector<coroutine_t::pull_type> &functions = functions_s[q];
-    std::unordered_map<faiss::idx_t, int> &map = map_s[q];
-
-    RangeQuery<float> pred(l_bound, u_bound, &attrs_);
-    size_t total_proposed = 0;
-    size_t max_dist_comp = 10;
-    metrics[q].nround = 0;
-
-    while (true) {
-      if (candidate_set.empty() || (candidate_set.top().first < cluster_set.top().first)) {
-        auto cluster = cluster_set.top().second;
-        if (functions[map[cluster]]) {
-          using namespace std::chrono;
-          auto context_start = steady_clock::now();
-          (functions[map[cluster]])();
-          total_proposed += (functions[map[cluster]]).get();
-          auto context_stop = steady_clock::now();
-          metrics[q].nround++;
-        } else {
-          cluster_set.pop();
-        }
-      }
-      if (candidate_set.empty()) break;
-      hnsw_.ReentrantSearchKnn(
-          (float *)query + q * ivf_->d,
-          k,
-          -1,
-          top_candidates,
-          candidate_set,
-          visited,
-          &pred,
-          std::ref(metrics[q].ncomp),
-          std::ref(metrics[q].is_graph_ppsl)
-      );
-      if (top_candidates.size() >= efs_) break;
-    }
-
-    while (top_candidates.size() > k) top_candidates.pop();
-    size_t sz = top_candidates.size();
-    results[q].resize((sz));
-    while (!top_candidates.empty()) {
-      results[q][--sz] = top_candidates.top();
-      top_candidates.pop();
-    }
-  }
-
-  delete[] ranked_clusters;
-  delete[] distances;
-  auto function_stop = std::chrono::steady_clock::now();
-  auto function_time = std::chrono::duration_cast<std::chrono::microseconds>(function_stop - function_start).count();
-  fmt::print("Function call time is {} s\n", (double)function_time / 1000'000);
   return results;
 }
 

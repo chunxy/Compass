@@ -125,7 +125,7 @@ typical_serf_2d_ranges = [
       1710_000,
       1900_000,
     )
-  ],
+  ]
 ]
 
 typical_irange_graph_2d_ranges = [
@@ -144,7 +144,9 @@ typical_compass_1d_searches = [
   *[CompassSearch(efs, 500, 1000) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200)],
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([20, 40, 60, 100, 200], [600, 700, 800])]
 ]
-typical_compass_1d_old_searches = [*[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 40, 60, 100, 200], [500, 600, 700, 800])]]
+typical_compass_1d_old_searches = [
+  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])]
+]
 typical_compass_2d_searches = [CompassSearch(100, 100, 1000), CompassSearch(250, 100, 1000)]
 
 CompassRImiBuild = namedtuple("CompassRImiBuild", ["M", "efc", "nsub", "nbits"])

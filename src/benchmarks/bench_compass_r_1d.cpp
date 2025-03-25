@@ -77,10 +77,8 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  int nbits = 10;  // the number of bits to represent the sub-centroid
-  CompassR1d<float, float> comp(d, args.M, args.efc, nb, args.nlist, args.nrel, nbits);
+  CompassR1d<float, float> comp(d, args.M, args.efc, nb, args.nlist, args.nrel);
   fs::path ckp_root(CKPS);
-  // std::string checkpoint = fmt::format(COMPASS_CHECKPOINT_TMPL, M, efc, nlist);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
   std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);

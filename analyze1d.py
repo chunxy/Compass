@@ -131,21 +131,36 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
         if m == "Serf" or m == "CompassR1d": continue
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b) & (data["dataset"] == dataset)]
-          recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-          recall_qps = recall_qps.to_numpy()
-          axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
-          axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=METHOD_MARKER_MAPPING[m])
+          if m == "CompassROld1d":
+            for nrel in [500, 600, 700, 800, 1000, 1500]:
+              data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
+              recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+              recall_qps = recall_qps.to_numpy()
+              axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
+              axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-{nrel}", marker=METHOD_MARKER_MAPPING[m])
+
+              comp_qps = data_by_m_b_nrel[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
+              comp_qps = comp_qps.to_numpy()
+              axs[1][i].plot(comp_qps[:, 0], comp_qps[:, 1])
+              axs[1][i].scatter(comp_qps[:, 0], comp_qps[:, 1], label=f"{m}-{b}-{nrel}", marker=METHOD_MARKER_MAPPING[m])
+          else:
+            recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+            recall_qps = recall_qps.to_numpy()
+            axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
+            axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=METHOD_MARKER_MAPPING[m])
+
+            comp_qps = data_by_m_b[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
+            comp_qps = comp_qps.to_numpy()
+            axs[1][i].plot(comp_qps[:, 0], comp_qps[:, 1])
+            axs[1][i].scatter(comp_qps[:, 0], comp_qps[:, 1], label=f"{m}-{b}", marker=METHOD_MARKER_MAPPING[m])
+
           axs[0][i].set_xlabel('Recall')
           axs[0][i].set_ylabel('QPS')
           axs[0][i].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
-
-          comp_qps = data_by_m_b[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
-          comp_qps = comp_qps.to_numpy()
-          axs[1][i].plot(comp_qps[:, 0], comp_qps[:, 1])
-          axs[1][i].scatter(comp_qps[:, 0], comp_qps[:, 1], label=f"{m}-{b}", marker=METHOD_MARKER_MAPPING[m])
           axs[1][i].set_xlabel('Recall')
           axs[1][i].set_ylabel('# Comp')
           axs[1][i].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
+
 
     fig.set_size_inches(35, 10)
     handles, labels = axs[0][0].get_legend_handles_labels()
