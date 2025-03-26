@@ -132,6 +132,7 @@ class CompassROld1d {
         // ranked_clusters = ranked_clusters_ + currObj * nprobe;
         visited[currObj] = true;
         candidate_set.emplace(-curdist, currObj);
+        if (attrs_[currObj] <= u_bound && attrs_[currObj] >= l_bound) top_candidates.emplace(curdist, currObj);
       }
 
       auto curr_ci = q * nprobe;
