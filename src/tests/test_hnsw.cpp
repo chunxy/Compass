@@ -77,8 +77,9 @@ int main(int argc, char **argv) {
 
 
   nlohmann::json json;
-  for (auto efs : {10, 20, 60, 100, 200}) {
+  for (auto efs : {100, 200, 500, 1000}) {
     int initial_ncomp = comp->metric_distance_computations.load();
+    int initial_nhops = comp->metric_hops.load();
     comp->setEf(efs);
 
     auto search_start = high_resolution_clock::system_clock::now();
@@ -123,7 +124,8 @@ int main(int argc, char **argv) {
     }
     json[fmt::to_string(efs)]["recall"] = recall / nq;
     json[fmt::to_string(efs)]["qps"] = nq * 1000000. / search_time;
-    json[fmt::to_string(efs)]["num_computations"] = comp->metric_distance_computations.load() - initial_ncomp;
+    json[fmt::to_string(efs)]["num_computations"] = (comp->metric_distance_computations.load() - initial_ncomp) / 2. / nq;
+    json[fmt::to_string(efs)]["nhops"] = (comp->metric_hops.load() - initial_nhops) / 2. / nq;
   }
 
   std::ofstream ofs((root / out_json).c_str());

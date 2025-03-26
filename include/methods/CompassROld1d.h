@@ -7,7 +7,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <cassert>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -15,7 +14,6 @@
 #include <fstream>
 #include <limits>
 #include <queue>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 #include "Pod.h"
@@ -134,7 +132,6 @@ class CompassROld1d {
         // ranked_clusters = ranked_clusters_ + currObj * nprobe;
         visited[currObj] = true;
         candidate_set.emplace(-curdist, currObj);
-        top_candidates.emplace(curdist, currObj);
       }
 
       auto curr_ci = q * nprobe;

@@ -284,8 +284,8 @@ nlohmann::json collate_stat(
     fmt::print("\tIVF Proposal Quality  : {:3d}/{:3d}\n", s.ivf_ppsl_in_tp_s[j], s.ivf_ppsl_nums[j]);
     fmt::print("\tGraph Proposal Rate   : {:3d}/{:3d}\n", s.graph_ppsl_in_rz_s[j], s.graph_ppsl_nums[j]);
     fmt::print("\tGraph Proposal Quality: {:3d}/{:3d}\n", s.graph_ppsl_in_tp_s[j], s.graph_ppsl_nums[j]);
-    fmt::print("\tIVF Proposal% in TP   : {:3d}/{:3d}\n", s.ivf_ppsl_in_tp_s[j], s.tp_s[j]);
-    fmt::print("\tIVF Proposal% in RZ   : {:3d}/{:3d}\n", s.ivf_ppsl_in_rz_s[j], s.rz_s[j]);
+    fmt::print("\tIVF Proposal in TP    : {:3d}/{:3d}\n", s.ivf_ppsl_in_tp_s[j], s.tp_s[j]);
+    fmt::print("\tIVF Proposal in RZ    : {:3d}/{:3d}\n", s.ivf_ppsl_in_rz_s[j], s.rz_s[j]);
     fmt::print("\tLinear Scan Rate      : {:3d}/{:3d}\n", s.ivf_ppsl_nums[j], nsat);
   }
   auto sum_of_rec = std::accumulate(s.rec_at_ks.begin(), s.rec_at_ks.end(), 0.);
