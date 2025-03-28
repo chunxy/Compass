@@ -139,13 +139,14 @@ typical_compass_1d_builds = [
 ]
 
 CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
-typical_compass_1d_searches = [
+typical_compass_graph_1d_searches = [
   # *[CompassSearch(efs, 500, 1000) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
   *[CompassSearch(efs, 500, 1000) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200)],
-  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([20, 40, 60, 100, 200], [600, 700, 800])]
+  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([20, 40, 60, 100, 200], [500, 1000, 1500, 2000, 3000, 3500, 4000])]
 ]
 typical_compass_1d_old_searches = [
-  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])]
+  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 25, 30, 35, 40, 50, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])],
+  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([300, 500], [100, 500, 1000, 1500])]
 ]
 typical_compass_2d_searches = [CompassSearch(100, 100, 1000), CompassSearch(250, 100, 1000)]
 
@@ -168,7 +169,9 @@ CompassGraphBuild = namedtuple("CompassGraphBuild", ["M", "efc"])
 typical_compass_graph_builds = [*[CompassGraphBuild(M, efc) for M, efc in product([16, 32, 64], [100, 200])]]
 
 CompassGraphSearch = namedtuple("CompassGraphSearch", ["efs", "nrel"])
-typical_compass_graph_searches = [*[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 200, 300], [100, 200])]]
+typical_compass_graph_searches = [
+  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200], [500, 1000, 1500, 2000, 3000, 3500, 4000])]
+]
 
 # AcornBuild = namedtuple("AcornBuild", ["M", "beta", "efc", "gamma"])
 # typical_acorn_builds = [AcornBuild(*build) for build in product(M_s, beta_s, efc_s, gamma_s)]
@@ -223,17 +226,17 @@ METHOD_BUILD_MAPPING = {
 METHOD_SEARCH_MAPPING = {
   # "Compass1d": typical_compass_searches,
   # "Acorn": typical_acorn_searches,
-  "CompassR1d": typical_compass_1d_searches,
+  "CompassR1d": typical_compass_graph_1d_searches,
   "CompassROld1d": typical_compass_1d_old_searches,
-  "CompassRImi1d": typical_compass_1d_searches,
+  "CompassRImi1d": typical_compass_graph_1d_searches,
   "CompassIvf1d": typical_compass_ivf_searches,
   "CompassImi1d": typical_compass_imi_searches,
-  "CompassGraph1d": typical_compass_1d_searches,
+  "CompassGraph1d": typical_compass_graph_1d_searches,
   "Serf": typical_serf_searches,
   "iRangeGraph": typical_i_range_graph_searches,
   "CompassR": typical_compass_2d_searches,
   "CompassIvf": typical_compass_ivf_searches,
-  "CompassGraph": typical_compass_1d_searches,
+  "CompassGraph": typical_compass_graph_1d_searches,
   "iRangeGraph2d": typical_i_range_graph_searches,
 }
 

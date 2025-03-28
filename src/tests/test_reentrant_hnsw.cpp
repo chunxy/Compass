@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   // assert(nq % batchsz == 0);
   int M = 32, efc = 200;
-  int k = 100;
+  int k = 20;
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading/building index\n");
 
   nlohmann::json json;
-  for (auto efs : {100, 200}) {
+  for (auto efs : {100, 200, 500}) {
     comp->setEf(efs);
     int ncomp = 0;
     vector<bool> is_graph_ppsl(nb);
