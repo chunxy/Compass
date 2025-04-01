@@ -149,9 +149,10 @@ class CompassROld1d {
             (!top_candidates.empty() && -candidate_set.top().first > top_candidates.top().first)) {
           while (crel < nrel_) {
             if (itr_beg == itr_end) {
-              if (++curr_ci == (q + 1) * nprobe)
+              if (curr_ci + 1 >= (q + 1) * nprobe)
                 break;
               else {
+                curr_ci++;
                 itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
                 itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
                 continue;

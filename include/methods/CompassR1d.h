@@ -235,8 +235,6 @@ class CompassR1d {
 
             data = (unsigned int *)hnsw_.get_linklist(currObj, level);
             int size = hnsw_.getListCount(data);
-            // metric_hops++;
-            // metric_distance_computations += size;
             metrics[q].ncomp += size;
 
             tableint *datal = (tableint *)(data + 1);
@@ -258,24 +256,27 @@ class CompassR1d {
         }
         visited[currObj] = true;
         candidate_set.emplace(-currDist, currObj);
-        top_candidates.emplace(currDist, currObj);
+        if (attrs_[currObj] <= u_bound && attrs_[currObj] >= l_bound) top_candidates.emplace(currDist, currObj);
       }
 
       int curr_ci = q * nprobe;
-      auto itr_beg = btrees_[ranked_clusters[0]].lower_bound(l_bound);
-      auto itr_end = btrees_[ranked_clusters[0]].upper_bound(u_bound);
+      auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
+      auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
 
       int cnt = 0;
       while (true) {
         int crel = 0;
-        // if (candidate_set.empty() || distances[curr_ci] < -candidate_set.top().first) {
         if (candidate_set.empty() || (curr_ci < nprobe * (q + 1) && -candidate_set.top().first > distances[curr_ci])) {
           while (crel < nrel_) {
             if (itr_beg == itr_end) {
-              curr_ci++;
-              itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
-              itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
-              break;
+              if (curr_ci + 1 >= (q + 1) * nprobe)
+                break;
+              else {
+                curr_ci++;
+                itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
+                itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
+                continue;
+              }
             }
 
             auto tableid = (*itr_beg).second;
@@ -533,29 +534,6 @@ class CompassR1d {
       }
     }
   }
-
-  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3WithoutProfiling(
-      const void *query,
-      const int nq,
-      const int k,
-      const attr_t &l_bound,
-      const attr_t &u_bound,
-      const int efs,
-      const int min_comp,
-      const int nthread
-  );
-
-  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV4(
-      const void *query,
-      const int nq,
-      const int k,
-      const attr_t &l_bound,
-      const attr_t &u_bound,
-      const int efs,
-      const int min_comp,
-      const int nthread,
-      vector<Metric> &metrics
-  );
 };
 
 template <typename dist_t, typename attr_t>
@@ -607,102 +585,4 @@ void CompassR1d<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
   // ivfpq_.train(n, (float *)data);
   // auto assigned_clusters = new faiss::idx_t[n * 1];
   // ivf_->quantizer->assign(n, (float *)data, assigned_clusters, 1);
-}
-
-template <typename dist_t, typename attr_t>
-vector<vector<pair<float, hnswlib::labeltype>>> CompassR1d<dist_t, attr_t>::SearchKnnV3WithoutProfiling(
-    const void *query,
-    const int nq,
-    const int k,
-    const attr_t &l_bound,
-    const attr_t &u_bound,
-    const int efs,
-    const int min_comp,
-    const int nthread
-) {
-  auto efs_ = std::max(k, efs);
-  hnsw_.setEf(efs_);
-  int nprobe = ivf_->nlist;
-  // auto centroids = quantizer_.get_xb();
-  // auto dist_func = quantizer_.get_distance_computer();
-  auto ranked_clusters = new faiss::idx_t[nq * nprobe];
-  auto distances = new float[nq * nprobe];
-  this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
-
-  vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
-
-  // #pragma omp parallel for num_threads(nthread) schedule(static)
-  for (int q = 0; q < nq; q++) {
-    priority_queue<pair<float, int64_t>> top_candidates;
-    priority_queue<pair<float, int64_t>> candidate_set;
-
-    vector<bool> visited(hnsw_.cur_element_count, false);
-
-    // auto first_cluster = cluster_set.top().second;
-    auto curr_ci = q * nprobe;
-    auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
-    auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
-
-    RangeQuery<float> pred(l_bound, u_bound, &attrs_);
-    size_t total_proposed = 0;
-    size_t max_dist_comp = 10;
-    int ncomp = 0;
-
-    // int min_comp = 1000;
-
-    while (true) {
-      int crel = 0;
-      if (candidate_set.empty() || distances[curr_ci] < -candidate_set.top().first) {
-        while (crel < nrel_) {
-          if (itr_beg == itr_end) {
-            if (++curr_ci == (q + 1) * nprobe)
-              break;
-            else {
-              itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
-              itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
-              continue;
-            }
-          }
-          // auto label = (*itr_beg).second;
-          // auto tableid = hnsw_.label_lookup_[label];
-          // assert(label == tableid);
-          auto tableid = (*itr_beg).second;
-          itr_beg++;
-          if (visited[tableid]) continue;
-          visited[tableid] = true;
-
-          auto vect = hnsw_.getDataByInternalId(tableid);
-          auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
-          crel++;
-
-          auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
-          if (top_candidates.size() < efs || dist < upper_bound) {
-            candidate_set.emplace(-dist, tableid);
-            top_candidates.emplace(dist, tableid);
-            // metrics[q].is_ivf_ppsl[tableid] = true;
-            // metrics[q].is_ivf_ppsl[label] = true;
-            if (top_candidates.size() > efs_) top_candidates.pop();
-          }
-        }
-        // metrics[q].nround++;
-      }
-
-      hnsw_.ReentrantSearchKnnWithoutProfiling(
-          (float *)query + q * ivf_->d, k, -1, top_candidates, candidate_set, visited, &pred, ncomp
-      );
-      if ((top_candidates.size() >= efs_ && min_comp - ncomp < 0) || curr_ci >= (q + 1) * nprobe) break;
-    }
-
-    while (top_candidates.size() > k) top_candidates.pop();
-    size_t sz = top_candidates.size();
-    // vector<std::pair<dist_t, labeltype>> result(sz);
-    while (!top_candidates.empty()) {
-      results[q][--sz] = top_candidates.top();
-      top_candidates.pop();
-    }
-  }
-
-  delete[] ranked_clusters;
-  delete[] distances;
-  return results;
 }
