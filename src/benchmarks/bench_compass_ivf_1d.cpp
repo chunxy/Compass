@@ -188,6 +188,7 @@ int main(int argc, char **argv) {
       stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
       stat.num_computations[j] = metric.ncomp;
       stat.num_rounds[j] = metric.nround;
+      stat.num_clusters[j] = metric.ncluster;
       stat.latencies[j] = duration_cast<microseconds>(search_stop - search_start).count();
       j++;
     }

@@ -320,6 +320,7 @@ class CompassR1d {
         }
       }
 
+      metrics[q].ncluster = curr_ci - q * nprobe;
       while (top_candidates.size() > k) top_candidates.pop();
       size_t sz = top_candidates.size();
       while (!top_candidates.empty()) {

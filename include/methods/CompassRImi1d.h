@@ -240,6 +240,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
         break;
     }
 
+    metrics[q].ncluster = curr_ci - q * nprobe;
     while (top_candidates.size() > k) top_candidates.pop();
     size_t sz = top_candidates.size();
     // vector<std::pair<dist_t, labeltype>> result(sz);

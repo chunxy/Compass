@@ -92,10 +92,12 @@ class CompassGraph1d {
       while (curr != pred_end && top_candidates.size() < efs_) {
         int i = 0;
         while (i < nrel_) {
-          if (curr == pred_end) break;
+          if (curr == pred_end)
+            break;
           tableint id = (*curr).second;
           curr++;
-          if (visited[i] == visited_tag) continue;
+          if (visited[id] == visited_tag)
+            continue;
           visited[id] = visited_tag;
 #ifdef USE_SSE
           _mm_prefetch(hnsw_.getDataByInternalId((*curr).second), _MM_HINT_T0);

@@ -108,8 +108,9 @@ struct Metric {
   std::vector<float> cand_dist;
   int nround;
   int ncomp;
+  int ncluster;
 
-  Metric(int nb) : is_ivf_ppsl(nb, false), is_graph_ppsl(nb, false), cand_dist(500), nround(0), ncomp(0) {}
+  Metric(int nb) : is_ivf_ppsl(nb, false), is_graph_ppsl(nb, false), cand_dist(500), nround(0), ncomp(0), ncluster(0) {}
 };
 
 struct Stat {
@@ -127,14 +128,15 @@ struct Stat {
   vector<int> graph_ppsl_nums;
   vector<float> graph_ppsl_qlty;
   vector<float> graph_ppsl_rate;
+  vector<vector<float>> cand_dist;
   vector<float> perc_of_ivf_ppsl_in_tp;
   vector<float> perc_of_ivf_ppsl_in_rz;
   vector<float> linear_scan_rate;
   vector<int> num_computations;
   vector<int> num_rounds;
+  vector<long> num_clusters;
   // system
   vector<long> latencies;
-  vector<long> ctx_switch_time;
 
   Stat(int nq)
       : rec_at_ks(nq, 0),
@@ -155,11 +157,12 @@ struct Stat {
         graph_ppsl_nums(nq, 0),
         graph_ppsl_qlty(nq, 0),
         graph_ppsl_rate(nq, 0),
+        cand_dist(nq),
         perc_of_ivf_ppsl_in_tp(nq, 0),
         perc_of_ivf_ppsl_in_rz(nq, 0),
         linear_scan_rate(nq, 0),
         num_computations(nq, 0),
         num_rounds(nq, 0),
-        latencies(nq, 0),
-        ctx_switch_time(nq, 0) {}
+        num_clusters(nq, 0),
+        latencies(nq, 0) {}
 };

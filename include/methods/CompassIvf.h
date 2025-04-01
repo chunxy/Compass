@@ -155,7 +155,7 @@ vector<vector<pair<float, labeltype>>> CompassIvf<dist_t, attr_t>::SearchKnn(
         rel_beg++;
       }
     }
-    metrics[q].nround = i;
+    metrics[q].ncluster = i;
 
     while (top_candidates.size() > k) top_candidates.pop();
     int sz = top_candidates.size();

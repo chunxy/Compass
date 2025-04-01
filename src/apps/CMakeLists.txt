@@ -8,3 +8,8 @@ add_executable(binary_to_ascii binary_to_ascii.cpp)
 add_executable(compute_groundtruth compute_groundtruth.cpp)
 add_executable(compute_filter_groundtruth compute_filter_groundtruth.cpp)
 add_executable(generate_attributes generate_attributes.cpp)
+add_executable(top_k_in_cluster_hist top_k_in_cluster_hist.cpp)
+add_executable(cluster_imbalance_factor cluster_imbalance_factor.cpp)
+
+target_link_libraries(top_k_in_cluster_hist Boost::filesystem)
+target_link_libraries(cluster_imbalance_factor Boost::filesystem)

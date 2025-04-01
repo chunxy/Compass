@@ -302,7 +302,7 @@ nlohmann::json collate_stat(
       std::accumulate(s.perc_of_ivf_ppsl_in_rz.begin(), s.perc_of_ivf_ppsl_in_rz.end(), 0.);
   auto sum_of_linear_scan_rate = std::accumulate(s.linear_scan_rate.begin(), s.linear_scan_rate.end(), 0.);
   auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0);
-  auto sum_of_ctx_switch = std::accumulate(s.ctx_switch_time.begin(), s.ctx_switch_time.end(), 0);
+  auto sum_of_num_cluster = std::accumulate(s.num_clusters.begin(), s.num_clusters.end(), 0);
   auto sum_of_num_comp = std::accumulate(s.num_computations.begin(), s.num_computations.end(), 0);
   auto sum_of_num_round = std::accumulate(s.num_rounds.begin(), s.num_rounds.end(), 0);
 
@@ -333,12 +333,12 @@ nlohmann::json collate_stat(
       {"linear_scan_rate", sum_of_linear_scan_rate / nq},
       {"num_queries", nq},
       {"latency_in_s", (double)sum_of_latency / 1000000 / nq},
-      {"context_switch_in_s", (double)sum_of_ctx_switch / 1000000 / nq},
       {"selectivity", (double)nsat / nb},
       {"time_in_s", (double)search_time / 1000000},
       {"qps", (double)nq / search_time * 1000000},
       {"num_threads", nthread},
       {"num_computations", (double)sum_of_num_comp / nq},
+      {"num_clusters", (double)sum_of_num_cluster / nq},
       {"num_rounds", (double)sum_of_num_round / nq}
   };
   return json;

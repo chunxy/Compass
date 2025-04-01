@@ -1,23 +1,23 @@
+#include <fmt/chrono.h>
+#include <fmt/core.h>
+#include <fmt/format.h>
+#include <omp.h>
+#include <boost/filesystem.hpp>
+#include <cassert>
+#include <chrono>
+#include <cstdint>
+#include <cstdio>
+#include <limits>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
 #include "config.h"
 #include "faiss/MetricType.h"
 #include "json.hpp"
 #include "methods/CompassImi1d.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
-#include <boost/filesystem.hpp>
-#include <cassert>
-#include <chrono>
-#include <cstdint>
-#include <cstdio>
-#include <fmt/chrono.h>
-#include <fmt/core.h>
-#include <fmt/format.h>
-#include <limits>
-#include <map>
-#include <omp.h>
-#include <set>
-#include <string>
-#include <vector>
 
 namespace fs = boost::filesystem;
 using namespace std::chrono;
@@ -30,18 +30,16 @@ int main(int argc, char **argv) {
 
   extern std::map<std::string, DataCard> name_to_card;
   DataCard c = name_to_card[args.datacard];
-  size_t d = c.dim;         // This has to be size_t due to dist_func() call.
-  int nb = c.n_base;        // number of database vectors
-  int nq = c.n_queries;     // number of queries
-  int ng = c.n_groundtruth; // number of computed groundtruth entries
+  size_t d = c.dim;          // This has to be size_t due to dist_func() call.
+  int nb = c.n_base;         // number of database vectors
+  int nq = c.n_queries;      // number of queries
+  int ng = c.n_groundtruth;  // number of computed groundtruth entries
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
   std::string method = "CompassImi1d";
-  std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range,
-                                     args.l_bound, args.u_bound, args.k);
-  std::string build_param =
-      fmt::format("nsub_{}_nbits_{}", args.nsub, args.nbits);
+  std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
+  std::string build_param = fmt::format("nsub_{}_nbits_{}", args.nsub, args.nbits);
   std::string search_param = fmt::format("nprobe_{}", args.nprobe);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
@@ -61,8 +59,7 @@ int main(int argc, char **argv) {
   vector<vector<float>> _attrs;
   load_hybrid_data(c, xb, xq, gt, _attrs);
   vector<float> attrs(_attrs.size());
-  for (size_t i = 0; i < attrs.size(); i++)
-    attrs[i] = _attrs[i][0];
+  for (size_t i = 0; i < attrs.size(); i++) attrs[i] = _attrs[i][0];
   fmt::print("Finished loading data.\n");
 
   // Load groundtruth for hybrid search.
@@ -76,8 +73,7 @@ int main(int argc, char **argv) {
 
   CompassImi1d<float, float> comp(d, nb, args.nsub, args.nbits, xb);
   fs::path ckp_root(CKPS);
-  std::string ivf_ckp =
-      fmt::format(COMPASS_IMI_CHECKPOINT_TMPL, args.nsub, args.nbits);
+  std::string ivf_ckp = fmt::format(COMPASS_IMI_CHECKPOINT_TMPL, args.nsub, args.nbits);
   fs::path ckp_dir = ckp_root / method / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
@@ -88,7 +84,8 @@ int main(int argc, char **argv) {
     auto train_ivf_stop = high_resolution_clock::now();
     fmt::print(
         "Finished training IVF, took {} microseconds.\n",
-        duration_cast<microseconds>(train_ivf_stop - train_ivf_start).count());
+        duration_cast<microseconds>(train_ivf_stop - train_ivf_start).count()
+    );
     comp.SaveIvf(ckp_dir / ivf_ckp);
   }
 
@@ -97,9 +94,10 @@ int main(int argc, char **argv) {
   std::iota(labels.begin(), labels.end(), 0);
   comp.AddIvfPoints(nb, xb, labels.data(), attrs);
   auto build_index_stop = high_resolution_clock::now();
-  fmt::print("Finished adding points, took {} microseconds.\n",
-             duration_cast<microseconds>(build_index_stop - build_index_start)
-                 .count());
+  fmt::print(
+      "Finished adding points, took {} microseconds.\n",
+      duration_cast<microseconds>(build_index_stop - build_index_start).count()
+  );
 
   vector<Metric> metrics(args.batchsz, Metric(nb));
   faiss::idx_t *ranked_clusters = new faiss::idx_t[args.batchsz * args.nprobe];
@@ -109,13 +107,12 @@ int main(int argc, char **argv) {
 // #pragma omp parallel for
 #endif
   for (int j = 0; j < nq; j += args.batchsz) {
-    auto rz =
-        comp.SearchKnn(xq + j * d, args.batchsz, args.k, args.l_bound,
-                       args.u_bound, args.nprobe, metrics, ranked_clusters);
+    auto rz = comp.SearchKnn(
+        xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, args.nprobe, metrics, ranked_clusters
+    );
   }
   auto search_stop = high_resolution_clock::now();
-  auto search_time =
-      duration_cast<microseconds>(search_stop - search_start).count();
+  auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
 
   // statistics
   Stat stat(nq);
@@ -123,9 +120,9 @@ int main(int argc, char **argv) {
     // Metric metric(nb);
     vector<Metric> metrics(args.batchsz, Metric(nb));
     auto search_start = high_resolution_clock::now();
-    auto results =
-        comp.SearchKnn(xq + j * d, args.batchsz, args.k, args.l_bound,
-                       args.u_bound, args.nprobe, metrics, ranked_clusters);
+    auto results = comp.SearchKnn(
+        xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, args.nprobe, metrics, ranked_clusters
+    );
     auto search_stop = high_resolution_clock::now();
 
     for (int ii = 0; ii < results.size(); ii++) {
@@ -156,14 +153,15 @@ int main(int argc, char **argv) {
       auto gt_max = dist_func(xq + j * d, xb + hybrid_topks[j].back() * d, &d);
 
       std::set_intersection(
-          gt_indices.begin(), gt_indices.end(), rz_indices.begin(),
+          gt_indices.begin(),
+          gt_indices.end(),
+          rz_indices.begin(),
           rz_indices.end(),
-          std::inserter(rz_gt_interse, rz_gt_interse.begin()));
+          std::inserter(rz_gt_interse, rz_gt_interse.begin())
+      );
 
-      stat.rz_min_s[j] =
-          rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
-      stat.rz_max_s[j] =
-          rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
+      stat.rz_min_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
+      stat.rz_max_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
       stat.ivf_ppsl_in_rz_s[j] = ivf_ppsl_in_rz;
       stat.graph_ppsl_in_rz_s[j] = graph_ppsl_in_rz;
       stat.gt_min_s[j] = gt_min;
@@ -176,42 +174,24 @@ int main(int argc, char **argv) {
       stat.rec_at_ks[j] = (double)rz_gt_interse.size() / gt_indices.size();
       stat.pre_at_ks[j] = (double)rz_gt_interse.size() / rz_indices.size();
 
-      stat.ivf_ppsl_nums[j] = std::accumulate(metric.is_ivf_ppsl.begin(),
-                                              metric.is_ivf_ppsl.end(), 0);
-      stat.graph_ppsl_nums[j] = std::accumulate(metric.is_graph_ppsl.begin(),
-                                                metric.is_graph_ppsl.end(), 0);
-      stat.ivf_ppsl_qlty[j] =
-          stat.ivf_ppsl_nums[j] != 0
-              ? (double)ivf_ppsl_in_tp / stat.ivf_ppsl_nums[j]
-              : 0;
-      stat.ivf_ppsl_rate[j] =
-          stat.ivf_ppsl_nums[j] != 0
-              ? (double)ivf_ppsl_in_rz / stat.ivf_ppsl_nums[j]
-              : 0;
-      stat.graph_ppsl_qlty[j] =
-          stat.graph_ppsl_nums[j] != 0
-              ? (double)graph_ppsl_in_tp / stat.graph_ppsl_nums[j]
-              : 0;
-      stat.graph_ppsl_rate[j] =
-          stat.graph_ppsl_nums[j] != 0
-              ? (double)graph_ppsl_in_rz / stat.graph_ppsl_nums[j]
-              : 0;
-      stat.perc_of_ivf_ppsl_in_tp[j] =
-          rz_gt_interse.size() != 0
-              ? (double)ivf_ppsl_in_tp / rz_gt_interse.size()
-              : 0;
+      stat.ivf_ppsl_nums[j] = std::accumulate(metric.is_ivf_ppsl.begin(), metric.is_ivf_ppsl.end(), 0);
+      stat.graph_ppsl_nums[j] = std::accumulate(metric.is_graph_ppsl.begin(), metric.is_graph_ppsl.end(), 0);
+      stat.ivf_ppsl_qlty[j] = stat.ivf_ppsl_nums[j] != 0 ? (double)ivf_ppsl_in_tp / stat.ivf_ppsl_nums[j] : 0;
+      stat.ivf_ppsl_rate[j] = stat.ivf_ppsl_nums[j] != 0 ? (double)ivf_ppsl_in_rz / stat.ivf_ppsl_nums[j] : 0;
+      stat.graph_ppsl_qlty[j] = stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_tp / stat.graph_ppsl_nums[j] : 0;
+      stat.graph_ppsl_rate[j] = stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_rz / stat.graph_ppsl_nums[j] : 0;
+      stat.perc_of_ivf_ppsl_in_tp[j] = rz_gt_interse.size() != 0 ? (double)ivf_ppsl_in_tp / rz_gt_interse.size() : 0;
       stat.perc_of_ivf_ppsl_in_rz[j] = (double)ivf_ppsl_in_rz / rz.size();
       stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
       stat.num_computations[j] = metric.ncomp;
       stat.num_rounds[j] = metric.nround;
-      stat.latencies[j] =
-          duration_cast<microseconds>(search_stop - search_start).count();
+      stat.num_clusters[j] = metric.ncluster;
+      stat.latencies[j] = duration_cast<microseconds>(search_stop - search_start).count();
       j++;
     }
   }
 
-  auto json =
-      collate_stat(stat, nb, nsat, args.k, nq, search_time, args.nthread);
+  auto json = collate_stat(stat, nb, nsat, args.k, nq, search_time, args.nthread);
   std::ofstream ofs((log_dir / out_json).c_str());
   ofs.write(json.dump(4).c_str(), json.dump(4).length());
 }

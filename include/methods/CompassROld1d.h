@@ -133,6 +133,7 @@ class CompassROld1d {
         visited[currObj] = true;
         candidate_set.emplace(-curdist, currObj);
         if (attrs_[currObj] <= u_bound && attrs_[currObj] >= l_bound) top_candidates.emplace(curdist, currObj);
+        metrics[q].cand_dist.push_back(curdist);
       }
 
       auto curr_ci = q * nprobe;
@@ -200,9 +201,8 @@ class CompassROld1d {
         }
       }
 
+      metrics[q].ncluster = curr_ci - q * nprobe;
       while (top_candidates.size() > k) top_candidates.pop();
-      // size_t sz = top_candidates.size();
-      // vector<std::pair<dist_t, labeltype>> result(sz);
       while (!top_candidates.empty()) {
         results[q].push(top_candidates.top());
         top_candidates.pop();

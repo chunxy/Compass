@@ -134,12 +134,19 @@ typical_irange_graph_2d_ranges = [
 ]
 
 CompassBuild = namedtuple("CompassBuild", ["M", "efc", "nlist"])
-typical_compass_1d_builds = [
+typical_compass_r_old_1d_builds = [
+  CompassBuild(16, 200, 1000),
+  CompassBuild(32, 200, 1000),
+  CompassBuild(32, 200, 2000),  # *[CompassBuild(M, efc, nlist) for M, efc, nlist in product([16, 32, 64], [100, 200], [500, 100])]
+]
+
+typical_compass_r_1d_builds = [
+  CompassBuild(16, 200, 1000),
   CompassBuild(32, 200, 1000),  # *[CompassBuild(M, efc, nlist) for M, efc, nlist in product([16, 32, 64], [100, 200], [500, 100])]
 ]
 
 CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
-typical_compass_graph_1d_searches = [
+typical_compass_1d_searches = [
   # *[CompassSearch(efs, 500, 1000) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
   *[CompassSearch(efs, 500, 1000) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200)],
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([20, 40, 60, 100, 200], [500, 1000, 1500, 2000, 3000, 3500, 4000])]
@@ -166,11 +173,13 @@ CompassImiSearch = namedtuple("CompassImiSearch", ["nprobe"])
 typical_compass_imi_searches = [*[CompassImiSearch(nprobe) for nprobe in (100, 150, 200, 250, 300, 400, 500)]]
 
 CompassGraphBuild = namedtuple("CompassGraphBuild", ["M", "efc"])
-typical_compass_graph_builds = [*[CompassGraphBuild(M, efc) for M, efc in product([16, 32, 64], [100, 200])]]
+typical_compass_graph_builds = [*[CompassGraphBuild(M, efc) for M, efc in product([16, 32], [100, 200])]]
 
 CompassGraphSearch = namedtuple("CompassGraphSearch", ["efs", "nrel"])
-typical_compass_graph_searches = [
-  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200], [500, 1000, 1500, 2000, 3000, 3500, 4000])]
+typical_compass_graph_1d_searches = [
+  *[
+    CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200], [500, 1000, 1500, 2000, 3000, 3500, 4000, 5000, 6000, 7000, 8000])
+  ]
 ]
 
 # AcornBuild = namedtuple("AcornBuild", ["M", "beta", "efc", "gamma"])
@@ -209,15 +218,15 @@ typical_i_range_graph_searches = [
 METHOD_BUILD_MAPPING = {
   # "Compass1d": typical_compass_builds,
   # "Acorn": typical_acorn_builds,
-  "CompassR1d": typical_compass_1d_builds,
-  "CompassROld1d": typical_compass_1d_builds,
+  "CompassR1d": typical_compass_r_1d_builds,
+  "CompassROld1d": typical_compass_r_old_1d_builds,
   "CompassRImi1d": typical_compass_r_imi_builds,
   "CompassIvf1d": typical_compass_ivf_builds,
   "CompassImi1d": typical_compass_imi_builds,
   "CompassGraph1d": typical_compass_graph_builds,
   "Serf": typical_serf_builds,
   "iRangeGraph": typical_i_range_graph_builds,
-  "CompassR": typical_compass_1d_builds,
+  "CompassR": typical_compass_r_1d_builds,
   "CompassIvf": typical_compass_ivf_builds,
   "CompassGraph": typical_compass_graph_builds,
   "iRangeGraph2d": typical_i_range_graph_builds,
@@ -226,9 +235,9 @@ METHOD_BUILD_MAPPING = {
 METHOD_SEARCH_MAPPING = {
   # "Compass1d": typical_compass_searches,
   # "Acorn": typical_acorn_searches,
-  "CompassR1d": typical_compass_graph_1d_searches,
+  "CompassR1d": typical_compass_1d_searches,
   "CompassROld1d": typical_compass_1d_old_searches,
-  "CompassRImi1d": typical_compass_graph_1d_searches,
+  "CompassRImi1d": typical_compass_1d_searches,
   "CompassIvf1d": typical_compass_ivf_searches,
   "CompassImi1d": typical_compass_imi_searches,
   "CompassGraph1d": typical_compass_graph_1d_searches,
@@ -236,7 +245,7 @@ METHOD_SEARCH_MAPPING = {
   "iRangeGraph": typical_i_range_graph_searches,
   "CompassR": typical_compass_2d_searches,
   "CompassIvf": typical_compass_ivf_searches,
-  "CompassGraph": typical_compass_graph_1d_searches,
+  "CompassGraph": typical_compass_1d_searches,
   "iRangeGraph2d": typical_i_range_graph_searches,
 }
 
@@ -271,4 +280,10 @@ METHOD_MARKER_MAPPING = {
   "CompassIvf": '*',
   "CompassGraph": '^',
   "iRangeGraph2d": '2',
+}
+
+COMPASS_BUILD_MARKER_MAPPING = {
+  "M_16_efc_200_nlist_1000": "D",
+  "M_32_efc_200_nlist_1000": "p",
+  "M_32_efc_200_nlist_2000": "|",
 }

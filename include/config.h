@@ -6,6 +6,7 @@
 const std::string WORKSPACE = "/home/chunxy/repos/Compass";
 const std::string LOGS = WORKSPACE + "/logs_{}";
 const std::string CKPS = WORKSPACE + "/checkpoints";
+const std::string STATS = WORKSPACE + "/stats";
 
 const std::string DATA = WORKSPACE + "/data";
 const std::string RAW_DATA = DATA + "/raw";
