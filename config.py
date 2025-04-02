@@ -141,18 +141,18 @@ typical_compass_r_old_1d_builds = [
 ]
 
 typical_compass_r_1d_builds = [
-  CompassBuild(16, 200, 1000),
-  CompassBuild(32, 200, 1000),  # *[CompassBuild(M, efc, nlist) for M, efc, nlist in product([16, 32, 64], [100, 200], [500, 100])]
+  CompassBuild(32, 200, 1000),
+  CompassBuild(32, 200, 2000),
 ]
 
 CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
 typical_compass_1d_searches = [
   # *[CompassSearch(efs, 500, 1000) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
-  *[CompassSearch(efs, 500, 1000) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200)],
+  *[CompassSearch(efs, 500, 1000) for efs in (10, 20, 60, 100, 200)],
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([20, 40, 60, 100, 200], [500, 1000, 1500, 2000, 3000, 3500, 4000])]
 ]
-typical_compass_1d_old_searches = [
-  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 25, 30, 35, 40, 50, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])],
+typical_compass_old_1d_searches = [
+  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 15, 20, 25, 30, 35, 40, 50, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])],
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([300, 500], [100, 500, 1000, 1500])]
 ]
 typical_compass_2d_searches = [CompassSearch(100, 100, 1000), CompassSearch(250, 100, 1000)]
@@ -236,7 +236,7 @@ METHOD_SEARCH_MAPPING = {
   # "Compass1d": typical_compass_searches,
   # "Acorn": typical_acorn_searches,
   "CompassR1d": typical_compass_1d_searches,
-  "CompassROld1d": typical_compass_1d_old_searches,
+  "CompassROld1d": typical_compass_old_1d_searches,
   "CompassRImi1d": typical_compass_1d_searches,
   "CompassIvf1d": typical_compass_ivf_searches,
   "CompassImi1d": typical_compass_imi_searches,
@@ -285,5 +285,5 @@ METHOD_MARKER_MAPPING = {
 COMPASS_BUILD_MARKER_MAPPING = {
   "M_16_efc_200_nlist_1000": "D",
   "M_32_efc_200_nlist_1000": "p",
-  "M_32_efc_200_nlist_2000": "|",
+  "M_32_efc_200_nlist_2000": "8",
 }

@@ -78,12 +78,12 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
 
     fig, axs = plt.subplots(2, 1, layout='constrained')
     for m in data.method.unique():
-      if m == "Serf": continue
-      # if m == "Serf" or m == "CompassR1d": continue
+      # if m == "Serf": continue
+      if m == "Serf" or m == "CompassROld1d": continue
       for b in data[data["method"] == m].build.unique():
         data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
-        # if m == "CompassROld1d" or m == "CompassR1d":
-        if m == "CompassROld1d":
+        # if m == "CompassROld1d":
+        if m == "CompassR1d":
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, METHOD_MARKER_MAPPING[m])
           for nrel in [500, 600, 700, 800, 1000, 1500]:
             data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
@@ -159,12 +159,12 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
     fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
     for i, dataset in enumerate(DATASETS):
       for m in data.method.unique():
-        if m == "Serf": continue
-        # if m == "Serf" or m == "CompassR1d": continue
+        # if m == "Serf": continue
+        if m == "Serf" or m == "CompassROld1d": continue
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b) & (data["dataset"] == dataset)]
-          # if m == "CompassROld1d" or m == "CompassR1d":
-          if m == "CompassROld1d":
+          # if m == "CompassROld1d":
+          if m == "CompassR1d":
             marker = COMPASS_BUILD_MARKER_MAPPING.get(b, METHOD_MARKER_MAPPING[m])
             for nrel in [500, 600, 700, 800, 1000, 1500]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
@@ -293,7 +293,7 @@ def draw_1d_qps_comp_fixed_recall_by_selectivity():
       data = df[df["dataset"] == dataset]
       for m in data.method.unique():
         # if m == "Serf": continue
-        if m == "Serf" or m == "CompassR1d": continue
+        if m == "Serf" or m == "CompassROld1d": continue
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])

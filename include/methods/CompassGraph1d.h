@@ -75,6 +75,7 @@ class CompassGraph1d {
     size_t d = *(size_t *)space_.get_dist_func_param();
 
     VisitedList *vl = hnsw_.visited_list_pool_->getFreeVisitedList();
+
     for (int q = 0; q < nq; q++) {
       auto pred_beg = btree_.lower_bound(l_bound);
       auto pred_end = btree_.upper_bound(u_bound);
@@ -86,18 +87,53 @@ class CompassGraph1d {
       vl_type *visited = vl->mass;
       vl_type visited_tag = vl->curV;
 
+      {
+        tableint currObj = hnsw_.enterpoint_node_;
+        dist_t currDist = hnsw_.fstdistfunc_(
+            (float *)query + q * d, hnsw_.getDataByInternalId(hnsw_.enterpoint_node_), hnsw_.dist_func_param_
+        );
+
+        for (int level = hnsw_.maxlevel_; level > 0; level--) {
+          bool changed = true;
+          while (changed) {
+            changed = false;
+            unsigned int *data;
+
+            data = (unsigned int *)hnsw_.get_linklist(currObj, level);
+            int size = hnsw_.getListCount(data);
+            metrics[q].ncomp += size;
+
+            tableint *datal = (tableint *)(data + 1);
+            for (int i = 0; i < size; i++) {
+              tableint cand = datal[i];
+
+              if (cand < 0 || cand > hnsw_.max_elements_) throw std::runtime_error("cand error");
+              dist_t dist =
+                  hnsw_.fstdistfunc_((float *)query + q * d, hnsw_.getDataByInternalId(cand), hnsw_.dist_func_param_);
+
+              if (dist < currDist) {
+                currDist = dist;
+                currObj = cand;
+                changed = true;
+              }
+            }
+          }
+        }
+        visited[currObj] = visited_tag;
+        candidate_set.emplace(-currDist, currObj);
+        if (attrs_[currObj] <= u_bound && attrs_[currObj] >= l_bound) top_candidates.emplace(currDist, currObj);
+      }
+
       RangeQuery<float> pred(l_bound, u_bound, &attrs_);
       size_t total_proposed = 0;
 
       while (curr != pred_end && top_candidates.size() < efs_) {
         int i = 0;
         while (i < nrel_) {
-          if (curr == pred_end)
-            break;
+          if (curr == pred_end) break;
           tableint id = (*curr).second;
           curr++;
-          if (visited[id] == visited_tag)
-            continue;
+          if (visited[id] == visited_tag) continue;
           visited[id] = visited_tag;
 #ifdef USE_SSE
           _mm_prefetch(hnsw_.getDataByInternalId((*curr).second), _MM_HINT_T0);

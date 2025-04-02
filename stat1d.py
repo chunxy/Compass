@@ -9,7 +9,7 @@ STATS_DIR = "/home/chunxy/repos/Compass/stats"
 def stat_top_k_in_cluster_by_selectivity():
   stat_dir = Path(STATS_DIR)
   stat_tmpl = "top_{}_in_cluster_hist_{}_{}_{}_{}.bin"
-  nlist_s = [1000, 2000]
+  nlist_s = [1000, 2000, 5000]
   k = 10
   ranges = [(0, 10000), *[(100, r) for r in (200, 300, 600)], *[(100, r) for r in range(1100, 10000, 1000)]]
 
@@ -20,7 +20,6 @@ def stat_top_k_in_cluster_by_selectivity():
         stat_path = stat_dir / stat_tmpl.format(k, dataset, nlist, *rg)
         with open(stat_path, "rb") as hist_file:
           data = list(int.from_bytes(hist_file.read(4), byteorder='little') for _ in range(nlist))
-          data = data[:200]
           bins = list(range(0, len(data) + 1))
           hist, _, _ = axs[i].hist(bins[:-1], bins, weights=data, density=True)
           # axs[i].vlines(50, ymin=0, ymax=0.05, linestyles='dashed', c='r')
@@ -42,7 +41,7 @@ def stat_top_k_in_cluster_by_selectivity():
 def stat_cluster_imbalance_factor():
   stat_dir = Path(STATS_DIR)
   stat_tmpl = "cluster_element_count_{}_{}.bin"
-  nlist_s = [1000, 2000]
+  nlist_s = [1000, 2000, 5000]
 
   for nlist in nlist_s:
     fig, axs = plt.subplots(1, len(DATASETS), layout='constrained')
