@@ -1,4 +1,5 @@
 #include "utils/funcs.h"
+#include <bits/types/FILE.h>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <cassert>
@@ -287,6 +288,94 @@ nlohmann::json collate_stat(
     fmt::print("\tIVF Proposal in TP    : {:3d}/{:3d}\n", s.ivf_ppsl_in_tp_s[j], s.tp_s[j]);
     fmt::print("\tIVF Proposal in RZ    : {:3d}/{:3d}\n", s.ivf_ppsl_in_rz_s[j], s.rz_s[j]);
     fmt::print("\tLinear Scan Rate      : {:3d}/{:3d}\n", s.ivf_ppsl_nums[j], nsat);
+  }
+  auto sum_of_rec = std::accumulate(s.rec_at_ks.begin(), s.rec_at_ks.end(), 0.);
+  auto sum_of_pre = std::accumulate(s.pre_at_ks.begin(), s.pre_at_ks.end(), 0.);
+  auto sum_of_ivf_num = std::accumulate(s.ivf_ppsl_nums.begin(), s.ivf_ppsl_nums.end(), 0.);
+  auto sum_of_ivf_qlty = std::accumulate(s.ivf_ppsl_qlty.begin(), s.ivf_ppsl_qlty.end(), 0.);
+  auto sum_of_ivf_rate = std::accumulate(s.ivf_ppsl_rate.begin(), s.ivf_ppsl_rate.end(), 0.);
+  auto sum_of_graph_num = std::accumulate(s.graph_ppsl_nums.begin(), s.graph_ppsl_nums.end(), 0.);
+  auto sum_of_graph_qlty = std::accumulate(s.graph_ppsl_qlty.begin(), s.graph_ppsl_qlty.end(), 0.);
+  auto sum_of_graph_rate = std::accumulate(s.graph_ppsl_rate.begin(), s.graph_ppsl_rate.end(), 0.);
+  auto sum_of_perc_ivf_in_tp =
+      std::accumulate(s.perc_of_ivf_ppsl_in_tp.begin(), s.perc_of_ivf_ppsl_in_tp.end(), 0.);
+  auto sum_of_perc_ivf_in_rz =
+      std::accumulate(s.perc_of_ivf_ppsl_in_rz.begin(), s.perc_of_ivf_ppsl_in_rz.end(), 0.);
+  auto sum_of_linear_scan_rate = std::accumulate(s.linear_scan_rate.begin(), s.linear_scan_rate.end(), 0.);
+  auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0);
+  auto sum_of_num_cluster = std::accumulate(s.num_clusters.begin(), s.num_clusters.end(), 0);
+  auto sum_of_num_comp = std::accumulate(s.num_computations.begin(), s.num_computations.end(), 0);
+  auto sum_of_num_round = std::accumulate(s.num_rounds.begin(), s.num_rounds.end(), 0);
+
+  nlohmann::json json;
+  json["recall"] = s.rec_at_ks;
+  json["precision"] = s.pre_at_ks;
+  json["ivf_proposal_number"] = s.ivf_ppsl_nums;
+  json["ivf_proposal_rate"] = s.ivf_ppsl_rate;
+  json["ivf_proposal_quality"] = s.ivf_ppsl_qlty;
+  json["graph_proposal_number"] = s.graph_ppsl_nums;
+  json["graph_proposal_rate"] = s.graph_ppsl_rate;
+  json["graph_proposal_quality"] = s.graph_ppsl_qlty;
+  json["perc_ivf_in_tp"] = s.perc_of_ivf_ppsl_in_tp;
+  json["perc_ivf_in_rz"] = s.perc_of_ivf_ppsl_in_rz;
+  json["linear_scan_rate"] = s.linear_scan_rate;
+  json["latency"] = s.latencies;
+  json["aggregated"] = {
+      {"recall", sum_of_rec / nq},
+      {"precision", sum_of_pre / nq},
+      {"ivf_proposal_number", sum_of_ivf_num / nq},
+      {"ivf_proposal_rate", sum_of_ivf_rate / nq},
+      {"ivf_proposal_quality", sum_of_ivf_qlty / nq},
+      {"graph_proposal_number", sum_of_graph_num / nq},
+      {"graph_proposal_rate", sum_of_graph_rate / nq},
+      {"graph_proposal_quality", sum_of_graph_qlty / nq},
+      {"perc_ivf_in_tp", sum_of_perc_ivf_in_tp / nq},
+      {"perc_ivf_in_rz", sum_of_perc_ivf_in_rz / nq},
+      {"linear_scan_rate", sum_of_linear_scan_rate / nq},
+      {"num_queries", nq},
+      {"latency_in_s", (double)sum_of_latency / 1000000 / nq},
+      {"selectivity", (double)nsat / nb},
+      {"time_in_s", (double)search_time / 1000000},
+      {"qps", (double)nq / search_time * 1000000},
+      {"num_threads", nthread},
+      {"num_computations", (double)sum_of_num_comp / nq},
+      {"num_clusters", (double)sum_of_num_cluster / nq},
+      {"num_rounds", (double)sum_of_num_round / nq}
+  };
+  return json;
+}
+
+nlohmann::json collate_stat(
+  const Stat &s,
+  const int nb,
+  const int nsat,
+  const int k,
+  const int nq,
+  const int search_time,
+  const int nthread,
+  FILE* out
+) {
+  for (int j = 0; j < s.rec_at_ks.size(); j++) {
+    fmt::print(out, "Query: {:d},\n", j);
+    fmt::print(out, "\tResult      : ");
+    fmt::print(out, "Min: {:9.2f}, Max: {:9.2f}\n", s.rz_min_s[j], s.rz_max_s[j]);
+    fmt::print(out, "\tGround Truth: ");
+    fmt::print(out, "Min: {:9.2f}, Max: {:9.2f}\n", s.gt_min_s[j], s.gt_max_s[j]);
+    fmt::print(out, "\tRecall: {:5.2f}%, ", s.rec_at_ks[j] * 100);
+    fmt::print(out, "Precision: {:5.2f}%, ", s.pre_at_ks[j] * 100);
+    fmt::print(out, "{:3d}/{:3d}/{:3d}\n", s.tp_s[j], s.rz_s[j], k);
+    fmt::print(out, "\tLatency in us         : {:d}\n", s.latencies[j]);
+    fmt::print(out, "\tNo. IVF Ppsl Rounds   : {:3d}\n", s.num_rounds[j]);
+    fmt::print(out, "\tNo. IVF Ppsl          : {:3d}\n", s.ivf_ppsl_nums[j]);
+    fmt::print(out, "\tNo. Graph Ppsl        : {:3d}\n", s.graph_ppsl_nums[j]);
+    fmt::print(out, "\tNo. Distance Comp     : {:3d}\n", s.num_computations[j]);
+    fmt::print(out, "\tIVF Proposal Rate     : {:3d}/{:3d}\n", s.ivf_ppsl_in_rz_s[j], s.ivf_ppsl_nums[j]);
+    fmt::print(out, "\tIVF Proposal Quality  : {:3d}/{:3d}\n", s.ivf_ppsl_in_tp_s[j], s.ivf_ppsl_nums[j]);
+    fmt::print(out, "\tGraph Proposal Rate   : {:3d}/{:3d}\n", s.graph_ppsl_in_rz_s[j], s.graph_ppsl_nums[j]);
+    fmt::print(out, "\tGraph Proposal Quality: {:3d}/{:3d}\n", s.graph_ppsl_in_tp_s[j], s.graph_ppsl_nums[j]);
+    fmt::print(out, "\tIVF Proposal in TP    : {:3d}/{:3d}\n", s.ivf_ppsl_in_tp_s[j], s.tp_s[j]);
+    fmt::print(out, "\tIVF Proposal in RZ    : {:3d}/{:3d}\n", s.ivf_ppsl_in_rz_s[j], s.rz_s[j]);
+    fmt::print(out, "\tLinear Scan Rate      : {:3d}/{:3d}\n", s.ivf_ppsl_nums[j], nsat);
   }
   auto sum_of_rec = std::accumulate(s.rec_at_ks.begin(), s.rec_at_ks.end(), 0.);
   auto sum_of_pre = std::accumulate(s.pre_at_ks.begin(), s.pre_at_ks.end(), 0.);

@@ -91,9 +91,10 @@ int main(int argc, char **argv) {
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
+      FILE *out = stdout;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
-      freopen((log_dir / out_text).c_str(), "w", stdout);
+      out = fopen((log_dir / out_text).c_str(), "w");
 #endif
 
       vector<Metric> metrics(args.batchsz, Metric(nb));
@@ -183,7 +184,7 @@ int main(int argc, char **argv) {
         }
       }
 
-      auto json = collate_stat(stat, nb, nsat, args.k, nq, search_time, args.nthread);
+      auto json = collate_stat(stat, nb, nsat, args.k, nq, search_time, args.nthread, out);
       std::ofstream ofs((log_dir / out_json).c_str());
       ofs.write(json.dump(4).c_str(), json.dump(4).length());
     }

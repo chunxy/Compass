@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <string>
-#include <utility>
 #include <vector>
 #include "card.h"
 #include "hnswlib.h"
@@ -10,7 +9,6 @@
 #include "methods/Pod.h"
 
 using hnswlib::labeltype;
-using std::pair;
 using std::vector;
 
 void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, vector<vector<float>> &attrs);
@@ -85,4 +83,15 @@ nlohmann::json collate_stat(
     const int nq,
     const int search_time,
     const int nthread
+);
+
+nlohmann::json collate_stat(
+    const Stat &s,
+    const int nb,
+    const int nsat,
+    const int k,
+    const int nq,
+    const int search_time,
+    const int nthread,
+    FILE* out
 );
