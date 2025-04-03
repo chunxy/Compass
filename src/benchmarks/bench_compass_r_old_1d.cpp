@@ -19,7 +19,6 @@
 #include <vector>
 #include "config.h"
 #include "faiss/MetricType.h"
-#include "hnswlib.h"
 #include "json.hpp"
 #include "methods/CompassROld1d.h"
 #include "methods/Pod.h"
@@ -84,7 +83,6 @@ int main(int argc, char **argv) {
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
-  std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
