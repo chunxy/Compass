@@ -6,7 +6,7 @@ from itertools import product
 LOGS_TMPL = "/home/chunxy/repos/Compass/logs_{}"
 
 # Names
-ONED_METHODS = ("CompassR1d", "CompassROld1d", "CompassRImi1d", "CompassIvf1d", "CompassImi1d", "Serf", "iRangeGraph")  # "CompassGraph1d",
+ONED_METHODS = ("CompassR1d", "CompassRImi1d", "CompassIvf1d", "CompassImi1d", "CompassGraph1d", "Serf", "iRangeGraph")  # "CompassROld1d",
 TWOD_METHODS = ("CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d")
 DATASETS = ("sift", "gist", "crawl", "glove100", "audio", "video")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
