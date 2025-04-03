@@ -26,6 +26,7 @@ namespace fs = boost::filesystem;
 using namespace std::chrono;
 using std::priority_queue;
 using std::vector;
+using std::pair;
 
 auto dist_func = hnswlib::L2Sqr;
 
