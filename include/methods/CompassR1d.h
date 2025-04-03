@@ -565,20 +565,20 @@ class CompassR1d {
       if (attrs_[currObj] <= u_bound && attrs_[currObj] >= l_bound) top_candidates.emplace(currDist, currObj);
     }
 
-    int curr_ci = q * nprobe;
+    int curr_ci = 0;
     auto itr_beg = btrees_[clusters[curr_ci].second].lower_bound(l_bound);
     auto itr_end = btrees_[clusters[curr_ci].second].upper_bound(u_bound);
 
     int cnt = 0;
     while (true) {
       int crel = 0;
-      if (candidate_set.empty() || (curr_ci < nprobe * (q + 1) && -candidate_set.top().first > clusters[curr_ci].first)) {
+      if (candidate_set.empty() || (curr_ci < nprobe && -candidate_set.top().first > clusters[curr_ci].first)) {
         while (crel < nrel_) {
           if (itr_beg == itr_end) {
-            if (curr_ci + 1 >= (q + 1) * nprobe)
+            curr_ci++;
+            if (curr_ci >=  nprobe)
               break;
             else {
-              curr_ci++;
               itr_beg = btrees_[clusters[curr_ci].second].lower_bound(l_bound);
               itr_end = btrees_[clusters[curr_ci].second].upper_bound(u_bound);
               continue;
@@ -622,12 +622,12 @@ class CompassR1d {
       );
       // if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) ||
       //     curr_ci >= (q + 1) * nprobe) {
-      if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
+      if ((top_candidates.size() >= efs_) || curr_ci >= nprobe) {
         break;
       }
     }
 
-    metrics[q].ncluster = curr_ci - q * nprobe;
+    metrics[q].ncluster = curr_ci;
     while (top_candidates.size() > k) top_candidates.pop();
     size_t sz = top_candidates.size();
     while (!top_candidates.empty()) {

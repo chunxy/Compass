@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
-  std::string method = "CompassR1d";
+  std::string method = "CompassRTrick1d";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
   std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", args.efs, args.nrel, args.mincomp);
@@ -97,15 +97,22 @@ int main(int argc, char **argv) {
     comp.SaveIvf(ckp_dir / ivf_ckp);
   }
 
-  auto add_points_start = high_resolution_clock::now();
-  std::vector<labeltype> labels(nb);
-  std::iota(labels.begin(), labels.end(), 0);
-  comp.AddIvfPoints(nb, xb, labels.data(), attrs.data());
-  auto add_points_stop = high_resolution_clock::now();
-  fmt::print(
-      "Finished adding points, took {} microseconds.\n",
-      duration_cast<microseconds>(add_points_stop - add_points_start).count()
-  );
+  if (fs::exists(ckp_dir / rank_ckp)) {
+    comp.LoadRanking(ckp_dir / rank_ckp, attrs.data());
+    fmt::print("Finished loading cluster ranking.\n");
+  } else {
+    auto add_points_start = high_resolution_clock::now();
+    std::vector<labeltype> labels;
+    labels.resize(nb);
+    std::iota(labels.begin(), labels.end(), 0);
+    comp.AddIvfPoints(nb, xb, labels.data(), attrs.data());
+    auto add_points_stop = high_resolution_clock::now();
+    fmt::print(
+        "Finished adding points, took {} microseconds.\n",
+        duration_cast<microseconds>(add_points_stop - add_points_start).count()
+    );
+    comp.SaveRanking(ckp_dir / rank_ckp);
+  }
 
   if (fs::exists(ckp_dir / graph_ckp)) {
     comp.LoadGraph((ckp_dir / graph_ckp).string());
@@ -132,7 +139,7 @@ int main(int argc, char **argv) {
 // #pragma omp taskloop
 #endif
   for (int j = 0; j < nq; j += args.batchsz) {
-    comp.SearchKnnV2(
+    comp.SearchKnnV3(
         xq + j * d,
         args.batchsz,
         args.k,
@@ -141,9 +148,7 @@ int main(int argc, char **argv) {
         args.efs,
         args.mincomp,
         args.nthread,
-        metrics,
-        ranked_clusters,
-        distances
+        metrics
     );
   }
   auto search_stop = high_resolution_clock::system_clock::now();
@@ -154,7 +159,7 @@ int main(int argc, char **argv) {
   for (int j = 0; j < nq;) {
     vector<Metric> metrics(args.batchsz, Metric(nb));
     auto search_start = high_resolution_clock::now();
-    auto results = comp.SearchKnnV2(
+    auto results = comp.SearchKnnV3(
         xq + j * d,
         args.batchsz,
         args.k,
@@ -163,9 +168,7 @@ int main(int argc, char **argv) {
         args.efs,
         args.mincomp,
         args.nthread,
-        metrics,
-        ranked_clusters,
-        distances
+        metrics
     );
     auto search_stop = high_resolution_clock::now();
 
@@ -229,7 +232,6 @@ int main(int argc, char **argv) {
       stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
       stat.num_computations[j] = metric.ncomp;
       stat.num_rounds[j] = metric.nround;
-      stat.num_clusters[j] = metric.ncluster;
       stat.latencies[j] = duration_cast<microseconds>(search_stop - search_start).count();
       j++;
     }
