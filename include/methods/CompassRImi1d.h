@@ -46,11 +46,8 @@ class CompassRImi1d {
   vector<attr_t> attrs_;
   vector<btree::btree_map<attr_t, labeltype>> btrees_;
 
-  // config
-  size_t nrel_;
-
  public:
-  CompassRImi1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nsub, size_t nbits, size_t nrel);
+  CompassRImi1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nsub, size_t nbits);
   int AddPoint(const void *data_point, labeltype label, attr_t attr);
   int AddGraphPoint(const void *data_point, labeltype label);
   int AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attrs);
@@ -92,16 +89,14 @@ CompassRImi1d<dist_t, attr_t>::CompassRImi1d(
     size_t efc,
     size_t max_elements,
     size_t nsub,
-    size_t nbits,
-    size_t nrel
+    size_t nbits
 )
     : space_(d),
       hnsw_(&space_, max_elements, M, efc),
       quantizer_(d, nsub, nbits),
       ivf_(new faiss::IndexIVFFlat(&quantizer_, d, 1 << (nsub * nbits))),
       attrs_(max_elements, std::numeric_limits<attr_t>::max()),
-      btrees_((1 << (nbits * nsub)), btree::btree_map<attr_t, labeltype>()),
-      nrel_(nrel) {
+      btrees_((1 << (nbits * nsub)), btree::btree_map<attr_t, labeltype>()) {
   // pq_->nprobe = nlist;
   ivf_->quantizer_trains_alone = true;
 }
@@ -153,7 +148,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
     const attr_t &l_bound,
     const attr_t &u_bound,
     const int efs,
-    const int min_comp,
+    const int nrel,
     const int nthread,
     vector<Metric> &metrics
 ) {
@@ -189,7 +184,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
     while (true) {
       int crel = 0;
       if (candidate_set.empty() || distances[curr_ci] < -candidate_set.top().first) {
-        while (crel < nrel_) {
+        while (crel < nrel) {
           if (itr_beg == itr_end) {
             if (++curr_ci == (q + 1) * nprobe)
               break;
@@ -212,8 +207,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
           metrics[q].ncomp++;
           crel++;
 
-          auto upper_bound =
-              top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+          auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
           if (top_candidates.size() < efs || dist < upper_bound) {
             candidate_set.emplace(-dist, tableid);
             top_candidates.emplace(dist, tableid);
@@ -236,8 +230,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
           std::ref(metrics[q].ncomp),
           std::ref(metrics[q].is_graph_ppsl)
       );
-      if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) || curr_ci >= (q + 1) * nprobe)
-        break;
+      if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) break;
     }
 
     metrics[q].ncluster = curr_ci - q * nprobe;
@@ -263,7 +256,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
     const attr_t &l_bound,
     const attr_t &u_bound,
     const int efs,
-    const int min_comp,
+    const int nrel,
     const int nthread
 ) {
   auto efs_ = std::max(k, efs);
@@ -298,7 +291,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
     while (true) {
       int crel = 0;
       if (candidate_set.empty() || distances[curr_ci] < -candidate_set.top().first) {
-        while (crel < nrel_) {
+        while (crel < nrel) {
           if (itr_beg == itr_end) {
             if (++curr_ci == (q + 1) * nprobe)
               break;
@@ -321,8 +314,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
           ncomp++;
           crel++;
 
-          auto upper_bound =
-              top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+          auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
           if (top_candidates.size() < efs || dist < upper_bound) {
             candidate_set.emplace(-dist, tableid);
             top_candidates.emplace(dist, tableid);
@@ -334,17 +326,9 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
       }
 
       hnsw_.template ReentrantSearchKnn<false>(
-          (float *)query + q * ivf_->d,
-          k,
-          -1,
-          top_candidates,
-          candidate_set,
-          visited,
-          &pred,
-          std::ref(ncomp),
-          NULL
+          (float *)query + q * ivf_->d, k, -1, top_candidates, candidate_set, visited, &pred, std::ref(ncomp), NULL
       );
-      if ((top_candidates.size() >= efs_ && min_comp - ncomp < 0) || curr_ci >= (q + 1) * nprobe) break;
+      if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) break;
     }
 
     while (top_candidates.size() > k) top_candidates.pop();

@@ -32,17 +32,14 @@ class CompassIvf1D {
   faiss::IndexIVFFlat *ivf_;
   // faiss::IndexIVFPQ ivfpq_;
 
-  // vector<vector<attr_t>> attrs_;
   vector<attr_t> attrs_;
   vector<btree::btree_map<attr_t, labeltype>> btrees_;
 
   const float *xb_;
 
  public:
-  CompassIvf1D(size_t d, size_t max_elements, size_t nlist, size_t nprobe, const float *xb);
+  CompassIvf1D(size_t d, size_t max_elements, size_t nlist, const float *xb);
   int Add(const void *data_point, labeltype label, attr_t attr);
-  // void AddMultiple(size_t n, const void *data, labeltype *labels, attr_t
-  // *attrs);
   int AddIvfPoints(size_t n, const void *data, labeltype *labels, const vector<attr_t> &attrs);
   void TrainIvf(size_t n, const void *data);
 
@@ -59,7 +56,6 @@ class CompassIvf1D {
     // auto centroids = quantizer_.get_xb();
     // auto dist_func = quantizer_.get_distance_computer();
     ivf_->quantizer->assign(nq, (float *)query, ranked_clusters, nprobe);
-    // auto &dm = ivf_->direct_map;
 
     vector<vector<pair<float, labeltype>>> result(nq, vector<pair<float, labeltype>>(k));
     for (int q = 0; q < nq; q++) {
@@ -76,8 +72,7 @@ class CompassIvf1D {
           auto j = (*rel_beg).second;
           metrics[q].is_ivf_ppsl[j] = true;
           const dist_t *vect = xb_ + j * quantizer_.d;
-          auto dist =
-              space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect, space_.get_dist_func_param());
+          auto dist = space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect, space_.get_dist_func_param());
           metrics[q].ncomp++;
           top_candidates.emplace(dist, j);
           rel_beg++;
@@ -102,21 +97,13 @@ class CompassIvf1D {
 };
 
 template <typename dist_t, typename attr_t>
-CompassIvf1D<dist_t, attr_t>::CompassIvf1D(
-    size_t d,
-    size_t max_elements,
-    size_t nlist,
-    size_t nprobe,
-    const float *xb
-)
+CompassIvf1D<dist_t, attr_t>::CompassIvf1D(size_t d, size_t max_elements, size_t nlist, const float *xb)
     : space_(d),
       quantizer_(d),
       ivf_(new faiss::IndexIVFFlat(&quantizer_, d, nlist)),
       attrs_(max_elements, std::numeric_limits<attr_t>::max()),
       btrees_(nlist, btree::btree_map<attr_t, labeltype>()),
-      xb_(xb) {
-  ivf_->nprobe = nprobe;
-}
+      xb_(xb) {}
 
 template <typename dist_t, typename attr_t>
 int CompassIvf1D<dist_t, attr_t>::Add(const void *data_point, labeltype label, attr_t attr) {

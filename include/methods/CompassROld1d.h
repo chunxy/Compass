@@ -48,11 +48,8 @@ class CompassROld1d {
 
   faiss::idx_t *ranked_clusters_;
 
-  // config
-  size_t nrel_;
-
  public:
-  CompassROld1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist, size_t nrel, size_t nbits);
+  CompassROld1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist);
   int AddPoint(const void *data_point, labeltype label, attr_t attr);
   int AddGraphPoint(const void *data_point, labeltype label);
   int AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attrs);
@@ -65,7 +62,7 @@ class CompassROld1d {
       const attr_t &l_bound,
       const attr_t &u_bound,
       const int efs,
-      const int min_comp,
+      const int nrel,
       const int nthread,
       vector<Metric> &metrics,
       faiss::idx_t *ranked_clusters,
@@ -147,7 +144,7 @@ class CompassROld1d {
         // -candidate_set.top().first) {
         if (candidate_set.empty() ||
             (!top_candidates.empty() && -candidate_set.top().first > top_candidates.top().first)) {
-          while (crel < nrel_) {
+          while (crel < nrel) {
             if (itr_beg == itr_end) {
               if (curr_ci + 1 >= (q + 1) * nprobe)
                 break;
@@ -256,22 +253,13 @@ class CompassROld1d {
 };
 
 template <typename dist_t, typename attr_t>
-CompassROld1d<dist_t, attr_t>::CompassROld1d(
-    size_t d,
-    size_t M,
-    size_t efc,
-    size_t max_elements,
-    size_t nlist,
-    size_t nrel,
-    size_t nbits
-)
+CompassROld1d<dist_t, attr_t>::CompassROld1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist)
     : space_(d),
       hnsw_(&space_, max_elements, M, efc),
       quantizer_(d),
       ivf_(new faiss::IndexIVFFlat(&quantizer_, d, nlist)),
       attrs_(max_elements, std::numeric_limits<attr_t>::max()),
-      btrees_(nlist, btree::btree_map<attr_t, labeltype>()),
-      nrel_(nrel) {
+      btrees_(nlist, btree::btree_map<attr_t, labeltype>()) {
   ivf_->nprobe = nlist;
 }
 

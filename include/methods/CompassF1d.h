@@ -7,7 +7,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <cassert>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -47,11 +46,8 @@ class CompassF1d {
   vector<attr_t> attrs_;
   vector<btree::btree_map<attr_t, labeltype>> btrees_;
 
-  // config
-  size_t nrel_;
-
  public:
-  CompassF1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist, size_t nrel, size_t nbits);
+  CompassF1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist);
   int AddPoint(const void *data_point, labeltype label, attr_t attr);
   int AddGraphPoint(const void *data_point, labeltype label);
   int AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attrs);
@@ -81,17 +77,14 @@ CompassF1d<dist_t, attr_t>::CompassF1d(
     size_t M,
     size_t efc,
     size_t max_elements,
-    size_t nlist,
-    size_t nrel,
-    size_t nbits
+    size_t nlist
 )
     : space_(d),
       hnsw_(&space_, max_elements, M, efc),
       quantizer_(d),
       ivf_(new faiss::IndexIVFFlat(&quantizer_, d, nlist)),
       attrs_(max_elements, std::numeric_limits<attr_t>::max()),
-      btrees_(nlist, btree::btree_map<attr_t, labeltype>()),
-      nrel_(nrel) {
+      btrees_(nlist, btree::btree_map<attr_t, labeltype>()) {
   ivf_->nprobe = nlist;
 }
 
@@ -142,7 +135,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassF1d<dist_t, attr_t>::Sear
     const attr_t &l_bound,
     const attr_t &u_bound,
     const int efs,
-    const int min_comp,
+    const int nrel,
     const int nthread,
     vector<Metric> &metrics
 ) {
@@ -209,7 +202,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassF1d<dist_t, attr_t>::Sear
           }
           itr_begs[c]++;
         }
-        if (crel > nrel_) {
+        if (crel > nrel) {
           metrics[q].nround++;
           break;
         }

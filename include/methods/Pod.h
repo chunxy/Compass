@@ -17,10 +17,10 @@ struct IvfGraph1dArgs {
   int nlist = 1000;  // the number of coarse clusters
   int nsub = 4;
   int nbits = 4;
-  int nrel = 100;  // the number of candidates proposed by IVF per round
-  int efs = 100;
+  vector<int> nrel = {100};  // the number of candidates proposed by IVF per round
+  vector<int> efs = {100};
   int mincomp = 1000;
-  int nprobe = 100;
+  vector<int> nprobe = {100};
   int nthread = 1;
   int batchsz = 100;
 
@@ -40,9 +40,9 @@ struct IvfGraph1dArgs {
     optional_configs.add_options()("nsub", po::value<decltype(nsub)>(&nsub));
     optional_configs.add_options()("nbits", po::value<decltype(nbits)>(&nbits));
     // index search parameters
-    optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs));
-    optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe));
-    optional_configs.add_options()("nrel", po::value<decltype(nrel)>(&nrel));
+    optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs)->multitoken());
+    optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe)->multitoken());
+    optional_configs.add_options()("nrel", po::value<decltype(nrel)>(&nrel)->multitoken());
     optional_configs.add_options()("mincomp", po::value<decltype(mincomp)>(&mincomp));
     // system parameters
     optional_configs.add_options()("nthread", po::value<decltype(nthread)>(&nthread));

@@ -37,15 +37,13 @@ class CompassGraph1d {
   ReentrantHNSW<dist_t> hnsw_;
   vector<attr_t> attrs_;
   btree::btree_map<attr_t, tableint> btree_;
-  size_t nrel_;
 
  public:
-  CompassGraph1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nrel)
+  CompassGraph1d(size_t d, size_t M, size_t efc, size_t max_elements)
       : space_(d),
         hnsw_(&space_, max_elements, M, efc),
         attrs_(max_elements, std::numeric_limits<attr_t>::max()),
-        btree_(),
-        nrel_(nrel) {}
+        btree_() {}
 
   int AddGraphPoint(const void *data_point, labeltype label) {
     hnsw_.addPoint(data_point, label, -1);
@@ -67,6 +65,7 @@ class CompassGraph1d {
       const attr_t l_bound,
       const attr_t u_bound,
       const int efs,
+      const int nrel,
       vector<Metric> &metrics
   ) {
     auto efs_ = std::max(efs, k);
@@ -129,7 +128,7 @@ class CompassGraph1d {
 
       while (curr != pred_end && top_candidates.size() < efs_) {
         int i = 0;
-        while (i < nrel_) {
+        while (i < nrel) {
           if (curr == pred_end) break;
           tableint id = (*curr).second;
           curr++;
