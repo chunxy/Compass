@@ -6,7 +6,7 @@ from itertools import product
 LOGS_TMPL = "/home/chunxy/repos/Compass/logs_{}"
 
 # Names
-ONED_METHODS = ("CompassR1d", "CompassROld1d", "CompassRImi1d", "CompassIvf1d", "CompassImi1d", "Serf", "iRangeGraph") # "CompassGraph1d",
+ONED_METHODS = ("CompassR1d", "CompassROld1d", "CompassRImi1d", "CompassIvf1d", "CompassImi1d", "Serf", "iRangeGraph")  # "CompassGraph1d",
 TWOD_METHODS = ("CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d")
 DATASETS = ("sift", "gist", "crawl", "glove100", "audio", "video")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
@@ -72,7 +72,7 @@ typical_rf_ranges = [
   *[RangeFilterRange(100, r) for r in (200, 300, 600, 1100, 2100, 3100, 4100, 5100, 6100, 7100, 8100, 9100)],
   RangeFilterRange(0, 10000),
 ]
-typical_ivf_rf_ranges = [*[RangeFilterRange(100, r) for r in (200, 300, 600, 1100)]]
+typical_ivf_rf_ranges = [*[RangeFilterRange(100, r) for r in (200, 300, 600, 1100, 2100)]]
 
 LabelFilterRange = namedtuple("LabelFilterRange", ["max"])
 typical_franges = [*[LabelFilterRange(n) for n in (2, 5, 10, 50, 100, 500, 1000)]]
@@ -104,8 +104,7 @@ typical_serf_2d_ranges = [
       700000,
       800000,
       900000,
-      1000000,
-    )
+      1000000, )
   ],
   *[
     FractionRange(r, 1_900_000) for r in (
@@ -123,8 +122,7 @@ typical_serf_2d_ranges = [
       1330_000,
       1520_000,
       1710_000,
-      1900_000,
-    )
+      1900_000, )
   ]
 ]
 
@@ -137,7 +135,9 @@ CompassBuild = namedtuple("CompassBuild", ["M", "efc", "nlist"])
 typical_compass_r_old_1d_builds = [
   CompassBuild(16, 200, 1000),
   CompassBuild(32, 200, 1000),
-  CompassBuild(32, 200, 2000),  # *[CompassBuild(M, efc, nlist) for M, efc, nlist in product([16, 32, 64], [100, 200], [500, 100])]
+  CompassBuild(32, 200, 2000),
+  CompassBuild(32, 200, 5000),
+  CompassBuild(32, 200, 10000),  # *[CompassBuild(M, efc, nlist) for M, efc, nlist in product([16, 32, 64], [100, 200], [500, 100])]
 ]
 
 typical_compass_r_1d_builds = [
