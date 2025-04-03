@@ -35,8 +35,6 @@ int main(int argc, char **argv) {
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
 
-  time_t ts = time(nullptr);
-  auto tm = localtime(&ts);
   std::string method = "CompassImi1d";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("nsub_{}_nbits_{}", args.nsub, args.nbits);
@@ -91,6 +89,8 @@ int main(int argc, char **argv) {
   faiss::idx_t *ranked_clusters = new faiss::idx_t[args.batchsz * args.nlist];
 
   for (auto nprobe : args.nprobe) {
+    time_t ts = time(nullptr);
+    auto tm = localtime(&ts);
     std::string search_param = fmt::format("nprobe_{}", nprobe);
     std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
     std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);

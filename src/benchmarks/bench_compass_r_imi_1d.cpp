@@ -39,8 +39,6 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % batch_sz == 0);
 
-  time_t ts = time(nullptr);
-  auto tm = localtime(&ts);
   std::string method = "CompassRImi1d";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nsub_{}_nbits_{}", args.M, args.efc, args.nsub, args.nbits);
@@ -111,6 +109,8 @@ int main(int argc, char **argv) {
 
   for (auto efs : args.efs) {
     for (auto nrel : args.nrel) {
+      time_t ts = time(nullptr);
+      auto tm = localtime(&ts);
       std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", efs, nrel, args.mincomp);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);

@@ -34,8 +34,6 @@ int main(int argc, char **argv) {
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
 
-  time_t ts = time(nullptr);
-  auto tm = localtime(&ts);
   std::string method = "CompassIvf1d";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("nlist_{}", args.nlist);
@@ -90,6 +88,8 @@ int main(int argc, char **argv) {
   auto ranked_clusters = new faiss::idx_t[args.batchsz * args.nlist];
 
   for (auto nprobe : args.nprobe) {
+    time_t ts = time(nullptr);
+    auto tm = localtime(&ts);
     std::string search_param = fmt::format("nprobe_{}", nprobe);
     std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
     std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
@@ -108,9 +108,7 @@ int main(int argc, char **argv) {
 // #pragma omp parallel for
 #endif
     for (int j = 0; j < nq; j += args.batchsz) {
-      comp.SearchKnn(
-          xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, nprobe, metrics, ranked_clusters
-      );
+      comp.SearchKnn(xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, nprobe, metrics, ranked_clusters);
     }
     auto search_stop = high_resolution_clock::now();
     auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
