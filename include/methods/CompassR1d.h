@@ -270,10 +270,10 @@ class CompassR1d {
         if (candidate_set.empty() || (curr_ci < nprobe * (q + 1) && -candidate_set.top().first > distances[curr_ci])) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
-              if (curr_ci + 1 >= (q + 1) * nprobe)
+              curr_ci++;
+              if (curr_ci >= (q + 1) * nprobe)
                 break;
               else {
-                curr_ci++;
                 itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
                 itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
                 continue;
