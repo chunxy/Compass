@@ -69,6 +69,7 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in ONED_PASSRATES]
+  selected_methods = ["iRangeGraph", "Serf", "CompassR1d"]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -77,16 +78,13 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
     selectivity = float(data["selectivity"].reset_index(drop=True)[0])
 
     fig, axs = plt.subplots(2, 1, layout='constrained')
-    for m in data.method.unique():
-      # if m == "Serf": continue
-      if m == "CompassROld1d": continue
-      if m == "CompassGraph1d": continue
+    for m in selected_methods:
       for b in data[data["method"] == m].build.unique():
         data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
         # if m == "CompassROld1d":
         if m == "CompassR1d":
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, METHOD_MARKER_MAPPING[m])
-          for nrel in [500, 600, 700, 800, 1000, 1500]:
+          for nrel in [200, 500, 1000]:
             data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
             if data_by_m_b_nrel.size == 0: continue
             recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
@@ -150,6 +148,7 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectors = [df["selectivity"] == r for r in ONED_PASSRATES]
+  selected_methods = ["iRangeGraph", "Serf", "CompassR1d"]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -159,16 +158,13 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
 
     fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
     for i, dataset in enumerate(DATASETS):
-      for m in data.method.unique():
-        # if m == "Serf": continue
-        if m == "CompassROld1d": continue
-        if m == "CompassGraph1d": continue
+      for m in selected_methods:
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b) & (data["dataset"] == dataset)]
           # if m == "CompassROld1d":
           if m == "CompassR1d":
             marker = COMPASS_BUILD_MARKER_MAPPING.get(b, METHOD_MARKER_MAPPING[m])
-            for nrel in [500, 600, 700, 800, 1000, 1500]:
+            for nrel in [200, 500, 1000]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
               recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
@@ -234,6 +230,8 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
   cutoff_recalls = [0.7, 0.8, 0.9]
 
   selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
+  selected_methods = ["iRangeGraph", "Serf", "CompassR1d", "CompassIvf1d"]
+
   for dataset in DATASETS:
     for recall in cutoff_recalls:
       fig, (ax0, ax1) = plt.subplots(2, layout='constrained', sharex=True)
@@ -244,9 +242,7 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
       ax1.set_ylabel('# Comp')
       ax1.set_xlabel('Selectivity')
       data = df[df["dataset"] == dataset]
-      for m in data.method.unique():
-        # if m == "Serf": continue
-        if m == "CompassROld1d": continue
+      for m in selected_methods:
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
@@ -283,6 +279,8 @@ def draw_1d_qps_comp_fixed_recall_by_selectivity():
   cutoff_recalls = [0.7, 0.8, 0.9]
 
   selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
+  selected_methods = ["iRangeGraph", "Serf", "CompassR1d", "CompassIvf1d"]
+
   for recall in cutoff_recalls:
     fig, axs = plt.subplots(2, len(DATASETS), layout='constrained', sharex=True)
     for i, dataset in enumerate(DATASETS):
@@ -294,9 +292,7 @@ def draw_1d_qps_comp_fixed_recall_by_selectivity():
       axs[1][i].set_ylabel('# Comp')
       axs[1][i].set_xlabel('Selectivity')
       data = df[df["dataset"] == dataset]
-      for m in data.method.unique():
-        # if m == "Serf": continue
-        if m == "CompassROld1d": continue
+      for m in selected_methods:
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
