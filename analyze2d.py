@@ -13,13 +13,13 @@ LOGS = Path(LOGS_TMPL.format(K))
 
 def summarize_2d():
   entries = [(
-    LOGS / m / METHOD_WORKLOAD_TMPL[m].format(d, *rg, K) / METHOD_BUILD_TMPL[m].format(*b) / METHOD_SEARCH_TMPL[m].format(*r),
+    LOGS / m / TEMPLATES[m].workload.format(d, *rg, K) / TEMPLATES[m].build.format(*b) / TEMPLATES[m].search.format(*r),
     m,
     d,
-    METHOD_WORKLOAD_TMPL[m].format(d, *rg, K),
-    METHOD_BUILD_TMPL[m].format(*b),
-    METHOD_SEARCH_TMPL[m].format(*r),
-  ) for m in TWOD_METHODS for d in DATASETS for rg in METHOD_RANGE_MAPPING[m] for b in METHOD_BUILD_MAPPING[m] for r in METHOD_SEARCH_MAPPING[m]]
+    TEMPLATES[m].workload.format(d, *rg, K),
+    TEMPLATES[m].build.format(*b),
+    TEMPLATES[m].search.format(*r),
+  ) for m in TWOD_METHODS for d in DATASETS for rg in TWOD_RUNS[m].range for b in TWOD_RUNS[m].build for r in TWOD_RUNS[m].search]
   legal_entries = list(filter(lambda e: e[0].exists(), entries))
   df = pd.DataFrame.from_records(legal_entries, columns=["path", "method", "dataset", "workload", "build", "run"], index="path")
 
@@ -82,7 +82,7 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
         recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
         recall_qps = recall_qps.to_numpy()
         axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
-        axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=METHOD_MARKER_MAPPING[m])
+        axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=TWOD_RUNS[m].marker)
         axs[0].xlabel('Recall')
         axs[0].ylabel('QPS')
         axs[0].title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")
@@ -90,7 +90,7 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
         comp_qps = data_by_m_b[["comp", "qps"]].sort_values(["comp", "qps"], ascending=[True, True])
         comp_qps = comp_qps.to_numpy()
         axs[1].plot(comp_qps[:, 0], comp_qps[:, 1])
-        axs[1].scatter(comp_qps[:, 0], comp_qps[:, 1], label=f"{m}-{b}", marker=METHOD_MARKER_MAPPING[m])
+        axs[1].scatter(comp_qps[:, 0], comp_qps[:, 1], label=f"{m}-{b}", marker=TWOD_RUNS[m].marker)
         axs[1].xlabel('Recall')
         axs[1].ylabel('# Comp')
         axs[1].title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")

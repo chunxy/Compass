@@ -1,4 +1,3 @@
-from pathlib import Path
 from collections import namedtuple
 from itertools import product
 
@@ -12,60 +11,6 @@ DATASETS = ("sift", "gist", "crawl", "glove100", "audio", "video")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
 TWOD_PASSRATES = ("0.01", "0.02", "0.05", "0.1", "0.2")
 
-# Templates
-METHOD_WORKLOAD_TMPL = {
-  # "Compass1d": "{}_10000_{}_{}_{}",
-  # "Acorn": "{}_{}_{}",
-  "CompassR1d": "{}_10000_{}_{}_{}",
-  "CompassROld1d": "{}_10000_{}_{}_{}",
-  "CompassRImi1d": "{}_10000_{}_{}_{}",
-  "CompassIvf1d": "{}_10000_{}_{}_{}",
-  "CompassImi1d": "{}_10000_{}_{}_{}",
-  "CompassGraph1d": "{}_10000_{}_{}_{}",
-  "Serf": "{}_{}_{}_{}",
-  "iRangeGraph": "{}_{}_{}_{}",
-  "CompassR": "{}_10000_{{{}, {}}}_{{{}, {}}}_{}",
-  "CompassGraph": "{}_10000_{{{}, {}}}_{{{}, {}}}_{}",
-  "CompassIvf": "{}_10000_{{{}, {}}}_{{{}, {}}}_{}",
-  "iRangeGraph2d": "{}_{}_{}_{}",
-}
-
-METHOD_BUILD_TMPL = {
-  # "Compass1d": "M_{}_efc_{}_nlist_{}",
-  # "Acorn": "M_{}_beta_{}_efc_{}_gamma_{}",
-  "CompassR1d": "M_{}_efc_{}_nlist_{}",
-  "CompassROld1d": "M_{}_efc_{}_nlist_{}",
-  "CompassRImi1d": "M_{}_efc_{}_nsub_{}_nbits_{}",
-  "CompassIvf1d": "nlist_{}",
-  "CompassImi1d": "nsub_{}_nbits_{}",
-  "CompassGraph1d": "M_{}_efc_{}",
-  "Serf": "M_{}_efc_{}_efmax_{}",
-  "iRangeGraph": "M_{}_efc_{}",
-  "CompassR": "M_{}_efc_{}_nlist_{}",
-  "CompassGraph": "M_{}_efc_{}",
-  "CompassIvf": "nlist_{}",
-  "iRangeGraph2d": "M_{}_efc_{}",
-}
-
-METHOD_SEARCH_TMPL = {
-  # "Compass1d": "efs_{}_nrel_{}",
-  # "Acorn": "efs_{}",
-  "CompassR1d": "efs_{}_nrel_{}_mincomp_{}",
-  "CompassROld1d": "efs_{}_nrel_{}_mincomp_{}",
-  "CompassRImi1d": "efs_{}_nrel_{}_mincomp_{}",
-  "CompassIvf1d": "nprobe_{}",
-  "CompassImi1d": "nprobe_{}",
-  "CompassGraph1d": "efs_{}_nrel_{}",
-  "Serf": "efs_{}",
-  "iRangeGraph": "efs_{}",
-  "CompassR": "efs_{}_nrel_{}_mincomp_{}",
-  "CompassGraph": "efs_{}_nrel_{}",
-  "CompassIvf": "nprobe_{}",
-  "iRangeGraph2d": "efs_{}",
-}
-
-METHOD_PARAM_TMPL = {m: METHOD_BUILD_TMPL[m] + '_' + METHOD_SEARCH_TMPL[m] for m in ONED_METHODS + TWOD_METHODS}
-
 # Arguments
 RangeFilterRange = namedtuple("RangeFilterRange", ["l", "r"])
 typical_rf_ranges = [
@@ -74,8 +19,8 @@ typical_rf_ranges = [
 ]
 typical_ivf_rf_ranges = [*[RangeFilterRange(100, r) for r in (200, 300, 600, 1100, 2100)]]
 
-LabelFilterRange = namedtuple("LabelFilterRange", ["max"])
-typical_franges = [*[LabelFilterRange(n) for n in (2, 5, 10, 50, 100, 500, 1000)]]
+# LabelFilterRange = namedtuple("LabelFilterRange", ["max"])
+# typical_franges = [*[LabelFilterRange(n) for n in (2, 5, 10, 50, 100, 500, 1000)]]
 
 WindowFilterRange = namedtuple("WindowFilterRange", ["l1", "l2", "r1", "r2"])
 typical_wf_ranges = [
@@ -126,7 +71,7 @@ typical_fraction_ranges = [
   ]
 ]
 
-typical_irange_graph_2d_ranges = [
+typical_irangegraph_2d_ranges = [
   *[FractionRange(r, 1_000_000) for r in (10000, 20000, 50000, 100000, 200000)],
   *[FractionRange(r, 1_900_000) for r in (19_000, 38_000, 95_000, 190_000, 380_000)],
 ]
@@ -222,72 +167,42 @@ typical_irangegraph_searches = [
   *[iRangeGraphSearch(efs) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200)],
 ]
 
-# Mappings
-METHOD_BUILD_MAPPING = {
-  # "Compass1d": typical_compass_builds,
-  # "Acorn": typical_acorn_builds,
-  "CompassR1d": typical_compass_r_1d_builds,
-  "CompassROld1d": typical_compass_r_old_1d_builds,
-  "CompassRImi1d": typical_compass_r_imi_builds,
-  "CompassIvf1d": typical_compass_ivf_1d_builds,
-  "CompassImi1d": typical_compass_imi_1d_builds,
-  "CompassGraph1d": typical_compass_graph_1d_builds,
-  "Serf": typical_serf_builds,
-  "iRangeGraph": typical_irangegraph_builds,
-  "CompassR": typical_compass_r_1d_builds,
-  "CompassIvf": typical_compass_ivf_1d_builds,
-  "CompassGraph": typical_compass_graph_1d_builds,
-  "iRangeGraph2d": typical_irangegraph_builds,
+# Runs
+Run = namedtuple("Run", ["name", "range", "build", "search", "marker"])
+ONED_RUNS = {
+  "CompassR1d": Run("CompassR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
+  "CompassROld1d": Run("CompassROld1d", typical_rf_ranges, typical_compass_r_old_1d_builds, typical_compass_r_old_1d_searches, "p"),
+  "CompassRImi1d": Run("CompassRImim1d", typical_rf_ranges, typical_compass_r_imi_builds, typical_compass_r_1d_searches, "v"),
+  # "CompassRCg1d": Workload("CompassRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
+  "CompassGraph1d": Run("CompassGraph1d", typical_rf_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
+  "CompassIvf1d": Run("CompassIvf1d", typical_ivf_rf_ranges, typical_compass_ivf_1d_builds, typical_compass_ivf_1d_searches, "*"),
+  "CompassImi1d": Run("CompassImi1d", typical_ivf_rf_ranges, typical_compass_imi_1d_builds, typical_compass_imi_1d_searches, "v"),
+  "Serf": Run("Serf", typical_fraction_ranges, typical_serf_builds, typical_serf_searches, ","),
+  "iRangeGraph": Run("iRangeGraph", typical_fraction_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
+}
+TWOD_RUNS = {
+  "CompassR": Run("CompassR", typical_wf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
+  "CompassIvf": Run("CompassIvf", typical_wf_ranges, typical_compass_ivf_1d_builds, typical_compass_ivf_1d_searches, "*"),
+  "CompassGraph": Run("CompassGraph", typical_wf_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
+  "iRangeGraph2d": Run("iRangeGraph", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
 
-METHOD_SEARCH_MAPPING = {
-  # "Compass1d": typical_compass_searches,
-  # "Acorn": typical_acorn_searches,
-  "CompassR1d": typical_compass_r_1d_searches,
-  "CompassROld1d": typical_compass_r_old_1d_searches,
-  "CompassRImi1d": typical_compass_1d_searches,
-  "CompassIvf1d": typical_compass_ivf_1d_searches,
-  "CompassImi1d": typical_compass_imi_1d_searches,
-  "CompassGraph1d": typical_compass_graph_1d_searches,
-  "Serf": typical_serf_searches,
-  "iRangeGraph": typical_irangegraph_searches,
-  "CompassR": typical_compass_r_searches,
-  "CompassIvf": typical_compass_ivf_1d_searches,
-  "CompassGraph": typical_compass_1d_searches,
-  "iRangeGraph2d": typical_irangegraph_searches,
-}
-
-METHOD_RANGE_MAPPING = {
-  # "Compass1d": typical_rf_ranges,
-  # "Acorn": typical_franges,
-  "CompassR1d": typical_rf_ranges,
-  "CompassROld1d": typical_rf_ranges,
-  "CompassRImi1d": typical_rf_ranges,
-  "CompassIvf1d": typical_ivf_rf_ranges,
-  "CompassImi1d": typical_ivf_rf_ranges,
-  "CompassGraph1d": typical_rf_ranges,
-  "Serf": typical_fraction_ranges,
-  "iRangeGraph": typical_fraction_ranges,
-  "CompassR": typical_wf_ranges,
-  "CompassIvf": typical_wf_ranges,
-  "CompassGraph": typical_wf_ranges,
-  "iRangeGraph2d": typical_irange_graph_2d_ranges,
-}
-
-METHOD_MARKER_MAPPING = {
-  # "Compass1d": typical_rf_ranges,
-  "CompassR1d": 'o',
-  "CompassROld1d": 'p',
-  "CompassRImi1d": 'v',
-  "CompassIvf1d": '*',
-  "CompassImi1d": 'X',
-  "CompassGraph1d": '^',
-  "Serf": ',',
-  "iRangeGraph": '2',
-  "CompassR": 'o',
-  "CompassIvf": '*',
-  "CompassGraph": '^',
-  "iRangeGraph2d": '2',
+# Templates
+Template = namedtuple("Template", ["workload", "build", "search"])
+TEMPLATES = {
+  # "Acorn": Template("{}_{}_{}", "M_{}_beta_{}_efc_{}_gamma_{}", "efs_{}"),
+  "CompassR1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
+  "CompassROld1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
+  "CompassRImi1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nsub_{}_nbits_{}", "efs_{}_nrel_{}_mincomp_{}"),
+  "CompassIvf1d": Template("{}_10000_{}_{}_{}", "nlist_{}", "nprobe_{}"),
+  "CompassImi1d": Template("{}_10000_{}_{}_{}", "nsub_{}_nbits_{}", "nprobe_{}"),
+  "CompassGraph1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
+  "Serf": Template("{}_{}_{}_{}", "M_{}_efc_{}_efmax_{}", "efs_{}"),
+  "iRangeGraph": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
+  "CompassR": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
+  "CompassGraph": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
+  "CompassIvf": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "nlist_{}", "nprobe_{}"),
+  "iRangeGraph2d": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
 }
 
 COMPASS_BUILD_MARKER_MAPPING = {
@@ -296,18 +211,4 @@ COMPASS_BUILD_MARKER_MAPPING = {
   "M_32_efc_200_nlist_2000": "8",
   "M_32_efc_200_nlist_5000": ">",
   "M_32_efc_200_nlist_10000": "P",
-}
-
-Workload = namedtuple("Workload", ["name", "range", "build", "search", "marker"])
-
-ONED_WORKLOADS = {
-  "CompassR1d": Workload("CompassR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
-  "CompassROld1d": Workload("CompassROld1d", typical_rf_ranges, typical_compass_r_old_1d_builds, typical_compass_r_old_1d_searches, "p"),
-  "CompassRImi1d": Workload("CompassRImim1d", typical_rf_ranges, typical_compass_r_imi_builds, typical_compass_r_1d_searches, "v"),
-  "CompassRCg1d": Workload("CompassRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
-  "CompassGraph1d": Workload("CompassGraph1d", typical_rf_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
-  "CompassIvf1d": Workload("CompassIvf1d", typical_ivf_rf_ranges, typical_compass_ivf_1d_builds, typical_compass_ivf_1d_searches, "*"),
-  "CompassImi1d": Workload("CompassImi1d", typical_ivf_rf_ranges, typical_compass_imi_1d_builds, typical_compass_imi_1d_searches, "v"),
-  "Serf": Workload("Serf", typical_fraction_ranges, typical_serf_builds, typical_serf_searches, ","),
-  "iRangeGraph": Workload("iRangeGraph", typical_fraction_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
