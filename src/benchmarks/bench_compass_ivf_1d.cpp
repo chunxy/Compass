@@ -74,14 +74,14 @@ int main(int argc, char **argv) {
     comp.SaveIvf(ckp_dir / ivf_ckp);
   }
 
-  auto build_index_start = high_resolution_clock::now();
+  auto add_points_start = high_resolution_clock::now();
   std::vector<labeltype> labels(nb);
   std::iota(labels.begin(), labels.end(), 0);
   comp.AddIvfPoints(nb, xb, labels.data(), attrs);
-  auto build_index_stop = high_resolution_clock::now();
+  auto add_points_stop = high_resolution_clock::now();
   fmt::print(
       "Finished adding points, took {} microseconds.\n",
-      duration_cast<microseconds>(build_index_stop - build_index_start).count()
+      duration_cast<microseconds>(add_points_stop - add_points_start).count()
   );
 
   vector<Metric> metrics(args.batchsz, Metric(nb));

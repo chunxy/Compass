@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   // std::string checkpoint = fmt::format(COMPASS_CHECKPOINT_TMPL, M, efc, nlist);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
-  fs::path ckp_dir = ckp_root / method / c.name;
+  fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
     fmt::print("Finished loading IVF index.\n");
@@ -81,15 +81,15 @@ int main(int argc, char **argv) {
     comp.SaveIvf(ckp_dir / ivf_ckp);
   }
 
-  auto build_index_start = high_resolution_clock::now();
+  auto add_points_start = high_resolution_clock::now();
   std::vector<labeltype> labels;
   labels.resize(nb);
   std::iota(labels.begin(), labels.end(), 0);
   comp.AddIvfPoints(nb, xb, labels.data(), attrs.data());
-  auto build_index_stop = high_resolution_clock::now();
+  auto add_points_stop = high_resolution_clock::now();
   fmt::print(
       "Finished adding points, took {} microseconds.\n",
-      duration_cast<microseconds>(build_index_stop - build_index_start).count()
+      duration_cast<microseconds>(add_points_stop - add_points_start).count()
   );
 
   if (fs::exists(ckp_dir / graph_ckp)) {

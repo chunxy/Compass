@@ -103,7 +103,9 @@ CompassIvf1D<dist_t, attr_t>::CompassIvf1D(size_t d, size_t max_elements, size_t
       ivf_(new faiss::IndexIVFFlat(&quantizer_, d, nlist)),
       attrs_(max_elements, std::numeric_limits<attr_t>::max()),
       btrees_(nlist, btree::btree_map<attr_t, labeltype>()),
-      xb_(xb) {}
+      xb_(xb) {
+  // ivf_->cp.max_points_per_centroid = 500;  // counter-effective?
+}
 
 template <typename dist_t, typename attr_t>
 int CompassIvf1D<dist_t, attr_t>::Add(const void *data_point, labeltype label, attr_t attr) {
