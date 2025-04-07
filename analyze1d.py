@@ -207,7 +207,7 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
           axs[1][i].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
 
 
-    fig.set_size_inches(35, 10)
+    fig.set_size_inches(35, 20)
     handles, labels = axs[0][0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='outside right upper')
     fig.savefig(f"figures_{K}/All-{selectivity:.1%}-QPS-Comp-Recall.jpg", dpi=200)
@@ -255,7 +255,7 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity(selected_methods, compa
           ax1.plot(pos_s, grouped_comp["comp"])
           ax1.scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
 
-      fig.set_size_inches(15, 10)
+      fig.set_size_inches(15, 20)
       handles, labels = ax0.get_legend_handles_labels()
       fig.legend(handles, labels, loc="outside right upper")
       fig.savefig(f"figures_{K}/Recall-{recall:.2g}-{compare_by}-{dataset.upper()}-QPS-Comp.jpg", dpi=200)
@@ -304,7 +304,7 @@ def draw_1d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
           axs[1][i].plot(pos_s, grouped_comp["comp"])
           axs[1][i].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
 
-    fig.set_size_inches(45 , 10)
+    fig.set_size_inches(45, 20)
     handles, labels = axs[0][0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside right upper")
     fig.savefig(f"figures_{K}/Recall-{recall:.2g}-{compare_by}-All-QPS-Comp.jpg", dpi=200)
@@ -527,9 +527,9 @@ plt.rcParams.update({
   'legend.fontsize': 12,
   'axes.labelsize': 15,
   'axes.titlesize': 15,
-  'figure.figsize': (10, 6),
+  'figure.figsize': (10, 15),
 })
-summarize_1d()
+# summarize_1d()
 
 draw_1d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_1d_qps_comp_wrt_recall_by_selectivity()
