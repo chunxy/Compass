@@ -376,8 +376,6 @@ class CompassR1d {
 
             data = (unsigned int *)hnsw_.get_linklist(currObj, level);
             int size = hnsw_.getListCount(data);
-            // metric_hops++;
-            // metric_distance_computations += size;
             metrics[q].ncomp += size;
 
             tableint *datal = (tableint *)(data + 1);

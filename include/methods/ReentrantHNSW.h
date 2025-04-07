@@ -56,8 +56,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 
       unsigned int *cand_info = this->get_linklist0(curr_obj);
       int size = this->getListCount(cand_info);
-      // this->metric_hops++;
-      // this->metric_distance_computations += size;
       tableint *cand_nbrs = (tableint *)(cand_info + 1);
 #ifdef USE_SSE
       _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
@@ -115,8 +113,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 
       unsigned int *cand_info = this->get_linklist0(curr_obj);
       int size = this->getListCount(cand_info);
-      // this->metric_hops++;
-      // this->metric_distance_computations += size;
       tableint *cand_nbrs = (tableint *)(cand_info + 1);
 #ifdef USE_SSE
       _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
@@ -175,8 +171,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 
           data = (unsigned int *)this->get_linklist(currObj, level);
           int size = this->getListCount(data);
-          // metric_hops++;
-          // metric_distance_computations += size;
           ncomp += size;
 
           tableint *datal = (tableint *)(data + 1);
@@ -185,6 +179,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             if (cand < 0 || cand > this->max_elements_) throw std::runtime_error("cand error");
             dist_t d =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(cand), this->dist_func_param_);
+            ncomp++;
 
             if (d < curdist) {
               curdist = d;
@@ -214,8 +209,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 
       unsigned int *cand_info = this->get_linklist0(curr_obj);
       int size = this->getListCount(cand_info);
-      // this->metric_hops++;
-      // this->metric_distance_computations += size;
       tableint *cand_nbrs = (tableint *)(cand_info + 1);
       bool is_frontier = true;
       for (int i = 0; i < size; i++) {
@@ -267,8 +260,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 
       unsigned int *cand_info = this->get_linklist0(curr_obj);
       int size = this->getListCount(cand_info);
-      // this->metric_hops++;
-      // this->metric_distance_computations += size;
       tableint *cand_nbrs = (tableint *)(cand_info + 1);
 
       for (int i = 0; i < size; i++) {
