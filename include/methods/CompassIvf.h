@@ -130,8 +130,6 @@ vector<vector<pair<float, labeltype>>> CompassIvf<dist_t, attr_t>::SearchKnn(
 ) {
   auto ranked_clusters = new faiss::idx_t[nq * nprobe];
   memset(ranked_clusters, -1, sizeof(faiss::idx_t) * nq * nprobe);
-  // auto centroids = quantizer_.get_xb();
-  // auto dist_func = quantizer_.get_distance_computer();
   ivf_->quantizer->assign(nq, (float *)query, ranked_clusters, nprobe);
   // auto &dm = ivf_->direct_map;
 

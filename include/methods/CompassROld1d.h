@@ -72,10 +72,6 @@ class CompassROld1d {
     hnsw_.setEf(efs_);
     // int nprobe = ivf_->nlist;
     int nprobe = 100;
-    // auto centroids = quantizer_.get_xb();
-    // auto dist_func = quantizer_.get_distance_computer();
-    // auto ranked_clusters = new faiss::idx_t[nq * nprobe];
-    // auto distances = new float[nq * nprobe];
     this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
 
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq, priority_queue<pair<dist_t, labeltype>>());

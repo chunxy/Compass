@@ -73,8 +73,6 @@ class CompassR1d {
     auto efs_ = std::max(k, efs);
     hnsw_.setEf(efs_);
     int nprobe = 100;  // TOREVERT
-    // auto centroids = quantizer_.get_xb();
-    // auto dist_func = quantizer_.get_distance_computer();
     auto ranked_clusters = new faiss::idx_t[nq * nprobe];
     auto distances = new float[nq * nprobe];
     this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
@@ -348,8 +346,6 @@ class CompassR1d {
     auto efs_ = std::max(k, efs);
     hnsw_.setEf(efs_);
     int nprobe = ivf_->nlist;
-    // auto centroids = quantizer_.get_xb();
-    // auto dist_func = quantizer_.get_distance_computer();
     faiss::idx_t *ranked_clusters;
     // this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
 

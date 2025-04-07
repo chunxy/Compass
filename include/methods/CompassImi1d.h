@@ -56,8 +56,6 @@ public:
   SearchKnn(const void *query, const int nq, const int k, const attr_t &l_bound,
             const attr_t &u_bound, const int nprobe, vector<Metric> &metrics,
             faiss::idx_t *ranked_clusters) {
-    // auto centroids = quantizer_.get_xb();
-    // auto dist_func = quantizer_.get_distance_computer();
     ivf_->quantizer->assign(nq, (float *)query, ranked_clusters, nprobe);
     // auto &dm = ivf_->direct_map;
 

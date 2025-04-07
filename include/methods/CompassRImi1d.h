@@ -156,8 +156,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
   hnsw_.setEf(efs_);
   // int nprobe = 1 << (ivf_->pq.M * ivf_->pq.nbits);
   int nprobe = 1000;
-  // auto centroids = quantizer_.get_xb();
-  // auto dist_func = quantizer_.get_distance_computer();
   auto ranked_clusters = new faiss::idx_t[nq * nprobe];
   auto distances = new float[nq * nprobe];
   this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
@@ -263,8 +261,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassRImi1d<dist_t, attr_t>::S
   hnsw_.setEf(efs_);
   // int nprobe = 1 << (ivf_->pq.M * ivf_->pq.nbits);
   int nprobe = 1000;
-  // auto centroids = quantizer_.get_xb();
-  // auto dist_func = quantizer_.get_distance_computer();
   auto ranked_clusters = new faiss::idx_t[nq * nprobe];
   auto distances = new float[nq * nprobe];
   this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);

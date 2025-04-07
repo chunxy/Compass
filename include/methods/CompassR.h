@@ -148,8 +148,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassR<dist_t, attr_t>::Search
   auto efs_ = std::max(k, efs);
   hnsw_.setEf(efs_);
   int nprobe = ivf_->nlist;
-  // auto centroids = quantizer_.get_xb();
-  // auto dist_func = quantizer_.get_distance_computer();
   auto ranked_clusters = new faiss::idx_t[nq * nprobe];
   auto distances = new float[nq * nprobe];
   this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
