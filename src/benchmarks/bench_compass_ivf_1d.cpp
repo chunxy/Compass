@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
         );
 
         stat.rz_min_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
-        stat.rz_max_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
+        stat.rz_max_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.back().first;
         stat.ivf_ppsl_in_rz_s[j] = ivf_ppsl_in_rz;
         stat.graph_ppsl_in_rz_s[j] = graph_ppsl_in_rz;
         stat.gt_min_s[j] = gt_min;

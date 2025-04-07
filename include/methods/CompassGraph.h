@@ -78,7 +78,7 @@ class CompassGraph {
     WindowQuery<float> pred(l_bounds, u_bounds, &attrs_);
 
     for (int q = 0; q < nq; q++) {
-      point min_corner(l_bounds[0], u_bounds[0]), max_corner(l_bounds[0], u_bounds[1]);
+      point min_corner(l_bounds[0], l_bounds[1]), max_corner(u_bounds[0], u_bounds[1]);
       box b(min_corner, max_corner);
       auto rel_beg = rtree_.qbegin(geo::index::covered_by(b));
       auto rel_end = rtree_.qend();

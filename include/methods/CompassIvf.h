@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fmt/core.h>
 #include <boost/filesystem.hpp>
 #include <boost/geometry.hpp>
@@ -60,7 +62,8 @@ class CompassIvf {
 
     vector<vector<pair<float, labeltype>>> result(nq, vector<pair<float, labeltype>>(k));
 
-    point min_corner(l_bounds[0], u_bounds[0]), max_corner(l_bounds[1], u_bounds[1]);
+    // point min_corner(l_bounds[0], u_bounds[0]), max_corner(l_bounds[1], u_bounds[1]);
+    point min_corner(l_bounds[0], l_bounds[1]), max_corner(u_bounds[0], u_bounds[1]);
     box b(min_corner, max_corner);
 
     for (int q = 0; q < nq; q++) {
@@ -127,7 +130,7 @@ int CompassIvf<dist_t, attr_t>::AddIvfPoints(
     labeltype *labels,
     const vector<vector<attr_t>> &attrs
 ) {
-  ivf_->add(n, (float *)data);  // add_sa_codes
+  // ivf_->add(n, (float *)data);  // add_sa_codes
   auto assigned_clusters = new faiss::idx_t[n * 1];
   ivf_->quantizer->assign(n, (float *)data, assigned_clusters, 1);
   for (int i = 0; i < n; i++) {
@@ -135,6 +138,7 @@ int CompassIvf<dist_t, attr_t>::AddIvfPoints(
     point p(attrs[i][0], attrs[i][1]);
     rtrees_[assigned_clusters[i]].insert(std::make_pair(p, labels[i]));
   }
+  delete[] assigned_clusters;
   return n;
 }
 

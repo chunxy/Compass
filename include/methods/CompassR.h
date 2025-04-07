@@ -88,7 +88,7 @@ class CompassR {
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 
     WindowQuery<float> pred(l_bounds, u_bounds, &attrs_);
-    point min_corner(l_bounds[0], u_bounds[0]), max_corner(l_bounds[1], u_bounds[1]);
+    point min_corner(l_bounds[0], l_bounds[1]), max_corner(u_bounds[0], u_bounds[1]);
     box b(min_corner, max_corner);
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)

@@ -60,13 +60,13 @@ struct IvfGraph1dArgs {
 struct IvfGraph2dArgs {
   std::string datacard;
   vector<float> l_bounds, u_bounds;
-  int k;
-  int M;
-  int efc;
-  int nlist;  // the number of coarse clusters
-  vector<int> efs;
-  vector<int> nprobe;
-  vector<int> nrel;  // the number of candidates proposed by IVF per round
+  int k = 10;
+  int M = 32;
+  int efc = 200;
+  int nlist = 1000;  // the number of coarse clusters
+  vector<int> efs = {100};
+  vector<int> nprobe = {10};
+  vector<int> nrel = {200};  // the number of candidates proposed by IVF per round
   int mincomp = 1000;
   int nthread = 1;
   int batchsz = 100;

@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 
   // Load groundtruth for hybrid search.
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, {args.l_bounds}, {args.u_bounds}, args.k, hybrid_topks);
+  load_hybrid_query_gt(c, args.l_bounds, args.u_bounds, args.k, hybrid_topks);
   fmt::print("Finished loading groundtruth.\n");
 
   // Compute selectivity.
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
   CompassIvf<float, float> comp(d, nb, args.nlist, xb);
   fs::path ckp_root(CKPS);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
-  fs::path ckp_dir = ckp_root / method / c.name;
+  fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
     fmt::print("Finished loading IVF index.\n");
@@ -104,8 +104,8 @@ int main(int argc, char **argv) {
 
     auto search_start = high_resolution_clock::now();
 #ifndef COMPASS_DEBUG
-    omp_set_num_threads(args.nthread);
-#pragma omp parallel for
+//     omp_set_num_threads(args.nthread);
+// #pragma omp parallel for
 #endif
     for (int j = 0; j < nq; j += args.batchsz) {
       auto rz = comp.SearchKnn(
@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
         );
 
         stat.rz_min_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
-        stat.rz_max_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
+        stat.rz_max_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.back().first;
         stat.ivf_ppsl_in_rz_s[j] = ivf_ppsl_in_rz;
         stat.graph_ppsl_in_rz_s[j] = graph_ppsl_in_rz;
         stat.gt_min_s[j] = gt_min;
