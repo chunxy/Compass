@@ -29,16 +29,16 @@ class RangeQuery : public hnswlib::BaseFilterFunctor {
 template <typename attr_t>
 class WindowQuery : public hnswlib::BaseFilterFunctor {
  private:
-  vector<attr_t> l_bounds_, r_bounds_;
+  vector<attr_t> l_bounds_, u_bounds_;
   const vector<vector<attr_t>> *attrs_;  // index should be the labeltype
 
  public:
   WindowQuery(vector<attr_t> l_bounds, vector<attr_t> u_bounds, const vector<vector<attr_t>> *attrs)
-      : l_bounds_(l_bounds), r_bounds_(u_bounds), attrs_(attrs) {}
+      : l_bounds_(l_bounds), u_bounds_(u_bounds), attrs_(attrs) {}
   bool operator()(hnswlib::labeltype label) {
     if (label < attrs_->size()) {
       for (int i = 0; i < l_bounds_.size(); i++) {
-        if (l_bounds_[i] > (*attrs_)[label][i] || (*attrs_)[label][i] > r_bounds_[i]) {
+        if (l_bounds_[i] >= (*attrs_)[label][i] || (*attrs_)[label][i] >= u_bounds_[i]) {
           return false;
         }
       }

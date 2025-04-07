@@ -13,7 +13,6 @@
 #include <vector>
 #include "../hnswlib/hnswlib.h"
 #include "../utils/predicate.h"
-// #include "faiss/MetricType.h"
 #include "methods/Pod.h"
 #include "methods/ReentrantHNSW.h"
 #include "space_l2.h"
@@ -42,15 +41,10 @@ class CompassGraph {
   ReentrantHNSW<dist_t> hnsw_;
   vector<vector<attr_t>> attrs_;
   rtree rtree_;
-  size_t nrel_;
 
  public:
-  CompassGraph(size_t d, size_t M, size_t efc, size_t max_elements, size_t nrel)
-      : space_(d),
-        hnsw_(&space_, max_elements, M, efc),
-        attrs_(max_elements, vector<attr_t>()),
-        rtree_(),
-        nrel_(nrel) {}
+  CompassGraph(size_t d, size_t M, size_t efc, size_t max_elements)
+      : space_(d), hnsw_(&space_, max_elements, M, efc), attrs_(max_elements, vector<attr_t>()), rtree_() {}
 
   int AddGraphPoint(const void *data_point, labeltype label) {
     hnsw_.addPoint(data_point, label, -1);
@@ -73,6 +67,7 @@ class CompassGraph {
       const vector<attr_t> &l_bounds,
       const vector<attr_t> &u_bounds,
       const int efs,
+      const int nrel,
       vector<Metric> &metrics
   ) {
     auto efs_ = std::max(efs, k);
@@ -80,8 +75,10 @@ class CompassGraph {
     vector<vector<pair<dist_t, labeltype>>> result(nq, vector<pair<dist_t, labeltype>>(k));
     size_t d = *(size_t *)space_.get_dist_func_param();
 
+    WindowQuery<float> pred(l_bounds, u_bounds, &attrs_);
+
     for (int q = 0; q < nq; q++) {
-      point min_corner(l_bounds[0], l_bounds[1]), max_corner(u_bounds[0], u_bounds[1]);
+      point min_corner(l_bounds[0], u_bounds[0]), max_corner(l_bounds[0], u_bounds[1]);
       box b(min_corner, max_corner);
       auto rel_beg = rtree_.qbegin(geo::index::covered_by(b));
       auto rel_end = rtree_.qend();
@@ -90,8 +87,6 @@ class CompassGraph {
       std::priority_queue<pair<attr_t, int64_t>> candidate_set;
 
       vector<bool> visited(hnsw_.cur_element_count, false);
-
-      WindowQuery<float> pred(l_bounds, u_bounds, &attrs_);
 
       int max_try = 20;
       while ((max_try-- > 0 || top_candidates.size() < efs_)) {
@@ -114,7 +109,7 @@ class CompassGraph {
             // metrics[q].is_ivf_ppsl[label] = true;
             if (top_candidates.size() > efs_) top_candidates.pop();
             cur_rel_cnt++;
-            if (cur_rel_cnt == nrel_) {
+            if (cur_rel_cnt == nrel) {
               break;
             }
           }

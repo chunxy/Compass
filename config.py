@@ -199,7 +199,7 @@ TEMPLATES = {
   "CompassGraph1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
   "Serf": Template("{}_{}_{}_{}", "M_{}_efc_{}_efmax_{}", "efs_{}"),
   "iRangeGraph": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
-  "CompassR": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
+  "CompassR": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}"),
   "CompassGraph": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
   "CompassIvf": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "nlist_{}", "nprobe_{}"),
   "iRangeGraph2d": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),

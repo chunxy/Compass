@@ -40,7 +40,7 @@ class CompassIvf {
   const float *xb_;
 
  public:
-  CompassIvf(size_t d, size_t max_elements, size_t nlist, size_t nprobe, const float *xb);
+  CompassIvf(size_t d, size_t max_elements, size_t nlist, const float *xb);
   int Add(const void *data_point, labeltype label, vector<attr_t> attr);
   // void AddMultiple(size_t n, const void *data, labeltype *labels, attr_t *attrs);
   int AddIvfPoints(size_t n, const void *data, labeltype *labels, const vector<vector<attr_t>> &attrs);
@@ -52,29 +52,61 @@ class CompassIvf {
       const vector<attr_t> &l_bounds,
       const vector<attr_t> &u_bounds,
       const int nprobe,
-      vector<Metric> &metrics
-  );
+      vector<Metric> &metrics,
+      faiss::idx_t *ranked_clusters
+  ) {
+    ivf_->quantizer->assign(nq, (float *)query, ranked_clusters, nprobe);
+    // auto &dm = ivf_->direct_map;
+
+    vector<vector<pair<float, labeltype>>> result(nq, vector<pair<float, labeltype>>(k));
+
+    point min_corner(l_bounds[0], u_bounds[0]), max_corner(l_bounds[1], u_bounds[1]);
+    box b(min_corner, max_corner);
+
+    for (int q = 0; q < nq; q++) {
+      std::priority_queue<pair<float, labeltype>> top_candidates;
+      int i = 0;
+      for (i = 0; i < nprobe; i++) {
+        auto cluster = ranked_clusters[q * nprobe + i];
+        if (cluster == -1) break;
+        auto rel_beg = rtrees_[cluster].qbegin(geo::index::covered_by(b));
+        auto rel_end = rtrees_[cluster].qend();
+        while (rel_beg != rel_end) {
+          auto j = (*rel_beg).second;
+          metrics[q].is_ivf_ppsl[j] = true;
+          const dist_t *vect = xb_ + j * quantizer_.d;
+          auto dist = space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect, space_.get_dist_func_param());
+          metrics[q].ncomp++;
+          top_candidates.emplace(dist, j);
+          rel_beg++;
+        }
+      }
+      metrics[q].ncluster = i;
+
+      while (top_candidates.size() > k) top_candidates.pop();
+      int sz = top_candidates.size();
+      result[q].resize((sz));
+      while (!top_candidates.empty()) {
+        result[q][--sz] = top_candidates.top();
+        top_candidates.pop();
+      }
+    }
+
+    return result;
+  }
 
   void SaveIvf(fs::path path);
   void LoadIvf(fs::path path);
 };
 
 template <typename dist_t, typename attr_t>
-CompassIvf<dist_t, attr_t>::CompassIvf(
-    size_t d,
-    size_t max_elements,
-    size_t nlist,
-    size_t nprobe,
-    const float *xb
-)
+CompassIvf<dist_t, attr_t>::CompassIvf(size_t d, size_t max_elements, size_t nlist, const float *xb)
     : space_(d),
       quantizer_(d),
       ivf_(new faiss::IndexIVFFlat(&quantizer_, d, nlist)),
       attrs_(max_elements, vector<attr_t>()),
       rtrees_(nlist, rtree()),
-      xb_(xb) {
-  ivf_->nprobe = nprobe;
-}
+      xb_(xb) {}
 
 template <typename dist_t, typename attr_t>
 int CompassIvf<dist_t, attr_t>::Add(const void *data_point, labeltype label, vector<attr_t> attr) {
@@ -112,60 +144,6 @@ void CompassIvf<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
   // ivfpq_.train(n, (float *)data);
   // assigned_clusters = new faiss::idx_t[n * 1];
   // ivfpq_.quantizer->assign(n, (float *)data, assigned_clusters, 1);
-}
-
-// box b(point(l_bounds[0], l_bounds[1]), point(u_bounds[0], u_bounds[1]));
-//     auto rel_beg = rtrees_[cluster].qbegin(geo::index::covered_by(b));
-//     auto rel_end = rtrees_[cluster].qend();
-
-template <typename dist_t, typename attr_t>
-vector<vector<pair<float, labeltype>>> CompassIvf<dist_t, attr_t>::SearchKnn(
-    const void *query,
-    const int nq,
-    const int k,
-    const vector<attr_t> &l_bounds,
-    const vector<attr_t> &u_bounds,
-    const int nprobe,
-    vector<Metric> &metrics
-) {
-  auto ranked_clusters = new faiss::idx_t[nq * nprobe];
-  memset(ranked_clusters, -1, sizeof(faiss::idx_t) * nq * nprobe);
-  ivf_->quantizer->assign(nq, (float *)query, ranked_clusters, nprobe);
-  // auto &dm = ivf_->direct_map;
-
-  vector<vector<pair<float, labeltype>>> result(nq, vector<pair<float, labeltype>>(k));
-  for (int q = 0; q < nq; q++) {
-    std::priority_queue<pair<float, labeltype>> top_candidates;
-    int i = 0;
-    for (i = 0; i < nprobe; i++) {
-      auto cluster = ranked_clusters[q * nprobe + i];
-      if (cluster == -1) break;
-      box b(point(l_bounds[0], l_bounds[1]), point(u_bounds[0], u_bounds[1]));
-      auto rel_beg = rtrees_[cluster].qbegin(geo::index::covered_by(b));
-      auto rel_end = rtrees_[cluster].qend();
-      while (rel_beg != rel_end) {
-        auto j = (*rel_beg).second;
-        metrics[q].is_ivf_ppsl[j] = true;
-        const dist_t *vect = xb_ + j * quantizer_.d;
-        auto dist = space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect, space_.get_dist_func_param());
-        metrics[q].ncomp++;
-        top_candidates.emplace(dist, j);
-        rel_beg++;
-      }
-    }
-    metrics[q].ncluster = i;
-
-    while (top_candidates.size() > k) top_candidates.pop();
-    int sz = top_candidates.size();
-    result[q].resize((sz));
-    while (!top_candidates.empty()) {
-      result[q][--sz] = top_candidates.top();
-      top_candidates.pop();
-    }
-  }
-
-  delete[] ranked_clusters;
-  return result;
 }
 
 template <typename dist_t, typename attr_t>

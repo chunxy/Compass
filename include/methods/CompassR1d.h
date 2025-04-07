@@ -209,6 +209,8 @@ class CompassR1d {
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 
+    RangeQuery<float> pred(l_bound, u_bound, &attrs_);
+
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
       priority_queue<pair<float, int64_t>> top_candidates;
@@ -216,7 +218,6 @@ class CompassR1d {
 
       vector<bool> visited(hnsw_.cur_element_count, false);
 
-      RangeQuery<float> pred(l_bound, u_bound, &attrs_);
       metrics[q].nround = 0;
       metrics[q].ncomp = 0;
 
@@ -255,7 +256,7 @@ class CompassR1d {
         }
         visited[currObj] = true;
         candidate_set.emplace(-currDist, currObj);
-        if (attrs_[currObj] <= u_bound && attrs_[currObj] >= l_bound) top_candidates.emplace(currDist, currObj);
+        if (pred(currObj)) top_candidates.emplace(currDist, currObj);
       }
 
       int curr_ci = q * nprobe;
