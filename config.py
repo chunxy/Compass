@@ -84,7 +84,6 @@ typical_compass_r_old_1d_builds = [
   CompassBuild(32, 200, 5000),
   CompassBuild(32, 200, 10000),  # *[CompassBuild(M, efc, nlist) for M, efc, nlist in product([16, 32, 64], [100, 200], [500, 100])]
 ]
-
 typical_compass_r_1d_builds = [
   CompassBuild(16, 200, 1000),
   CompassBuild(16, 200, 2000),
@@ -93,14 +92,11 @@ typical_compass_r_1d_builds = [
   CompassBuild(32, 200, 5000),
   CompassBuild(32, 200, 10000),
 ]
+typical_compass_r_cg_1d_builds = [CompassBuild(32, 200, 1000)]
 
 CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
-typical_compass_1d_searches = [
-  # *[CompassSearch(efs, 500, 1000) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
-  *[CompassSearch(efs, 500, 1000) for efs in (10, 20, 60, 100, 200)],
-  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([20, 40, 60, 100, 200], [500, 1000, 1500, 2000, 3000, 3500, 4000])]
-]
 typical_compass_r_1d_searches = [
+  # *[CompassSearch(efs, 500, 1000) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
   *[
     CompassSearch(efs, nrel, 1000)
     for efs, nrel in product([10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250], [200, 500, 1000])
@@ -109,6 +105,9 @@ typical_compass_r_1d_searches = [
 typical_compass_r_old_1d_searches = [
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 15, 20, 25, 30, 35, 40, 50, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])],
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([300, 500], [100, 500, 1000, 1500])]
+]
+typical_compass_r_cg_1d_searches = [
+  *[CompassSearch(efs, nrel, 1000) for efs in (10, 20, 60, 100, 200) for nrel in (200, 500)],
 ]
 typical_compass_r_searches = [CompassSearch(100, 100, 1000), CompassSearch(250, 100, 1000)]
 
@@ -173,7 +172,7 @@ ONED_RUNS = {
   "CompassR1d": Run("CompassR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
   "CompassROld1d": Run("CompassROld1d", typical_rf_ranges, typical_compass_r_old_1d_builds, typical_compass_r_old_1d_searches, "p"),
   "CompassRImi1d": Run("CompassRImim1d", typical_rf_ranges, typical_compass_r_imi_builds, typical_compass_r_1d_searches, "v"),
-  # "CompassRCg1d": Workload("CompassRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
+  "CompassRCg1d": Run("CompassRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   "CompassGraph1d": Run("CompassGraph1d", typical_rf_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
   "CompassIvf1d": Run("CompassIvf1d", typical_ivf_rf_ranges, typical_compass_ivf_1d_builds, typical_compass_ivf_1d_searches, "*"),
   "CompassImi1d": Run("CompassImi1d", typical_ivf_rf_ranges, typical_compass_imi_1d_builds, typical_compass_imi_1d_searches, "v"),
@@ -194,6 +193,7 @@ TEMPLATES = {
   "CompassR1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
   "CompassROld1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
   "CompassRImi1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nsub_{}_nbits_{}", "efs_{}_nrel_{}_mincomp_{}"),
+  "CompassRCg1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
   "CompassIvf1d": Template("{}_10000_{}_{}_{}", "nlist_{}", "nprobe_{}"),
   "CompassImi1d": Template("{}_10000_{}_{}_{}", "nsub_{}_nbits_{}", "nprobe_{}"),
   "CompassGraph1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
@@ -207,6 +207,7 @@ TEMPLATES = {
 
 COMPASS_BUILD_MARKER_MAPPING = {
   "M_16_efc_200_nlist_1000": "D",
+  "M_16_efc_200_nlist_1000": "h",
   "M_32_efc_200_nlist_1000": "p",
   "M_32_efc_200_nlist_2000": "8",
   "M_32_efc_200_nlist_5000": ">",
