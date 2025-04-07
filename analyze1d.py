@@ -213,7 +213,7 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
     fig.savefig(f"figures_{K}/All-{selectivity:.1%}-QPS-Comp-Recall.jpg", dpi=200)
     plt.close()
 
-def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
+def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity(selected_methods, compare_by):
   types = {
     "path": str,
     "method": str,
@@ -227,10 +227,9 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
     "comp": float,
   }
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
-  cutoff_recalls = [0.7, 0.8, 0.9]
+  cutoff_recalls = [0.7, 0.8, 0.9, 0.95]
 
   selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
-  selected_methods = ["iRangeGraph", "Serf", "CompassR1d", "CompassIvf1d", "CompassGraph1d", "CompassRCg1d"]
 
   for dataset in DATASETS:
     for recall in cutoff_recalls:
@@ -259,11 +258,10 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity():
       fig.set_size_inches(15, 10)
       handles, labels = ax0.get_legend_handles_labels()
       fig.legend(handles, labels, loc="outside right upper")
-      fig.savefig(f"figures_{K}/Recall-{recall:.1f}-{dataset.upper()}-QPS-Comp.jpg", dpi=200)
-      ax0.cla()
-      ax1.cla()
+      fig.savefig(f"figures_{K}/Recall-{recall:.2g}-{compare_by}-{dataset.upper()}-QPS-Comp.jpg", dpi=200)
+      plt.close()
 
-def draw_1d_qps_comp_fixed_recall_by_selectivity():
+def draw_1d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
   types = {
     "path": str,
     "method": str,
@@ -277,10 +275,9 @@ def draw_1d_qps_comp_fixed_recall_by_selectivity():
     "comp": float,
   }
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
-  cutoff_recalls = [0.7, 0.8, 0.9]
+  cutoff_recalls = [0.7, 0.8, 0.9, 0.95]
 
   selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
-  selected_methods = ["iRangeGraph", "Serf", "CompassR1d", "CompassIvf1d", "CompassGraph1d", "CompassRCg1d"]
 
   for recall in cutoff_recalls:
     fig, axs = plt.subplots(2, len(DATASETS), layout='constrained', sharex=True)
@@ -310,7 +307,7 @@ def draw_1d_qps_comp_fixed_recall_by_selectivity():
     fig.set_size_inches(45 , 10)
     handles, labels = axs[0][0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside right upper")
-    fig.savefig(f"figures_{K}/Recall-{recall:.1f}-All-QPS-Comp.jpg", dpi=200)
+    fig.savefig(f"figures_{K}/Recall-{recall:.2g}-{compare_by}-All-QPS-Comp.jpg", dpi=200)
     plt.close()
 
 
@@ -536,8 +533,16 @@ summarize_1d()
 
 draw_1d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_1d_qps_comp_wrt_recall_by_selectivity()
-draw_1d_qps_comp_fixed_recall_by_dataset_selectivity()
-draw_1d_qps_comp_fixed_recall_by_selectivity()
+
+selected_methods = ["CompassR1d", "CompassIvf1d", "CompassGraph1d", "CompassRCg1d"]
+compare_by = "ToT"
+draw_1d_qps_comp_fixed_recall_by_dataset_selectivity(selected_methods, compare_by)
+draw_1d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by)
+
+selected_methods = ["iRangeGraph", "Serf", "CompassR1d", "CompassRCg1d"]
+compare_by = "MoM"
+draw_1d_qps_comp_fixed_recall_by_dataset_selectivity(selected_methods, compare_by)
+draw_1d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by)
 
 # draw_1d_by_selected_dataset_adverse()
 # draw_1d_by_selected_dataset_favorable()
