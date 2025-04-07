@@ -716,7 +716,6 @@ std::map<std::string, DataCard> name_to_card{
     {"glove100_1_500_int32", glove100_1_500_int32},
     {"glove100_1_1000_int32", glove100_1_1000_int32},
     {"glove100_1_10000_float32", glove100_1_10000_float32},
-    {"glove100_1_10000_float32", glove100_1_10000_float32},
     {"glove100_2_10000_float32", glove100_2_10000_float32},
     {"audio_1_10000_float32", audio_1_10000_float32},
     {"audio_2_10000_float32", audio_2_10000_float32},
