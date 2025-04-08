@@ -55,7 +55,7 @@ class CompassROld1d {
   int AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attrs);
   void TrainIvf(size_t n, const void *data);
 
-  vector<priority_queue<pair<float, hnswlib::labeltype>>> SearchKnn(
+  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
       const void *query,
       const int nq,
       const int k,
@@ -74,7 +74,7 @@ class CompassROld1d {
     int nprobe = 100;
     this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
 
-    vector<priority_queue<pair<dist_t, labeltype>>> results(nq, priority_queue<pair<dist_t, labeltype>>());
+    vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
@@ -195,8 +195,9 @@ class CompassROld1d {
 
       metrics[q].ncluster = curr_ci - q * nprobe;
       while (top_candidates.size() > k) top_candidates.pop();
+      size_t sz = top_candidates.size();
       while (!top_candidates.empty()) {
-        results[q].push(top_candidates.top());
+        results[q][--sz] = top_candidates.top();
         top_candidates.pop();
       }
     }

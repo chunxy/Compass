@@ -10,7 +10,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <map>
-#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -77,7 +76,7 @@ int main(int argc, char **argv) {
 
 
   nlohmann::json json;
-  for (auto efs : {100, 200, 500, 1000}) {
+  for (auto efs : {100, 200, 500}) {
     int initial_ncomp = comp->metric_distance_computations.load();
     int initial_nhops = comp->metric_hops.load();
     comp->setEf(efs);
@@ -93,34 +92,18 @@ int main(int argc, char **argv) {
     for (int j = 0; j < nq; j++) {
       auto results = comp->searchKnn(xq + j * d, k);
 
-      std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
-      int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;
+      auto gt_min = dist_func(xq + j * d, xb + hybrid_topks[j].front() * d, &d);
+      auto gt_max = dist_func(xq + j * d, xb + hybrid_topks[j].back() * d, &d);
+      int tp = 0, rz_size = results.size();
       while (results.size()) {
         auto pair = results.top();
         results.pop();
         auto i = pair.second;
         auto d = pair.first;
-        assert(rz_indices.find(i) == rz_indices.end());
-        rz_indices.insert(i);
+        if (d <= gt_max + 1e-5) tp++;
       }
 
-      int ivf_ppsl_in_tp = 0, graph_ppsl_in_tp = 0;
-      for (auto i : hybrid_topks[j]) {
-        gt_indices.insert(i);
-      }
-      auto gt_min = dist_func(xq + j * d, xb + hybrid_topks[j].front() * d, &d);
-      auto gt_max = dist_func(xq + j * d, xb + hybrid_topks[j].back() * d, &d);
-
-      std::set_intersection(
-          gt_indices.begin(),
-          gt_indices.end(),
-          rz_indices.begin(),
-          rz_indices.end(),
-          std::inserter(rz_gt_interse, rz_gt_interse.begin())
-      );
-
-      // stat.rec_at_ks[j] = (double)rz_gt_interse.size() / gt_indices.size();
-      recall += (double)rz_gt_interse.size() / rz_indices.size();
+      recall += (double)tp / rz_size;
     }
     json[fmt::to_string(efs)]["recall"] = recall / nq;
     json[fmt::to_string(efs)]["qps"] = nq * 1000000. / search_time;
