@@ -12,7 +12,6 @@
 #include <limits>
 #include <map>
 #include <numeric>
-#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -163,37 +162,24 @@ int main(int argc, char **argv) {
         for (int ii = 0; ii < results.size(); ii++) {
           auto rz = results[ii];
           auto metric = metrics[ii];
-          std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
+          auto gt_min = dist_func(xq + j * d, xb + hybrid_topks[j].front() * d, &d);
+          auto gt_max = dist_func(xq + j * d, xb + hybrid_topks[j].back() * d, &d);
           int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;
+          int ivf_ppsl_in_tp = 0, graph_ppsl_in_tp = 0;
           for (auto pair : rz) {
             auto i = pair.second;
             auto d = pair.first;
-            assert(rz_indices.find(i) == rz_indices.end());
-            rz_indices.insert(i);
             if (metric.is_ivf_ppsl[i])
               ivf_ppsl_in_rz++;
             else if (metric.is_graph_ppsl[i])
               graph_ppsl_in_rz++;
+            if (d <= gt_max + EPSILON) {
+              if (metric.is_ivf_ppsl[i])
+                ivf_ppsl_in_tp++;
+              else if (metric.is_graph_ppsl[i])
+                graph_ppsl_in_tp++;
+            }
           }
-
-          int ivf_ppsl_in_tp = 0, graph_ppsl_in_tp = 0;
-          for (auto i : hybrid_topks[j]) {
-            gt_indices.insert(i);
-            if (metric.is_ivf_ppsl[i])
-              ivf_ppsl_in_tp++;
-            else if (metric.is_graph_ppsl[i])
-              graph_ppsl_in_tp++;
-          }
-          auto gt_min = dist_func(xq + j * d, xb + hybrid_topks[j].front() * d, &d);
-          auto gt_max = dist_func(xq + j * d, xb + hybrid_topks[j].back() * d, &d);
-
-          std::set_intersection(
-              gt_indices.begin(),
-              gt_indices.end(),
-              rz_indices.begin(),
-              rz_indices.end(),
-              std::inserter(rz_gt_interse, rz_gt_interse.begin())
-          );
 
           stat.rz_min_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
           stat.rz_max_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.back().first;
@@ -204,10 +190,10 @@ int main(int argc, char **argv) {
           stat.ivf_ppsl_in_tp_s[j] = ivf_ppsl_in_tp;
           stat.graph_ppsl_in_tp_s[j] = graph_ppsl_in_tp;
 
-          stat.tp_s[j] = rz_gt_interse.size();
-          stat.rz_s[j] = rz_indices.size();
-          stat.rec_at_ks[j] = (double)rz_gt_interse.size() / gt_indices.size();
-          stat.pre_at_ks[j] = (double)rz_gt_interse.size() / rz_indices.size();
+          stat.tp_s[j] = ivf_ppsl_in_tp + graph_ppsl_in_tp;
+          stat.rz_s[j] = rz.size();
+          stat.rec_at_ks[j] = (double)stat.tp_s[j] / hybrid_topks[j].size();
+          stat.pre_at_ks[j] = (double)stat.tp_s[j] / rz.size();
 
           stat.ivf_ppsl_nums[j] = std::accumulate(metric.is_ivf_ppsl.begin(), metric.is_ivf_ppsl.end(), 0);
           stat.graph_ppsl_nums[j] = std::accumulate(metric.is_graph_ppsl.begin(), metric.is_graph_ppsl.end(), 0);
@@ -217,8 +203,7 @@ int main(int argc, char **argv) {
               stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_tp / stat.graph_ppsl_nums[j] : 0;
           stat.graph_ppsl_rate[j] =
               stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_rz / stat.graph_ppsl_nums[j] : 0;
-          stat.perc_of_ivf_ppsl_in_tp[j] =
-              rz_gt_interse.size() != 0 ? (double)ivf_ppsl_in_tp / rz_gt_interse.size() : 0;
+          stat.perc_of_ivf_ppsl_in_tp[j] = stat.tp_s[j] != 0 ? (double)ivf_ppsl_in_tp / stat.tp_s[j] : 0;
           stat.perc_of_ivf_ppsl_in_rz[j] = (double)ivf_ppsl_in_rz / rz.size();
           stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
           stat.num_computations[j] = metric.ncomp;

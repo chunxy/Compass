@@ -2,6 +2,9 @@
 
 #include <string>
 
+// arithmetics
+const float EPSILON = 1e-5;
+
 // directories
 const std::string WORKSPACE = "/home/chunxy/repos/Compass";
 const std::string LOGS = WORKSPACE + "/logs_{}";
