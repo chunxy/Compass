@@ -1,14 +1,12 @@
 from pathlib import Path
 from matplotlib import pyplot as plt
-from matplotlib.collections import PolyCollection
 import numpy as np
 import json
 import pandas as pd
-from scipy.spatial import ConvexHull
 
-from .config import *
+from config import *
 
-K = 100
+K = 10
 LOGS = Path(LOGS_TMPL.format(K))
 
 def summarize_2d():
@@ -83,23 +81,31 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
         recall_qps = recall_qps.to_numpy()
         axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
         axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=TWOD_RUNS[m].marker)
-        axs[0].xlabel('Recall')
-        axs[0].ylabel('QPS')
-        axs[0].title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")
+        axs[0].set_xlabel('Recall')
+        axs[0].set_ylabel('QPS')
+        axs[0].set_title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")
 
-        comp_qps = data_by_m_b[["comp", "qps"]].sort_values(["comp", "qps"], ascending=[True, True])
-        comp_qps = comp_qps.to_numpy()
-        axs[1].plot(comp_qps[:, 0], comp_qps[:, 1])
-        axs[1].scatter(comp_qps[:, 0], comp_qps[:, 1], label=f"{m}-{b}", marker=TWOD_RUNS[m].marker)
-        axs[1].xlabel('Recall')
-        axs[1].ylabel('# Comp')
-        axs[1].title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")
+        recall_comp = data_by_m_b[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
+        recall_comp = recall_comp.to_numpy()
+        axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
+        axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}", marker=TWOD_RUNS[m].marker)
+        axs[1].set_xlabel('Recall')
+        axs[1].set_ylabel('# Comp')
+        axs[1].set_title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")
 
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside right upper")
     fig.savefig(f"figures2d_{K}/{dataset.upper()}-{selectivity:.1%}-QPS-Recall.jpg", dpi=200)
     plt.close()
 
-# summarize_2d()
-# draw_2d_qps_comp_wrt_recall_by_dataset_selectivity()
+plt.rcParams.update({
+  'font.size': 15,
+  'legend.fontsize': 12,
+  'axes.labelsize': 15,
+  'axes.titlesize': 15,
+  'figure.figsize': (10, 15),
+})
+summarize_2d()
+
+draw_2d_qps_comp_wrt_recall_by_dataset_selectivity()
 

@@ -9,7 +9,7 @@ ONED_METHODS = ("CompassR1d", "CompassROld1d", "CompassRImi1d", "CompassIvf1d", 
 TWOD_METHODS = ("CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d")
 DATASETS = ("sift", "gist", "crawl", "glove100", "audio", "video")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
-TWOD_PASSRATES = ("0.01", "0.02", "0.05", "0.1", "0.2")
+TWOD_PASSRATES = ("0.01", "0.09", "0.25", "0.64", "0.81")
 
 # Arguments
 RangeFilterRange = namedtuple("RangeFilterRange", ["l", "r"])
@@ -25,6 +25,10 @@ typical_ivf_rf_ranges = [*[RangeFilterRange(100, r) for r in (200, 300, 600, 110
 WindowFilterRange = namedtuple("WindowFilterRange", ["l1", "l2", "r1", "r2"])
 typical_wf_ranges = [
   WindowFilterRange(100, 200, 1100, 1200),
+  WindowFilterRange(100, 200, 3100, 3200),
+  WindowFilterRange(100, 200, 5100, 5200),
+  WindowFilterRange(100, 200, 8100, 8200),
+  WindowFilterRange(100, 200, 9100, 9200),
   WindowFilterRange(100, 200, 1100, 2200),
   WindowFilterRange(100, 200, 1100, 5200),
   WindowFilterRange(100, 200, 2100, 5200),
