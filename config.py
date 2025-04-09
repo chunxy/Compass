@@ -79,6 +79,7 @@ typical_irangegraph_2d_ranges = [
 CompassBuild = namedtuple("CompassBuild", ["M", "efc", "nlist"])
 typical_compass_r_old_1d_builds = [
   CompassBuild(16, 200, 1000),
+  CompassBuild(16, 200, 2000),
   CompassBuild(32, 200, 1000),
   CompassBuild(32, 200, 2000),
   CompassBuild(32, 200, 5000),
@@ -207,7 +208,7 @@ TEMPLATES = {
 
 COMPASS_BUILD_MARKER_MAPPING = {
   "M_16_efc_200_nlist_1000": "D",
-  "M_16_efc_200_nlist_1000": "h",
+  "M_16_efc_200_nlist_2000": "h",
   "M_32_efc_200_nlist_1000": "p",
   "M_32_efc_200_nlist_2000": "8",
   "M_32_efc_200_nlist_5000": ">",

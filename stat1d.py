@@ -34,7 +34,7 @@ def stat_top_k_in_cluster_by_selectivity():
           axs[i].set_ylim(0, 0.5)
           axs[i].set_title(f"{dataset.upper()}-{rg}")
       fig.set_size_inches(20, 5)
-      fig.savefig(f"figures_10/All-{(rg[1] - rg[0]) / 10000:.1%}-Clustering-{nlist}-Quality.jpg", dpi=100)
+      fig.savefig(f"figures_10/clustering/All-{(rg[1] - rg[0]) / 10000:.1%}-Clustering-{nlist}-Quality.jpg", dpi=100)
       plt.close()
 
 
@@ -55,7 +55,7 @@ def stat_cluster_imbalance_factor():
         axs[i].set_ylim(0, 0.015)
         axs[i].set_title(f"{dataset.upper()}-{nlist}")
     fig.set_size_inches(20, 5)
-    fig.savefig(f"figures_10/All-Cluster-{nlist}-Imbalance.jpg", dpi=200)
+    fig.savefig(f"figures_10/clustering/All-Cluster-{nlist}-Imbalance.jpg", dpi=200)
 
 
 stat_top_k_in_cluster_by_selectivity()
