@@ -88,13 +88,12 @@ int main(int argc, char **argv) {
     auto search_stop = high_resolution_clock::system_clock::now();
     auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
 
-    double recall = 0;
+    int tp = 0;
     for (int j = 0; j < nq; j++) {
       auto results = comp->searchKnn(xq + j * d, k);
 
       auto gt_min = dist_func(xq + j * d, xb + hybrid_topks[j].front() * d, &d);
       auto gt_max = dist_func(xq + j * d, xb + hybrid_topks[j].back() * d, &d);
-      int tp = 0, rz_size = results.size();
       while (results.size()) {
         auto pair = results.top();
         results.pop();
@@ -102,10 +101,8 @@ int main(int argc, char **argv) {
         auto d = pair.first;
         if (d <= gt_max + 1e-5) tp++;
       }
-
-      recall += (double)tp / rz_size;
     }
-    json[fmt::to_string(efs)]["recall"] = recall / nq;
+    json[fmt::to_string(efs)]["recall"] = (double)tp / nq * k;
     json[fmt::to_string(efs)]["qps"] = nq * 1000000. / search_time;
     json[fmt::to_string(efs)]["num_computations"] = (comp->metric_distance_computations.load() - initial_ncomp) / 2. / nq;
     json[fmt::to_string(efs)]["nhops"] = (comp->metric_hops.load() - initial_nhops) / 2. / nq;

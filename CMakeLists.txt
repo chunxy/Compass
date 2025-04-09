@@ -28,7 +28,7 @@ cmake_policy(SET CMP0167 NEW)
 find_package(Boost REQUIRED COMPONENTS program_options context filesystem)
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
-    SET (LD_LIBRARY_PATH ${BOOST_LIBRARYDIR})
+    set (LD_LIBRARY_PATH ${BOOST_LIBRARYDIR})
 endif()
 message(STATUS ${Boost_LIBRARIES})
 

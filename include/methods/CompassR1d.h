@@ -721,12 +721,13 @@ int CompassR1d<dist_t, attr_t>::AddGraphPoint(const void *data_point, labeltype 
 template <typename dist_t, typename attr_t>
 int CompassR1d<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attr) {
   // ivf_->add(n, (float *)data);  // add_sa_codes
-  ranked_clusters_ = new faiss::idx_t[n * ivf_->nlist];
-  ivf_->quantizer->assign(n, (float *)data, ranked_clusters_, ivf_->nlist);
+  auto assigned_clusters = new faiss::idx_t[n];
+  ivf_->quantizer->assign(n, (float *)data, assigned_clusters);
   for (int i = 0; i < n; i++) {
     attrs_[labels[i]] = attr[i];
-    btrees_[ranked_clusters_[i * ivf_->nlist]].insert(std::make_pair(attr[i], labels[i]));
+    btrees_[assigned_clusters[i]].insert(std::make_pair(attr[i], labels[i]));
   }
+  delete[] assigned_clusters;
   return n;
 }
 
