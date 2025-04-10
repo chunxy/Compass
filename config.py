@@ -34,6 +34,11 @@ typical_wf_ranges = [
   WindowFilterRange(100, 200, 2100, 5200),
   WindowFilterRange(100, 200, 4100, 5200),
 ]
+typical_ivf_wf_ranges = [
+  WindowFilterRange(100, 200, 1100, 1200),
+  WindowFilterRange(100, 200, 3100, 3200),
+  WindowFilterRange(100, 200, 5100, 5200),
+]
 
 FractionRange = namedtuple("FractionRange", ["range", "ndata"])
 typical_fraction_ranges = [
@@ -114,7 +119,9 @@ typical_compass_r_old_1d_searches = [
 typical_compass_r_cg_1d_searches = [
   *[CompassSearch(efs, nrel, 1000) for efs in (10, 20, 60, 100, 200) for nrel in (200, 500)],
 ]
-typical_compass_r_searches = [CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200, 220, 240, 260, 280, 300], [100, 200, 500])]
+typical_compass_r_searches = [
+  CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200, 220, 240, 260, 280, 300], [100, 200, 500])
+]
 
 CompassRImiBuild = namedtuple("CompassRImiBuild", ["M", "efc", "nsub", "nbits"])
 typical_compass_r_imi_builds = [*[CompassRImiBuild(M, efc, *imi) for M, efc, imi in product([16, 32, 64], [100, 200], [(4, 4), (2, 9)])]]
@@ -138,14 +145,9 @@ typical_compass_graph_1d_builds = [*[CompassGraphBuild(M, 200) for M in [16, 32]
 typical_compass_graph_builds = typical_compass_graph_1d_builds
 
 CompassGraphSearch = namedtuple("CompassGraphSearch", ["efs", "nrel"])
-typical_compass_graph_1d_searches = [
-  *[
-    CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200], [500, 1000, 1500, 2000, 3000, 3500, 4000, 5000, 6000, 7000, 8000])
-  ]
-]
+typical_compass_graph_1d_searches = [*[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 200, 300, 400, 500, 1000], [100, 200])]]
 typical_compass_graph_searches = [
-  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 150, 200, 250, 300, 400, 500, 1000], [100, 200])],
-  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200], [200, 400, 600, 700, 800])],
+  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 200, 300, 400, 500, 1000], [100, 200])],
 ]
 
 # AcornBuild = namedtuple("AcornBuild", ["M", "beta", "efc", "gamma"])
