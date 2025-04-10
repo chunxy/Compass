@@ -249,6 +249,21 @@ mom_selected_methods = {
 }
 draw_1d_comp_fixed_recall_by_selectivity(mom_selected_methods, "MoM")
 
+# Compare #Comp-Recall when using different efs
+methods = {
+  "iRangeGraph": [iRangeGraphBuild(32, 200)],
+  "Serf": [SerfBuild(32, 200, 500)],
+  "CompassR1d": [
+    CompassBuild(32, 200, 1000),
+  ],
+}
+searches = {
+  "CompassR1d": [
+    f"nrel_{nrel}" for nrel in [100, 200]
+  ]
+}
+draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-efs/")
+
 # Compare #Comp-Recall when using different nrel
 methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
