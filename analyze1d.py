@@ -97,18 +97,6 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
             recall_comp = recall_comp.to_numpy()
             axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
             axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-nrel_{nrel}", marker=marker)
-          for efs in [300, 500]:
-            data_by_m_b_efs = data_by_m_b[data_by_m_b["run"].str.contains(f"efs_{efs}")]
-            if data_by_m_b_efs.size == 0: continue
-            recall_qps = data_by_m_b_efs[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-            recall_qps = recall_qps.to_numpy()
-            axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
-            axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-efs_{efs}", marker=marker)
-
-            recall_comp = data_by_m_b_efs[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
-            recall_comp = recall_comp.to_numpy()
-            axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
-            axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-efs_{efs}", marker=marker)
         else:
           recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
           recall_qps = recall_qps.to_numpy()
@@ -176,18 +164,6 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
               recall_comp = recall_comp.to_numpy()
               axs[1][i].plot(recall_comp[:, 0], recall_comp[:, 1])
               axs[1][i].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-{nrel}", marker=marker)
-            for efs in [300, 500]:
-              data_by_m_b_efs = data_by_m_b[data_by_m_b["run"].str.contains(f"efs_{efs}")]
-              if data_by_m_b_efs.size == 0: continue
-              recall_qps = data_by_m_b_efs[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-              recall_qps = recall_qps.to_numpy()
-              axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
-              axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-efs_{efs}", marker=marker)
-
-              recall_comp = data_by_m_b_efs[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
-              recall_comp = recall_comp.to_numpy()
-              axs[1][i].plot(recall_comp[:, 0], recall_comp[:, 1])
-              axs[1][i].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-efs_{efs}", marker=marker)
           else:
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps.to_numpy()

@@ -254,7 +254,7 @@ methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [
-    CompassBuild(32, 200, 2000),
+    CompassBuild(32, 200, 1000),
   ],
 }
 searches = {

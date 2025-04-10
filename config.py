@@ -144,7 +144,7 @@ typical_compass_graph_1d_searches = [
   ]
 ]
 typical_compass_graph_searches = [
-  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 150, 200, 250, 300, 400, 500, 1000], [100, 200])]
+  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 150, 200, 250, 300, 400, 500, 1000], [100, 200])],
   *[CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200], [200, 400, 600, 700, 800])],
 ]
 
