@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import json
 import pandas as pd
+import bisect
 
 from config import *
 
@@ -65,7 +66,9 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
     "qps": float,
   }
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
+
   selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in TWOD_PASSRATES]
+  selected_methods = ["CompassIvf", "CompassR"]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -74,28 +77,103 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
     selectivity = float(data["selectivity"].reset_index(drop=True)[0])
 
     fig, axs = plt.subplots(2, 1, layout='constrained')
-    for m in data.method.unique():
+    for m in selected_methods:
       for b in data[data["method"] == m].build.unique():
         data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
-        recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-        recall_qps = recall_qps.to_numpy()
-        axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
-        axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=TWOD_RUNS[m].marker)
+        marker = COMPASS_BUILD_MARKER_MAPPING.get(b, TWOD_RUNS[m].marker)
+        if m == "CompassR":
+          for nrel in [100, 200, 500]:
+            data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
+            if data_by_m_b_nrel.size == 0: continue
+            recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+            recall_qps = recall_qps.to_numpy()
+            axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
+            axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-nrel_{nrel}", marker=marker)
+
+            recall_comp = data_by_m_b_nrel[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
+            recall_comp = recall_comp.to_numpy()
+            axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
+            axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-nrel_{nrel}", marker=marker)
+        else:
+          recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+          recall_qps = recall_qps.to_numpy()
+          axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
+          axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=TWOD_RUNS[m].marker)
+          recall_comp = data_by_m_b[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
+          recall_comp = recall_comp.to_numpy()
+          axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
+          axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}", marker=TWOD_RUNS[m].marker)
+
         axs[0].set_xlabel('Recall')
         axs[0].set_ylabel('QPS')
         axs[0].set_title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")
-
-        recall_comp = data_by_m_b[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
-        recall_comp = recall_comp.to_numpy()
-        axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
-        axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}", marker=TWOD_RUNS[m].marker)
         axs[1].set_xlabel('Recall')
         axs[1].set_ylabel('# Comp')
         axs[1].set_title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")
 
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside right upper")
-    fig.savefig(f"figures2d_{K}/{dataset.upper()}-{selectivity:.1%}-QPS-Recall.jpg", dpi=200)
+    fig.savefig(f"figures2d_{K}/{dataset.upper()}/{dataset.upper()}-{selectivity:.1%}-QPS-Recall.jpg", dpi=200)
+    plt.close()
+
+def draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
+  types = {
+    "path": str,
+    "method": str,
+    "workload": str,
+    "build": str,
+    "dataset": str,
+    "selectivity": str,
+    "run": str,
+    "recall": float,
+    "qps": float,
+    "comp": float,
+  }
+  df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
+  cutoff_recalls = [0.8, 0.9, 0.95]
+
+  selectivities = ["0.01", "0.09", "0.25", "0.64", "0.81"]
+
+  for recall in cutoff_recalls:
+    fig, axs = plt.subplots(2, len(DATASETS), layout='constrained', sharex=True)
+    for i, dataset in enumerate(DATASETS):
+      axs[0][i].set_xticks(np.arange(len(selectivities)))
+      axs[0][i].set_xticklabels(selectivities)
+      axs[0][i].set_title(dataset.upper())
+      axs[0][i].set_ylabel('QPS')
+      axs[1][i].set_ylabel('# Comp')
+      axs[1][i].set_xlabel('Selectivity')
+      data = df[df["dataset"] == dataset]
+      for m in selected_methods:
+        for b in data[data["method"] == m].build.unique():
+          marker = COMPASS_BUILD_MARKER_MAPPING.get(b, TWOD_RUNS[m].marker)
+          data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+          if m == "CompassR":
+            for nrel in [100, 200, 500]:
+              data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
+              if data_by_m_b_nrel.size == 0: continue
+              rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
+              grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["qps"].max()
+              grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["comp"].min()
+              pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
+              axs[0][i].plot(pos_s, grouped_qps["qps"])
+              axs[0][i].scatter(pos_s, grouped_qps["qps"], label=f"{m}-{b}-{recall}-{nrel}", marker=marker)
+              axs[1][i].plot(pos_s, grouped_comp["comp"])
+              axs[1][i].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}-{nrel}", marker=marker)
+          else:
+            rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
+            grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["qps"].max()
+            grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["comp"].min()
+            pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
+            axs[0][i].plot(pos_s, grouped_qps["qps"])
+            axs[0][i].scatter(pos_s, grouped_qps["qps"], label=f"{m}-{b}-{recall}", marker=marker)
+            axs[1][i].plot(pos_s, grouped_comp["comp"])
+            axs[1][i].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
+
+    fig.set_size_inches(45, 20)
+    handles, labels = axs[0][0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="outside right upper")
+    fig.savefig(f"figures2d_{K}/Recall-{recall:.2g}-{compare_by}-All-QPS-Comp.jpg", dpi=200)
     plt.close()
 
 plt.rcParams.update({
@@ -109,3 +187,5 @@ summarize_2d()
 
 draw_2d_qps_comp_wrt_recall_by_dataset_selectivity()
 
+selected_methods = ["CompassR", "CompassIvf", "CompassGraph"]
+draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, "ToT")
