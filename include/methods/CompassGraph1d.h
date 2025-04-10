@@ -86,6 +86,8 @@ class CompassGraph1d {
       vl_type *visited = vl->mass;
       vl_type visited_tag = vl->curV;
 
+      RangeQuery<float> pred(l_bound, u_bound, &attrs_);
+
       {
         tableint currObj = hnsw_.enterpoint_node_;
         dist_t currDist = hnsw_.fstdistfunc_(
@@ -120,10 +122,9 @@ class CompassGraph1d {
         }
         visited[currObj] = visited_tag;
         candidate_set.emplace(-currDist, currObj);
-        if (attrs_[currObj] <= u_bound && attrs_[currObj] >= l_bound) top_candidates.emplace(currDist, currObj);
+        if (pred(currObj)) top_candidates.emplace(currDist, currObj);
       }
 
-      RangeQuery<float> pred(l_bound, u_bound, &attrs_);
       size_t total_proposed = 0;
 
       while (curr != pred_end && top_candidates.size() < efs_) {
