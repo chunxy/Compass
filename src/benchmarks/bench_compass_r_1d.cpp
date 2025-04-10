@@ -82,15 +82,21 @@ int main(int argc, char **argv) {
     comp.SaveIvf(ckp_dir / ivf_ckp);
   }
 
-  auto add_points_start = high_resolution_clock::now();
-  std::vector<labeltype> labels(nb);
-  std::iota(labels.begin(), labels.end(), 0);
-  comp.AddIvfPoints(nb, xb, labels.data(), attrs.data());
-  auto add_points_stop = high_resolution_clock::now();
-  fmt::print(
-      "Finished adding points, took {} microseconds.\n",
-      duration_cast<microseconds>(add_points_stop - add_points_start).count()
-  );
+  if (fs::exists(ckp_dir / rank_ckp)) {
+    comp.LoadRanking(ckp_dir / rank_ckp, attrs.data());
+    fmt::print("Finished loading IVF ranking.\n");
+  } else {
+    auto add_points_start = high_resolution_clock::now();
+    std::vector<labeltype> labels(nb);
+    std::iota(labels.begin(), labels.end(), 0);
+    comp.AddIvfPoints(nb, xb, labels.data(), attrs.data());
+    auto add_points_stop = high_resolution_clock::now();
+    fmt::print(
+        "Finished adding points, took {} microseconds.\n",
+        duration_cast<microseconds>(add_points_stop - add_points_start).count()
+    );
+    comp.SaveRanking(ckp_dir / rank_ckp);
+  }
 
   if (fs::exists(ckp_dir / graph_ckp)) {
     comp.LoadGraph((ckp_dir / graph_ckp).string());

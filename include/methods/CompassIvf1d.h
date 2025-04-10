@@ -36,6 +36,7 @@ class CompassIvf1D {
   vector<btree::btree_map<attr_t, labeltype>> btrees_;
 
   const float *xb_;
+  faiss::idx_t *ranked_clusters_;
 
  public:
   CompassIvf1D(size_t d, size_t max_elements, size_t nlist, const float *xb);
@@ -92,6 +93,23 @@ class CompassIvf1D {
 
   void SaveIvf(fs::path path);
   void LoadIvf(fs::path path);
+
+  void LoadRanking(fs::path path, attr_t *attrs) {
+    std::ifstream in(path.string());
+    faiss::idx_t assigned_cluster;
+    for (int i = 0; i < attrs_.size(); i++) {
+      in.read((char *)(&assigned_cluster), sizeof(faiss::idx_t));
+      attrs_[i] = attrs[i];
+      btrees_[assigned_cluster].insert(std::make_pair(attrs[i], (labeltype)i));
+    }
+  }
+
+  void SaveRanking(fs::path path) {
+    std::ofstream out(path.string());
+    for (int i = 0; i < attrs_.size(); i++) {
+      out.write((char *)(ranked_clusters_ + i), sizeof(faiss::idx_t));
+    }
+  }
 };
 
 template <typename dist_t, typename attr_t>
@@ -131,14 +149,13 @@ int CompassIvf1D<dist_t, attr_t>::AddIvfPoints(
     labeltype *labels,
     const vector<attr_t> &attrs
 ) {
-  ivf_->add(n, (float *)data);  // add_sa_codes
-  auto assigned_clusters = new faiss::idx_t[n * 1];
-  ivf_->quantizer->assign(n, (float *)data, assigned_clusters, 1);
+  // ivf_->add(n, (float *)data);  // add_sa_codes
+  ranked_clusters_ = new faiss::idx_t[n];
+  ivf_->quantizer->assign(n, (float *)data, ranked_clusters_);
   for (int i = 0; i < n; i++) {
     attrs_[labels[i]] = attrs[i];
-    btrees_[assigned_clusters[i]].insert(std::make_pair(attrs[i], labels[i]));
+    btrees_[ranked_clusters_[i]].insert(std::make_pair(attrs[i], labels[i]));
   }
-  delete[] assigned_clusters;
   return n;
 }
 
