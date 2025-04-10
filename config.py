@@ -87,25 +87,25 @@ typical_compass_r_old_1d_builds = [
   CompassBuild(32, 200, 1000),
   CompassBuild(32, 200, 2000),
   CompassBuild(32, 200, 5000),
-  CompassBuild(32, 200, 10000),  # *[CompassBuild(M, efc, nlist) for M, efc, nlist in product([16, 32, 64], [100, 200], [500, 100])]
+  CompassBuild(32, 200, 10000),
 ]
 typical_compass_r_1d_builds = [
   CompassBuild(16, 200, 1000),
   CompassBuild(16, 200, 2000),
+  CompassBuild(16, 200, 10000),
   CompassBuild(32, 200, 1000),
   CompassBuild(32, 200, 2000),
   CompassBuild(32, 200, 5000),
   CompassBuild(32, 200, 10000),
 ]
 typical_compass_r_cg_1d_builds = [CompassBuild(32, 200, 1000)]
+typical_compass_r_builds = typical_compass_r_1d_builds
 
 CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
 typical_compass_r_1d_searches = [
   # *[CompassSearch(efs, 500, 1000) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
-  *[
-    CompassSearch(efs, nrel, 1000)
-    for efs, nrel in product([10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250], [200, 500, 1000])
-  ]
+  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [100, 200, 500])],
+  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([100, 200, 500], [100, 200])]
 ]
 typical_compass_r_old_1d_searches = [
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 15, 20, 25, 30, 35, 40, 50, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])],
@@ -114,16 +114,18 @@ typical_compass_r_old_1d_searches = [
 typical_compass_r_cg_1d_searches = [
   *[CompassSearch(efs, nrel, 1000) for efs in (10, 20, 60, 100, 200) for nrel in (200, 500)],
 ]
-typical_compass_r_searches = [CompassSearch(100, 100, 1000), CompassSearch(250, 100, 1000)]
+typical_compass_r_searches = [CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200, 220, 240, 260, 280, 300], [100, 200, 500])]
 
 CompassRImiBuild = namedtuple("CompassRImiBuild", ["M", "efc", "nsub", "nbits"])
 typical_compass_r_imi_builds = [*[CompassRImiBuild(M, efc, *imi) for M, efc, imi in product([16, 32, 64], [100, 200], [(4, 4), (2, 9)])]]
 
 CompassIvfBuild = namedtuple("CompassIvfBuild", ["nlist"])
-typical_compass_ivf_1d_builds = [*[CompassIvfBuild(nlist) for nlist in (500, 1000)]]
+typical_compass_ivf_1d_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, )]]
+typical_compass_ivf_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, 5000)]]
 
 CompassIvfSearch = namedtuple("CompassIvfSearch", ["nprobe"])
-typical_compass_ivf_1d_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 20, 30, 40, 50, 100)]]
+typical_compass_ivf_1d_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50, 100)]]
+typical_compass_ivf_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50)]]
 
 CompassImiBuild = namedtuple("CompassImiBuild", ["nsub", "nbits"])
 typical_compass_imi_1d_builds = [CompassImiBuild(2, 8)]
@@ -132,13 +134,18 @@ CompassImiSearch = namedtuple("CompassImiSearch", ["nprobe"])
 typical_compass_imi_1d_searches = [*[CompassImiSearch(nprobe) for nprobe in (100, 150, 200, 250, 300, 400, 500)]]
 
 CompassGraphBuild = namedtuple("CompassGraphBuild", ["M", "efc"])
-typical_compass_graph_1d_builds = [*[CompassGraphBuild(M, efc) for M, efc in product([16, 32], [100, 200])]]
+typical_compass_graph_1d_builds = [*[CompassGraphBuild(M, 200) for M in [16, 32]]]
+typical_compass_graph_builds = typical_compass_graph_1d_builds
 
 CompassGraphSearch = namedtuple("CompassGraphSearch", ["efs", "nrel"])
 typical_compass_graph_1d_searches = [
   *[
     CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200], [500, 1000, 1500, 2000, 3000, 3500, 4000, 5000, 6000, 7000, 8000])
   ]
+]
+typical_compass_graph_searches = [
+  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 150, 200, 250, 300, 400, 500, 1000], [100, 200])]
+  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200], [200, 400, 600, 700, 800])],
 ]
 
 # AcornBuild = namedtuple("AcornBuild", ["M", "beta", "efc", "gamma"])
@@ -175,7 +182,7 @@ typical_irangegraph_searches = [
 Run = namedtuple("Run", ["name", "range", "build", "search", "marker"])
 ONED_RUNS = {
   "CompassR1d": Run("CompassR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
-  "CompassROld1d": Run("CompassROld1d", typical_rf_ranges, typical_compass_r_old_1d_builds, typical_compass_r_old_1d_searches, "p"),
+  # "CompassROld1d": Run("CompassROld1d", typical_rf_ranges, typical_compass_r_old_1d_builds, typical_compass_r_old_1d_searches, "p"),
   "CompassRImi1d": Run("CompassRImim1d", typical_rf_ranges, typical_compass_r_imi_builds, typical_compass_r_1d_searches, "v"),
   "CompassRCg1d": Run("CompassRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   "CompassGraph1d": Run("CompassGraph1d", typical_rf_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
@@ -185,9 +192,9 @@ ONED_RUNS = {
   "iRangeGraph": Run("iRangeGraph", typical_fraction_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
 TWOD_RUNS = {
-  "CompassR": Run("CompassR", typical_wf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
-  "CompassIvf": Run("CompassIvf", typical_wf_ranges, typical_compass_ivf_1d_builds, typical_compass_ivf_1d_searches, "*"),
-  "CompassGraph": Run("CompassGraph", typical_wf_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
+  "CompassR": Run("CompassR", typical_wf_ranges, typical_compass_r_builds, typical_compass_r_searches, "o"),
+  "CompassIvf": Run("CompassIvf", typical_wf_ranges, typical_compass_ivf_builds, typical_compass_ivf_searches, "*"),
+  "CompassGraph": Run("CompassGraph", typical_wf_ranges, typical_compass_graph_builds, typical_compass_graph_searches, "^"),
   "iRangeGraph2d": Run("iRangeGraph", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
 
