@@ -75,44 +75,79 @@ class CompassGraph {
     vector<vector<pair<dist_t, labeltype>>> result(nq, vector<pair<dist_t, labeltype>>(k));
     size_t d = *(size_t *)space_.get_dist_func_param();
 
+    VisitedList *vl = hnsw_.visited_list_pool_->getFreeVisitedList();
+
     WindowQuery<float> pred(l_bounds, u_bounds, &attrs_);
+    point min_corner(l_bounds[0], l_bounds[1]), max_corner(u_bounds[0], u_bounds[1]);
+    box b(min_corner, max_corner);
 
     for (int q = 0; q < nq; q++) {
-      point min_corner(l_bounds[0], l_bounds[1]), max_corner(u_bounds[0], u_bounds[1]);
-      box b(min_corner, max_corner);
       auto rel_beg = rtree_.qbegin(geo::index::covered_by(b));
       auto rel_end = rtree_.qend();
+      auto curr = rel_beg;
 
       std::priority_queue<pair<attr_t, int64_t>> top_candidates;
       std::priority_queue<pair<attr_t, int64_t>> candidate_set;
 
-      vector<bool> visited(hnsw_.cur_element_count, false);
+      vl_type *visited = vl->mass;
+      vl_type visited_tag = vl->curV;
 
-      int max_try = 20;
-      while ((max_try-- > 0 || top_candidates.size() < efs_)) {
-        if (rel_beg != rel_end) {
-          int cur_rel_cnt = 0;
-          while (rel_beg != rel_end) {
-            // auto label = (*rel_beg).second;
-            // auto tableid = hnsw_.label_lookup_[label];
-            tableint tableid = (*rel_beg).second;
-            rel_beg++;
-            if (visited[tableid]) continue;
-            visited[tableid] = true;
+      {
+        tableint currObj = hnsw_.enterpoint_node_;
+        dist_t currDist = hnsw_.fstdistfunc_(
+            (float *)query + q * d, hnsw_.getDataByInternalId(hnsw_.enterpoint_node_), hnsw_.dist_func_param_
+        );
 
-            auto vect = hnsw_.getDataByInternalId(tableid);
-            auto dist = hnsw_.fstdistfunc_((dist_t *)query + q * d, vect, space_.get_dist_func_param());
-            metrics[q].ncomp++;
-            candidate_set.emplace(-dist, tableid);
-            top_candidates.emplace(dist, tableid);
-            metrics[q].is_ivf_ppsl[tableid] = true;
-            // metrics[q].is_ivf_ppsl[label] = true;
-            if (top_candidates.size() > efs_) top_candidates.pop();
-            cur_rel_cnt++;
-            if (cur_rel_cnt == nrel) {
-              break;
+        for (int level = hnsw_.maxlevel_; level > 0; level--) {
+          bool changed = true;
+          while (changed) {
+            changed = false;
+            unsigned int *data;
+
+            data = (unsigned int *)hnsw_.get_linklist(currObj, level);
+            int size = hnsw_.getListCount(data);
+            metrics[q].ncomp += size;
+
+            tableint *datal = (tableint *)(data + 1);
+            for (int i = 0; i < size; i++) {
+              tableint cand = datal[i];
+
+              if (cand < 0 || cand > hnsw_.max_elements_) throw std::runtime_error("cand error");
+              dist_t dist =
+                  hnsw_.fstdistfunc_((float *)query + q * d, hnsw_.getDataByInternalId(cand), hnsw_.dist_func_param_);
+
+              if (dist < currDist) {
+                currDist = dist;
+                currObj = cand;
+                changed = true;
+              }
             }
           }
+        }
+        visited[currObj] = visited_tag;
+        candidate_set.emplace(-currDist, currObj);
+        if (pred(currObj)) top_candidates.emplace(currDist, currObj);
+      }
+
+      int max_try = 20;
+      while (curr != rel_end && top_candidates.size() < efs_) {
+        int i = 0;
+        while (i < nrel) {
+          if (curr == rel_end) break;
+          tableint id = (*curr).second;
+          curr++;
+          if (visited[id] == visited_tag) continue;
+          visited[id] = visited_tag;
+#ifdef USE_SSE
+          _mm_prefetch(hnsw_.getDataByInternalId((*curr).second), _MM_HINT_T0);
+#endif
+          auto vect = hnsw_.getDataByInternalId(id);
+          auto dist = hnsw_.fstdistfunc_(vect, (float *)(query) + q * d, space_.get_dist_func_param());
+          metrics[q].ncomp++;
+          candidate_set.emplace(-dist, id);
+          top_candidates.emplace(dist, id);
+          if (top_candidates.size() > efs_) top_candidates.pop();
+          i++;
         }
         hnsw_.ReentrantSearchKnn(
             (float *)query + q * d,
@@ -120,7 +155,7 @@ class CompassGraph {
             -1,
             top_candidates,
             candidate_set,
-            visited,
+            vl,
             &pred,
             std::ref(metrics[q].ncomp),
             std::ref(metrics[q].is_graph_ppsl)
@@ -134,6 +169,8 @@ class CompassGraph {
         result[q][--sz] = top_candidates.top();
         top_candidates.pop();
       }
+
+      vl->reset();
     }
 
     return result;
