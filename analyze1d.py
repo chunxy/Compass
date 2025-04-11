@@ -82,9 +82,8 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
     for m in selected_methods:
       for b in data[data["method"] == m].build.unique():
         data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
-        # if m == "CompassROld1d":
-        if m == "CompassR1d":
-          marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
+        marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
+        if m == "CompassR1d" or m == "CompassGraph1d":
           for nrel in [100, 200, 500]:
             data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
             if data_by_m_b_nrel.size == 0: continue
@@ -101,12 +100,12 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
           recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
           recall_qps = recall_qps.to_numpy()
           axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
-          axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=ONED_RUNS[m].marker)
+          axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=marker)
 
           recall_comp = data_by_m_b[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
           recall_comp = recall_comp.to_numpy()
           axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
-          axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}", marker=ONED_RUNS[m].marker)
+          axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}", marker=marker)
 
         axs[0].set_xlabel('Recall')
         axs[0].set_ylabel('QPS')
@@ -149,9 +148,8 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
       for m in selected_methods:
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b) & (data["dataset"] == dataset)]
-          # if m == "CompassROld1d":
-          if m == "CompassR1d":
-            marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
+          marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
+          if m == "CompassR1d" or m == "CompassGraph1d":
             for nrel in [100, 200, 500]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
@@ -168,12 +166,12 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps.to_numpy()
             axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
-            axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=ONED_RUNS[m].marker)
+            axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", marker=marker)
 
             recall_comp = data_by_m_b[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
             recall_comp = recall_comp.to_numpy()
             axs[1][i].plot(recall_comp[:, 0], recall_comp[:, 1])
-            axs[1][i].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}", marker=ONED_RUNS[m].marker)
+            axs[1][i].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}", marker=marker)
 
           axs[0][i].set_xlabel('Recall')
           axs[0][i].set_ylabel('QPS')
@@ -221,7 +219,7 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity(selected_methods, compa
         for b in data[data["method"] == m].build.unique():
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
-          if m == "CompassR1d":
+          if m == "CompassR1d" or m == "CompassGraph1d":
             for nrel in [100, 200, 500]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
@@ -282,7 +280,7 @@ def draw_1d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
         for b in data[data["method"] == m].build.unique():
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
-          if m == "CompassR1d":
+          if m == "CompassR1d" or m == "CompassGraph1d":
             for nrel in [100, 200, 500]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
