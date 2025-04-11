@@ -110,7 +110,7 @@ CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
 typical_compass_r_1d_searches = [
   # *[CompassSearch(efs, 500, 1000) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [100, 200, 500])],
-  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([100, 200, 500], [100, 200])]
+  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([100, 120, 140, 160, 180, 200, 250, 300, 400, 500], [100, 200])]
 ]
 typical_compass_r_old_1d_searches = [
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 15, 20, 25, 30, 35, 40, 50, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])],
@@ -120,7 +120,7 @@ typical_compass_r_cg_1d_searches = [
   *[CompassSearch(efs, nrel, 1000) for efs in (10, 20, 60, 100, 200) for nrel in (200, 500)],
 ]
 typical_compass_r_searches = [
-  CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200, 220, 240, 260, 280, 300], [100, 200, 500])
+  CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300], [100, 200])
 ]
 
 CompassRImiBuild = namedtuple("CompassRImiBuild", ["M", "efc", "nsub", "nbits"])
