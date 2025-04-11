@@ -98,9 +98,9 @@ class CompassGraph1d {
           bool changed = true;
           while (changed) {
             changed = false;
-            unsigned int *data;
+            tableint *data;
 
-            data = (unsigned int *)hnsw_.get_linklist(currObj, level);
+            data = (tableint *)hnsw_.get_linklist(currObj, level);
             int size = hnsw_.getListCount(data);
             metrics[q].ncomp += size;
 
@@ -125,8 +125,6 @@ class CompassGraph1d {
         if (pred(currObj)) top_candidates.emplace(currDist, currObj);
       }
 
-      size_t total_proposed = 0;
-
       while (curr != pred_end && top_candidates.size() < efs_) {
         int i = 0;
         while (i < nrel) {
@@ -141,12 +139,12 @@ class CompassGraph1d {
           auto vect = hnsw_.getDataByInternalId(id);
           auto dist = hnsw_.fstdistfunc_(vect, (float *)(query) + q * d, space_.get_dist_func_param());
           metrics[q].ncomp++;
+          metrics[q].is_ivf_ppsl[id] = true;
           candidate_set.emplace(-dist, id);
           top_candidates.emplace(dist, id);
           if (top_candidates.size() > efs_) top_candidates.pop();
           i++;
         }
-        total_proposed += i;
         hnsw_.ReentrantSearchKnn(
             (float *)query + q * d,
             k,
@@ -170,8 +168,8 @@ class CompassGraph1d {
 
       vl->reset();
     }
-    hnsw_.visited_list_pool_->releaseVisitedList(vl);
 
+    hnsw_.visited_list_pool_->releaseVisitedList(vl);
     return result;
   }
 

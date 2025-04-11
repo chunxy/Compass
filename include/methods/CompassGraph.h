@@ -129,7 +129,6 @@ class CompassGraph {
         if (pred(currObj)) top_candidates.emplace(currDist, currObj);
       }
 
-      int max_try = 20;
       while (curr != rel_end && top_candidates.size() < efs_) {
         int i = 0;
         while (i < nrel) {
@@ -144,6 +143,7 @@ class CompassGraph {
           auto vect = hnsw_.getDataByInternalId(id);
           auto dist = hnsw_.fstdistfunc_(vect, (float *)(query) + q * d, space_.get_dist_func_param());
           metrics[q].ncomp++;
+          metrics[q].is_ivf_ppsl[id] = true;
           candidate_set.emplace(-dist, id);
           top_candidates.emplace(dist, id);
           if (top_candidates.size() > efs_) top_candidates.pop();
@@ -173,6 +173,7 @@ class CompassGraph {
       vl->reset();
     }
 
+    hnsw_.visited_list_pool_->releaseVisitedList(vl);
     return result;
   }
 
