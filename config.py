@@ -103,6 +103,7 @@ typical_compass_r_old_1d_builds = [
 typical_compass_r_1d_builds = [
   CompassBuild(16, 200, 1000),
   CompassBuild(16, 200, 2000),
+  CompassBuild(16, 200, 5000),
   CompassBuild(16, 200, 10000),
   CompassBuild(32, 200, 1000),
   CompassBuild(32, 200, 2000),
