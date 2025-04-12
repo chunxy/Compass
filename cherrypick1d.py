@@ -229,8 +229,8 @@ plt.rcParams.update({
 # Compare with baseline methods to reach recall
 tot_selected_methods = {
   "CompassR1d": [
-    CompassBuild(16, 200, 2000),
-    CompassBuild(32, 200, 2000),
+    CompassBuild(16, 200, 1000),
+    CompassBuild(32, 200, 1000),
   ],
   "CompassIvf1d": [CompassIvfBuild(1000)],
   "CompassGraph1d": [CompassGraphBuild(32, 200)],
@@ -242,7 +242,8 @@ mom_selected_methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [
-    CompassBuild(16, 200, 2000),
+    CompassBuild(16, 200, 1000),
+    CompassBuild(32, 200, 1000),
     CompassBuild(32, 200, 2000),
     CompassBuild(32, 200, 5000),
   ],
@@ -253,30 +254,18 @@ draw_1d_comp_fixed_recall_by_selectivity(mom_selected_methods, "MoM")
 methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
-  "CompassR1d": [
-    CompassBuild(32, 200, 1000),
-  ],
+  "CompassR1d": [CompassBuild(32, 200, 10000)],
 }
-searches = {
-  "CompassR1d": [
-    f"nrel_{nrel}" for nrel in [100, 200]
-  ]
-}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-efs/")
 
 # Compare #Comp-Recall when using different nrel
 methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
-  "CompassR1d": [
-    CompassBuild(32, 200, 1000),
-  ],
+  "CompassR1d": [CompassBuild(32, 200, 10000)],
 }
-searches = {
-  "CompassR1d": [
-    f"nrel_{nrel}" for nrel in [100, 200, 500, 1000]
-  ]
-}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200, 500, 1000]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nrel/")
 
 # Compare #Comp-Recall when using different M
@@ -288,11 +277,7 @@ methods = {
     CompassBuild(32, 200, 1000),
   ],
 }
-searches = {
-  "CompassR1d": [
-    f"nrel_{nrel}" for nrel in [100]
-  ]
-}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-M/")
 
 # Compare #Comp-Recall when using different nlist
@@ -300,17 +285,13 @@ methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [
-    CompassBuild(32, 200, 1000),
-    CompassBuild(32, 200, 2000),
-    CompassBuild(32, 200, 5000),
-    CompassBuild(32, 200, 10000),
+    CompassBuild(16, 200, 1000),
+    CompassBuild(16, 200, 2000),
+    CompassBuild(16, 200, 5000),
+    CompassBuild(16, 200, 10000),
   ],
 }
-searches = {
-  "CompassR1d": [
-    f"nrel_{nrel}" for nrel in [100]
-  ]
-}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nlist/")
 
 # Compare #Comp-Recall with SotA methods
@@ -318,8 +299,9 @@ methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [
-    CompassBuild(16, 200, 2000),
-    CompassBuild(32, 200, 2000),
+    CompassBuild(16, 200, 1000),
+    CompassBuild(32, 200, 1000),
   ],
 }
-draw_1d_comp_wrt_recall_by_selectivity(methods)
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200, 500]]}
+draw_1d_comp_wrt_recall_by_selectivity(methods, searches)
