@@ -134,11 +134,11 @@ typical_compass_r_imi_builds = [*[CompassRImiBuild(M, efc, *imi) for M, efc, imi
 
 CompassIvfBuild = namedtuple("CompassIvfBuild", ["nlist"])
 typical_compass_ivf_1d_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, )]]
-typical_compass_ivf_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, 5000)]]
+typical_compass_ivf_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, 5000, 10000)]]
 
 CompassIvfSearch = namedtuple("CompassIvfSearch", ["nprobe"])
 typical_compass_ivf_1d_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50, 100)]]
-typical_compass_ivf_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50)]]
+typical_compass_ivf_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100)]]
 
 CompassImiBuild = namedtuple("CompassImiBuild", ["nsub", "nbits"])
 typical_compass_imi_1d_builds = [CompassImiBuild(2, 8)]
