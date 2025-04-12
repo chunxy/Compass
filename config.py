@@ -39,6 +39,12 @@ typical_ivf_wf_ranges = [
   WindowFilterRange(100, 200, 3100, 3200),
   WindowFilterRange(100, 200, 5100, 5200),
 ]
+typical_graph_wf_ranges = [
+  WindowFilterRange(100, 200, 3100, 3200),
+  WindowFilterRange(100, 200, 5100, 5200),
+  WindowFilterRange(100, 200, 8100, 8200),
+  WindowFilterRange(100, 200, 9100, 9200),
+]
 
 FractionRange = namedtuple("FractionRange", ["range", "ndata"])
 typical_fraction_ranges = [
@@ -195,8 +201,8 @@ ONED_RUNS = {
 }
 TWOD_RUNS = {
   "CompassR": Run("CompassR", typical_wf_ranges, typical_compass_r_builds, typical_compass_r_searches, "o"),
-  "CompassIvf": Run("CompassIvf", typical_wf_ranges, typical_compass_ivf_builds, typical_compass_ivf_searches, "*"),
-  "CompassGraph": Run("CompassGraph", typical_wf_ranges, typical_compass_graph_builds, typical_compass_graph_searches, "^"),
+  "CompassIvf": Run("CompassIvf", typical_ivf_wf_ranges, typical_compass_ivf_builds, typical_compass_ivf_searches, "*"),
+  "CompassGraph": Run("CompassGraph", typical_graph_wf_ranges, typical_compass_graph_builds, typical_compass_graph_searches, "^"),
   "iRangeGraph2d": Run("iRangeGraph", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
 
