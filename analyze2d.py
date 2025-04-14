@@ -68,7 +68,7 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
 
   selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in TWOD_PASSRATES]
-  selected_methods = ["CompassIvf", "CompassR"]
+  selected_methods = ["CompassIvf", "CompassR", "CompassGraph", "iRangeGraph2d_evenhand"]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -132,7 +132,7 @@ def draw_2d_qps_comp_wrt_recall_by_selectivity():
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
 
   selectors = [df["selectivity"] == r for r in TWOD_PASSRATES]
-  selected_methods = ["CompassIvf", "CompassR", "CompassGraph"]
+  selected_methods = ["CompassIvf", "CompassR", "CompassGraph", "iRangeGraph2d_evenhand"]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -256,5 +256,5 @@ summarize_2d()
 draw_2d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_2d_qps_comp_wrt_recall_by_selectivity()
 
-selected_methods = ["CompassR", "CompassIvf", "CompassGraph"]
+selected_methods = ["CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d_evenhand"]
 draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, "ToT")

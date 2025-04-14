@@ -6,7 +6,7 @@ LOGS_TMPL = "/home/chunxy/repos/Compass/logs_{}"
 
 # Names
 ONED_METHODS = ("CompassR1d", "CompassROld1d", "CompassRImi1d", "CompassIvf1d", "CompassImi1d", "CompassGraph1d", "Serf", "iRangeGraph")
-TWOD_METHODS = ("CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d")
+TWOD_METHODS = ("CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d_evenhand")
 DATASETS = ("sift", "gist", "crawl", "glove100", "audio", "video")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
 TWOD_PASSRATES = ("0.01", "0.09", "0.25", "0.64", "0.81")
@@ -88,7 +88,11 @@ typical_fraction_ranges = [
 
 typical_irangegraph_2d_ranges = [
   *[FractionRange(r, 1_000_000) for r in (10000, 20000, 50000, 100000, 200000)],
-  *[FractionRange(r, 1_900_000) for r in (19_000, 38_000, 95_000, 190_000, 380_000)],
+  *[FractionRange(r, 1_900_000) for r in (19000, 38000, 95000, 190000, 380000)],
+]
+typical_irangegraph_2d_evenhand_ranges = [
+  *[FractionRange(r, 1_000_000) for r in (10000, 90000, 250000, 640000, 810000)],
+  *[FractionRange(r, 1_900_000) for r in (19000, 171000, 475000, 1216000, 1539000)],
 ]
 
 CompassBuild = namedtuple("CompassBuild", ["M", "efc", "nlist"])
@@ -204,7 +208,9 @@ TWOD_RUNS = {
   "CompassR": Run("CompassR", typical_wf_ranges, typical_compass_r_builds, typical_compass_r_searches, "o"),
   "CompassIvf": Run("CompassIvf", typical_ivf_wf_ranges, typical_compass_ivf_builds, typical_compass_ivf_searches, "*"),
   "CompassGraph": Run("CompassGraph", typical_graph_wf_ranges, typical_compass_graph_builds, typical_compass_graph_searches, "^"),
-  "iRangeGraph2d": Run("iRangeGraph", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
+  "iRangeGraph2d_evenhand": Run("iRangeGraph2d", typical_irangegraph_2d_evenhand_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
+  "iRangeGraph2d_fixattr1": Run("iRangeGraph2d", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
+  "iRangeGraph2d_fixattr2": Run("iRangeGraph2d", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
 
 # Templates
@@ -223,7 +229,9 @@ TEMPLATES = {
   "CompassR": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}"),
   "CompassGraph": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
   "CompassIvf": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "nlist_{}", "nprobe_{}"),
-  "iRangeGraph2d": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
+  "iRangeGraph2d_evenhand": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
+  "iRangeGraph2d_fixattr1": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
+  "iRangeGraph2d_fixattr2": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
 }
 
 COMPASS_BUILD_MARKER_MAPPING = {
