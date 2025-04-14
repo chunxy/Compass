@@ -1,5 +1,5 @@
 datasets=(sift gist crawl glove100 video audio)
-nlist_s=(1000 5000 10000)
+nlist_s=(1000)
 r_s=("1100 1200" "3100 3200" "5100 5200")
 nprobe_s=(10 15 20 25 30 35 40 45 50)
 
