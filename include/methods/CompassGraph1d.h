@@ -122,6 +122,7 @@ class CompassGraph1d {
         }
         visited[currObj] = visited_tag;
         candidate_set.emplace(-currDist, currObj);
+        metrics[q].is_graph_ppsl[currObj] = true;
         if (pred(currObj)) top_candidates.emplace(currDist, currObj);
       }
 

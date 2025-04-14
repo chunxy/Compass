@@ -138,6 +138,7 @@ class CompassR {
         }
         visited[currObj] = true;
         candidate_set.emplace(-currDist, currObj);
+        metrics[q].is_graph_ppsl[currObj] = true;
         if (pred(currObj)) top_candidates.emplace(currDist, currObj);
       }
 
@@ -156,7 +157,6 @@ class CompassR {
                 break;
               else {
                 itr_beg = rtrees_[ranked_clusters[curr_ci]].qbegin(geo::index::covered_by(b));
-                ;
                 itr_end = rtrees_[ranked_clusters[curr_ci]].qend();
                 continue;
               }

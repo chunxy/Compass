@@ -145,11 +145,15 @@ int main(int argc, char **argv) {
             ivf_ppsl_in_rz++;
           else if (metric.is_graph_ppsl[i])
             graph_ppsl_in_rz++;
-          if (d <= gt_max + EPSILON) {
+          if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), i) != hybrid_topks[j].end() || d <= gt_max + EPSILON) {
             if (metric.is_ivf_ppsl[i])
               ivf_ppsl_in_tp++;
             else if (metric.is_graph_ppsl[i])
               graph_ppsl_in_tp++;
+            else {
+              fmt::print("Failed to log the candidate\n");
+              return -1;
+            }
           }
         }
 
