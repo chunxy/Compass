@@ -158,7 +158,7 @@ typical_compass_graph_builds = typical_compass_graph_1d_builds
 CompassGraphSearch = namedtuple("CompassGraphSearch", ["efs", "nrel"])
 typical_compass_graph_1d_searches = [*[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 200, 300, 400, 500, 1000], [100, 200])]]
 typical_compass_graph_searches = [
-  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 200, 300, 400, 500, 1000], [100, 200])],
+  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 200, 300, 400, 500, 1000, 1500, 2000], [100, 200])],
 ]
 
 # AcornBuild = namedtuple("AcornBuild", ["M", "beta", "efc", "gamma"])
