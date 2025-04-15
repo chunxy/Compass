@@ -1,7 +1,7 @@
 datasets=(sift gist crawl glove100 video audio)
 M_s=(32)
 r_s=(200 300 600 1100 2100 3100 4100 5100 6100 7100 8100 9100)
-efs_s=(100 200 300 400 500 1000)
+efs_s=(10 20 60 100 200 300 400 500 1000 1500 2000)
 nrel_s=(100 200 500)
 
 for dataset in ${datasets[@]}; do

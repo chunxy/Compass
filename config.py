@@ -10,6 +10,7 @@ TWOD_METHODS = ("CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d_evenhan
 DATASETS = ("sift", "gist", "crawl", "glove100", "audio", "video")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
 TWOD_PASSRATES = ("0.01", "0.09", "0.25", "0.64", "0.81")
+TWOD_RANGES = [*[(pcnt1, pcnt2) for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])]]
 
 # Arguments
 RangeFilterRange = namedtuple("RangeFilterRange", ["l", "r"])
@@ -86,13 +87,9 @@ typical_fraction_ranges = [
   ]
 ]
 
+WindowFilterPercentageRange = namedtuple("WindowFilterPercentageRange", ["pcnt1", "pcnt2"])
 typical_irangegraph_2d_ranges = [
-  *[FractionRange(r, 1_000_000) for r in (10000, 20000, 50000, 100000, 200000)],
-  *[FractionRange(r, 1_900_000) for r in (19000, 38000, 95000, 190000, 380000)],
-]
-typical_irangegraph_2d_evenhand_ranges = [
-  *[FractionRange(r, 1_000_000) for r in (10000, 90000, 250000, 640000, 810000)],
-  *[FractionRange(r, 1_900_000) for r in (19000, 171000, 475000, 1216000, 1539000)],
+  *[WindowFilterPercentageRange(pcnt1, pcnt2) for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])],
 ]
 
 CompassBuild = namedtuple("CompassBuild", ["M", "efc", "nlist"])
@@ -156,9 +153,11 @@ typical_compass_graph_1d_builds = [*[CompassGraphBuild(M, 200) for M in [16, 32]
 typical_compass_graph_builds = typical_compass_graph_1d_builds
 
 CompassGraphSearch = namedtuple("CompassGraphSearch", ["efs", "nrel"])
-typical_compass_graph_1d_searches = [*[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 200, 300, 400, 500, 1000], [100, 200])]]
+typical_compass_graph_1d_searches = [
+  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200, 300, 400, 500, 1000, 1500, 2000], [100, 200])]
+]
 typical_compass_graph_searches = [
-  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([100, 200, 300, 400, 500, 1000, 1500, 2000], [100, 200])],
+  *[CompassGraphSearch(efs, nrel) for efs, nrel in product([10, 20, 60, 100, 200, 300, 400, 500, 1000, 1500, 2000], [100, 200])],
 ]
 
 # AcornBuild = namedtuple("AcornBuild", ["M", "beta", "efc", "gamma"])
@@ -208,9 +207,7 @@ TWOD_RUNS = {
   "CompassR": Run("CompassR", typical_wf_ranges, typical_compass_r_builds, typical_compass_r_searches, "o"),
   "CompassIvf": Run("CompassIvf", typical_ivf_wf_ranges, typical_compass_ivf_builds, typical_compass_ivf_searches, "*"),
   "CompassGraph": Run("CompassGraph", typical_graph_wf_ranges, typical_compass_graph_builds, typical_compass_graph_searches, "^"),
-  "iRangeGraph2d_evenhand": Run("iRangeGraph2d", typical_irangegraph_2d_evenhand_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
-  "iRangeGraph2d_fixattr1": Run("iRangeGraph2d", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
-  "iRangeGraph2d_fixattr2": Run("iRangeGraph2d", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
+  "iRangeGraph2d": Run("iRangeGraph2d", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
 
 # Templates
@@ -229,9 +226,7 @@ TEMPLATES = {
   "CompassR": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}"),
   "CompassGraph": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
   "CompassIvf": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "nlist_{}", "nprobe_{}"),
-  "iRangeGraph2d_evenhand": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
-  "iRangeGraph2d_fixattr1": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
-  "iRangeGraph2d_fixattr2": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
+  "iRangeGraph2d": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
 }
 
 COMPASS_BUILD_MARKER_MAPPING = {
