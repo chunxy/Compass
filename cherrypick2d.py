@@ -10,7 +10,7 @@ K = 10
 LOGS = Path(LOGS_TMPL.format(K))
 
 
-def draw_2d_comp_wrt_recall_by_selectivity(selected_builds, selected_searches=None, purpose=""):
+def draw_2d_comp_wrt_recall_by_selectivity(selected_workloads, selected_builds, selected_searches=None, subdir=""):
   types = {
     "path": str,
     "method": str,
@@ -24,12 +24,12 @@ def draw_2d_comp_wrt_recall_by_selectivity(selected_builds, selected_searches=No
   }
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
 
-  selectors = [df["selectivity"] == r for r in TWOD_PASSRATES]
+  selectors = [df["selectivity"] == r for r in selected_workloads]
 
   for selector in selectors:
     if not selector.any(): continue
     data = df[selector]
-    selectivity = float(data["selectivity"].reset_index(drop=True)[0])
+    selectivity = data["selectivity"].reset_index(drop=True)[0]
 
     nrow = 2
     ncol = (len(DATASETS) + nrow - 1) // nrow
@@ -55,12 +55,12 @@ def draw_2d_comp_wrt_recall_by_selectivity(selected_builds, selected_searches=No
 
           axs[i // ncol, i % ncol].set_xlabel('Recall')
           axs[i // ncol, i % ncol].set_ylabel('# Comp')
-          axs[i // ncol, i % ncol].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
+          axs[i // ncol, i % ncol].set_title("{}, Selectivity-{}".format(dataset.capitalize(), selectivity))
 
     fig.set_size_inches(15, 10)
     handles, labels = axs[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='outside right upper')
-    fig.savefig(f"cherrypick2d_{K}/" + f"{purpose}" + f"All-{selectivity:.1%}-Comp-Recall.jpg", dpi=200)
+    fig.savefig(f"cherrypick2d_{K}/" + f"{subdir}" + f"All-{selectivity}-Comp-Recall.jpg", dpi=200)
     plt.close()
 
 
@@ -122,6 +122,9 @@ plt.rcParams.update({
   'figure.figsize': (10, 5),
 })
 
+evenhand_ranges = [f"{pcnt}-{pcnt}" for pcnt in [1, 5, 10, 30, 50, 80, 90]]
+
+
 # Compare with baseline methods to reach recall
 tot_selected_methods = {
   "CompassR": [
@@ -135,7 +138,9 @@ tot_selected_methods = {
   ],
   "CompassGraph": [CompassGraphBuild(32, 200)],
 }
-draw_2d_comp_fixed_recall_by_selectivity(tot_selected_methods, "ToT")
+# draw_2d_comp_fixed_recall_by_selectivity(tot_selected_methods, "ToT")
+searches = {"CompassR": [f"nrel_{nrel}" for nrel in [100,]]}
+draw_2d_comp_wrt_recall_by_selectivity(evenhand_ranges, tot_selected_methods, searches, "baseline/")
 
 # Compare with SotA methods to reach recall
 mom_selected_methods = {
@@ -148,29 +153,29 @@ mom_selected_methods = {
     CompassBuild(32, 200, 5000),
   ],
 }
-draw_2d_comp_fixed_recall_by_selectivity(mom_selected_methods, "MoM")
+# draw_2d_comp_fixed_recall_by_selectivity(mom_selected_methods, "MoM")
 
 # Compare #Comp-Recall when using different efs
 methods = {
-  # "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
+  "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
   # "Serf2d": [SerfBuild(32, 200, 500)],
   "CompassR": [CompassBuild(32, 200, 10000)],
 }
 searches = {"CompassR": [f"nrel_{nrel}" for nrel in [100, 200]]}
-draw_2d_comp_wrt_recall_by_selectivity(methods, searches, "varying-efs/")
+draw_2d_comp_wrt_recall_by_selectivity(TWOD_RANGES, methods, searches, "varying-efs/")
 
 # Compare #Comp-Recall when using different nrel
 methods = {
-  # "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
+  "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
   # "Serf2d": [SerfBuild(32, 200, 500)],
   "CompassR": [CompassBuild(32, 200, 10000)],
 }
 searches = {"CompassR": [f"nrel_{nrel}" for nrel in [100, 200, 500, 1000]]}
-draw_2d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nrel/")
+draw_2d_comp_wrt_recall_by_selectivity(TWOD_RANGES, methods, searches, "varying-nrel/")
 
 # Compare #Comp-Recall when using different M
 methods = {
-  # "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
+  "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
   # "Serf2d": [SerfBuild(32, 200, 500)],
   "CompassR": [
     CompassBuild(16, 200, 1000),
@@ -178,11 +183,11 @@ methods = {
   ],
 }
 searches = {"CompassR": [f"nrel_{nrel}" for nrel in [100]]}
-draw_2d_comp_wrt_recall_by_selectivity(methods, searches, "varying-M/")
+draw_2d_comp_wrt_recall_by_selectivity(TWOD_RANGES, methods, searches, "varying-M/")
 
 # Compare #Comp-Recall when using different nlist
 methods = {
-  # "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
+  "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
   # "Serf2d": [SerfBuild(32, 200, 500)],
   "CompassR": [
     CompassBuild(16, 200, 1000),
@@ -192,16 +197,18 @@ methods = {
   ],
 }
 searches = {"CompassR": [f"nrel_{nrel}" for nrel in [100]]}
-draw_2d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nlist/")
+draw_2d_comp_wrt_recall_by_selectivity(TWOD_RANGES, methods, searches, "varying-nlist/")
 
 # Compare #Comp-Recall with SotA methods
 methods = {
-  # "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
+  "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
   # "Serf2d": [SerfBuild(32, 200, 500)],
   "CompassR": [
     CompassBuild(16, 200, 1000),
+    CompassBuild(16, 200, 10000),
     CompassBuild(32, 200, 1000),
+    CompassBuild(32, 200, 10000),
   ],
 }
-searches = {"CompassR": [f"nrel_{nrel}" for nrel in [100, 200, 500]]}
-draw_2d_comp_wrt_recall_by_selectivity(methods, searches)
+searches = {"CompassR": [f"nrel_{nrel}" for nrel in [100, 200]]}
+draw_2d_comp_wrt_recall_by_selectivity(evenhand_ranges, methods, searches)

@@ -296,7 +296,7 @@ draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nlist/")
 
 # Compare #Comp-Recall with SotA methods
 methods = {
-  "iRangeGraph": [iRangeGraphBuild(32, 200)],
+  "iRangeGraph": [iRangeGraphBuild(8, 200), iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [
     CompassBuild(16, 200, 1000),

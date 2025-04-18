@@ -10,6 +10,7 @@ from config import *
 K = 10
 LOGS = Path(LOGS_TMPL.format(K))
 
+
 def summarize_2d():
   entries = [(
     LOGS / m / TEMPLATES[m].workload.format(d, *rg, K) / TEMPLATES[m].build.format(*b) / TEMPLATES[m].search.format(*r),
@@ -37,13 +38,15 @@ def summarize_2d():
       qps.append(stat["aggregated"]["qps"])
 
     splits = e[3].split("_")
-    if len(splits) == 5:
+    if len(splits) == 5:  # CompassR
       l_bounds, r_bounds = splits[2].strip("{}").split(", "), splits[3].strip("{}").split(", ")
       l1, l2 = list(map(int, l_bounds))
       r1, r2 = list(map(int, r_bounds))
-      selectivity = (r1 - l1) * (r2 - l2) / int(splits[1]) / int(splits[1])
-    else:
-      selectivity = int(splits[1]) / int(splits[2])
+      # selectivity = (r1 - l1) * (r2 - l2) / int(splits[1]) / int(splits[1])
+      selectivity = f"{(r1 - l1) / int(splits[1]) * 100:.0f}-{(r2 - l2)  / int(splits[1]) * 100:.0f}"
+    else:  # iRangeGraph and Serf
+      # selectivity = int(splits[1]) / int(splits[2])
+      selectivity = f"{splits[1]}-{splits[2]}"
     selectivities.append(str(selectivity))
 
   df["recall"] = rec
@@ -67,14 +70,14 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
   }
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
 
-  selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in TWOD_PASSRATES]
-  selected_methods = ["CompassIvf", "CompassR", "CompassGraph", "iRangeGraph2d_evenhand"]
+  selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in TWOD_RANGES]
+  selected_methods = ["CompassIvf", "CompassR", "CompassGraph", "iRangeGraph2d"]
 
   for selector in selectors:
     if not selector.any(): continue
     data = df[selector]
     dataset = data["dataset"].reset_index(drop=True)[0]
-    selectivity = float(data["selectivity"].reset_index(drop=True)[0])
+    selectivity = data["selectivity"].reset_index(drop=True)[0]
 
     fig, axs = plt.subplots(2, 1, layout='constrained')
     for m in selected_methods:
@@ -106,14 +109,14 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
 
         axs[0].set_xlabel('Recall')
         axs[0].set_ylabel('QPS')
-        axs[0].set_title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")
+        axs[0].set_title(f"{dataset.upper()}, Selectivity-{selectivity}")
         axs[1].set_xlabel('Recall')
         axs[1].set_ylabel('# Comp')
-        axs[1].set_title(f"{dataset.upper()}, Selectivity-{selectivity:.1%}")
+        axs[1].set_title(f"{dataset.upper()}, Selectivity-{selectivity}")
 
     handles, labels = axs[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="outside right upper")
-    fig.savefig(f"figures2d_{K}/{dataset.upper()}/{dataset.upper()}-{selectivity:.1%}-QPS-Recall.jpg", dpi=200)
+    fig.savefig(f"figures2d_{K}/{dataset.upper()}/{dataset.upper()}-{selectivity}-QPS-Recall.jpg", dpi=200)
     plt.close()
 
 
@@ -131,13 +134,13 @@ def draw_2d_qps_comp_wrt_recall_by_selectivity():
   }
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
 
-  selectors = [df["selectivity"] == r for r in TWOD_PASSRATES]
-  selected_methods = ["CompassIvf", "CompassR", "CompassGraph", "iRangeGraph2d_evenhand"]
+  selectors = [df["selectivity"] == r for r in TWOD_RANGES]
+  selected_methods = ["CompassIvf", "CompassR", "CompassGraph", "iRangeGraph2d"]
 
   for selector in selectors:
     if not selector.any(): continue
     data = df[selector]
-    selectivity = float(data["selectivity"].reset_index(drop=True)[0])
+    selectivity = data["selectivity"].reset_index(drop=True)[0]
 
     fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
     for i, dataset in enumerate(DATASETS):
@@ -171,16 +174,15 @@ def draw_2d_qps_comp_wrt_recall_by_selectivity():
 
           axs[0][i].set_xlabel('Recall')
           axs[0][i].set_ylabel('QPS')
-          axs[0][i].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
+          axs[0][i].set_title("{}, Selectivity-{}".format(dataset.capitalize(), selectivity))
           axs[1][i].set_xlabel('Recall')
           axs[1][i].set_ylabel('# Comp')
-          axs[1][i].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
-
+          axs[1][i].set_title("{}, Selectivity-{}".format(dataset.capitalize(), selectivity))
 
     fig.set_size_inches(35, 20)
     handles, labels = axs[0][0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='outside right upper')
-    fig.savefig(f"figures2d_{K}/All-{selectivity:.1%}-QPS-Comp-Recall.jpg", dpi=200)
+    fig.savefig(f"figures2d_{K}/All-{selectivity}-QPS-Comp-Recall.jpg", dpi=200)
     plt.close()
 
 
@@ -244,6 +246,7 @@ def draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
     fig.savefig(f"figures2d_{K}/Recall-{recall:.2g}-{compare_by}-All-QPS-Comp.jpg", dpi=200)
     plt.close()
 
+
 plt.rcParams.update({
   'font.size': 15,
   'legend.fontsize': 12,
@@ -256,5 +259,5 @@ summarize_2d()
 draw_2d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_2d_qps_comp_wrt_recall_by_selectivity()
 
-selected_methods = ["CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d_evenhand"]
-draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, "ToT")
+selected_methods = ["CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d"]
+# draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, "ToT")
