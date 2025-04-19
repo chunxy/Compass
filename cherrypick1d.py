@@ -64,7 +64,7 @@ def draw_1d_comp_wrt_recall_by_selectivity(selected_builds, selected_searches=No
     plt.close()
 
 
-def draw_1d_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
+def draw_1d_comp_fixed_recall_by_selectivity(selected_methods, selected_searches, compare_by):
   types = {
     "path": str,
     "method": str,
@@ -97,15 +97,29 @@ def draw_1d_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
         for b in [TEMPLATES[m].build.format(*b) for b in selected_methods[m]]:
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
-          rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
+          if selected_searches and m in selected_searches:
+            for s in selected_searches[m]:
+              data_by_m_b_s = data_by_m_b[data_by_m_b["run"].str.contains(s)]
+              if data_by_m_b_s.size == 0: continue
+              rec_sel_qps_comp = data_by_m_b_s[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
 
-          grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["qps"].max()
-          grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["comp"].min()
-          grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
-          grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selectivities)]
-          pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
-          axs[i // ncol][i % ncol].plot(pos_s, grouped_comp["comp"])
-          axs[i // ncol][i % ncol].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
+              grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["qps"].max()
+              grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["comp"].min()
+              grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selectivities)]
+              grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
+              pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
+              axs[i // ncol][i % ncol].plot(pos_s, grouped_comp["comp"])
+              axs[i // ncol][i % ncol].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
+          else:
+            rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
+
+            grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["qps"].max()
+            grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["comp"].min()
+            grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selectivities)]
+            grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
+            pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
+            axs[i // ncol][i % ncol].plot(pos_s, grouped_comp["comp"])
+            axs[i // ncol][i % ncol].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
 
     fig.set_size_inches(21, 12)
     handles, labels = axs[0][0].get_legend_handles_labels()
@@ -235,9 +249,9 @@ tot_selected_methods = {
   "CompassIvf1d": [CompassIvfBuild(1000)],
   "CompassGraph1d": [CompassGraphBuild(32, 200)],
 }
-draw_1d_comp_fixed_recall_by_selectivity(tot_selected_methods, "ToT")
-searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200, 500]]}
-draw_1d_comp_wrt_recall_by_selectivity(tot_selected_methods, searches, "baseline/")
+tot_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200, 500]]}
+draw_1d_comp_fixed_recall_by_selectivity(tot_selected_methods, tot_selected_searches, "ToT")
+draw_1d_comp_wrt_recall_by_selectivity(tot_selected_methods, tot_selected_searches, "baseline/")
 
 # Compare with SotA methods to reach recall
 mom_selected_methods = {
@@ -250,7 +264,8 @@ mom_selected_methods = {
     CompassBuild(32, 200, 10000),
   ],
 }
-draw_1d_comp_fixed_recall_by_selectivity(mom_selected_methods, "MoM")
+mom_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200,]]}
+draw_1d_comp_fixed_recall_by_selectivity(mom_selected_methods, mom_selected_searches, "MoM")
 
 # Compare #Comp-Recall when using different efs
 methods = {
