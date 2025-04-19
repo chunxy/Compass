@@ -14,6 +14,7 @@ datasets = {
 
 parser = argparse.ArgumentParser(description="Clustering script")
 parser.add_argument("--name", type=str, required=True, help="Dataset name to process")
+parser.add_argument("--nlist", type=int, required=True, help="Number of clusters")
 args = parser.parse_args()
 
 if args.name not in datasets:
@@ -21,21 +22,21 @@ if args.name not in datasets:
 
 name = args.name
 d = datasets[name]
-nlist = 10000
+nlist = args.nlist
 
 # Example data (replace this with your actual data)
 file = f"/home/chunxy/repos/Compass/data/{name}_base.float32"
 training_data = np.fromfile(file, dtype=np.float32).reshape((-1, d))
 
-# Perform KMeans++ clustering
-kmeans = KMeans(n_clusters=nlist, random_state=42, init="k-means++")
-# kmeans_labels = kmeans.fit_predict(training_data)
-kmeans.fit(training_data)
-centroids_kmeans = kmeans.cluster_centers_.astype(np.float32)
-centroids_kmeans.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.kmeans.centroids")
+# # Perform KMeans++ clustering
+# kmeans = KMeans(n_clusters=nlist, random_state=42, init="k-means++")
+# # kmeans_labels = kmeans.fit_predict(training_data)
+# kmeans.fit(training_data)
+# centroids_kmeans = kmeans.cluster_centers_.astype(np.float32)
+# centroids_kmeans.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.kmeans.centroids")
 
 # Perform BisectingKMeans clustering
-bikmeans = BisectingKMeans(n_clusters=nlist)
+bikmeans = BisectingKMeans(n_clusters=nlist, bisecting_strategy="largest_cluster")
 bikmeans.fit(training_data)
 centroids_bisect_kmeans = bikmeans.cluster_centers_.astype(np.float32)
 centroids_bisect_kmeans.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.bikmeans.centroids")
