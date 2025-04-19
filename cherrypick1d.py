@@ -236,6 +236,8 @@ tot_selected_methods = {
   "CompassGraph1d": [CompassGraphBuild(32, 200)],
 }
 draw_1d_comp_fixed_recall_by_selectivity(tot_selected_methods, "ToT")
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200, 500]]}
+draw_1d_comp_wrt_recall_by_selectivity(tot_selected_methods, searches, "baseline/")
 
 # Compare with SotA methods to reach recall
 mom_selected_methods = {
@@ -265,7 +267,7 @@ methods = {
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [CompassBuild(32, 200, 1000)],
 }
-searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200, 500, 1000]]}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200, 500]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nrel/")
 
 # Compare #Comp-Recall when using different M

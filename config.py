@@ -18,6 +18,10 @@ typical_rf_ranges = [
   *[RangeFilterRange(100, r) for r in (200, 300, 600, 1100, 2100, 3100, 4100, 5100, 6100, 7100, 8100, 9100)],
   RangeFilterRange(0, 10000),
 ]
+typical_graph_ranges = [
+  *[RangeFilterRange(100, r) for r in (600, 1100, 2100, 3100, 4100, 5100, 6100, 7100, 8100, 9100)],
+  RangeFilterRange(0, 10000),
+]
 typical_ivf_rf_ranges = [*[RangeFilterRange(100, r) for r in (200, 300, 600, 1100, 2100)]]
 
 # LabelFilterRange = namedtuple("LabelFilterRange", ["max"])
@@ -176,6 +180,7 @@ typical_serf_searches = [
 
 iRangeGraphBuild = namedtuple("iRangeGraphBuild", ["M", "efc"])
 typical_irangegraph_builds = [
+  iRangeGraphBuild(8, 200),
   iRangeGraphBuild(16, 200),
   iRangeGraphBuild(32, 200),
 ]
@@ -193,7 +198,7 @@ ONED_RUNS = {
   # "CompassROld1d": Run("CompassROld1d", typical_rf_ranges, typical_compass_r_old_1d_builds, typical_compass_r_old_1d_searches, "p"),
   "CompassRImi1d": Run("CompassRImim1d", typical_rf_ranges, typical_compass_r_imi_builds, typical_compass_r_1d_searches, "v"),
   "CompassRCg1d": Run("CompassRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
-  "CompassGraph1d": Run("CompassGraph1d", typical_rf_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
+  "CompassGraph1d": Run("CompassGraph1d", typical_graph_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
   "CompassIvf1d": Run("CompassIvf1d", typical_ivf_rf_ranges, typical_compass_ivf_1d_builds, typical_compass_ivf_1d_searches, "*"),
   "CompassImi1d": Run("CompassImi1d", typical_ivf_rf_ranges, typical_compass_imi_1d_builds, typical_compass_imi_1d_searches, "v"),
   "Serf": Run("Serf", typical_fraction_ranges, typical_serf_builds, typical_serf_searches, ","),

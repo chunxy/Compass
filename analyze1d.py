@@ -424,7 +424,7 @@ plt.rcParams.update({
   'axes.titlesize': 15,
   'figure.figsize': (10, 15),
 })
-# summarize_1d()
+summarize_1d()
 
 draw_1d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_1d_qps_comp_wrt_recall_by_selectivity()
