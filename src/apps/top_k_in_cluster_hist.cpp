@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
   fs::path ckp_root(CKPS);
   string ckp_file = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, nlist);
-  fs::path ckp_path = ckp_root / "KMeans++" / c.name / ckp_file;
+  fs::path ckp_path = ckp_root / "BisectingKMeans" / c.name / ckp_file;
   auto ivf_file = fopen(ckp_path.c_str(), "r");
   auto index = dynamic_cast<faiss::IndexIVFFlat *>(faiss::read_index(ivf_file));
 
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  string hist_file = fmt::format("kmeans++_top_{}_in_cluster_hist_{}_{}_{}_{}.bin", k, c.name, nlist, l, r);
+  string hist_file = fmt::format("bikmeans_top_{}_in_cluster_hist_{}_{}_{}_{}.bin", k, c.name, nlist, l, r);
   fs::path stat_root(STATS);
   fs::path hist_path = stat_root / hist_file;
   std::ofstream out(hist_path.c_str());
