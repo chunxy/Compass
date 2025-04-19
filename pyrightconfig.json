@@ -1,0 +1,10 @@
+{
+  "exclude": [
+    "logs*",
+    "figures*",
+    "cherrypick*",
+    "checkpoints",
+    "build",
+    ".cache"
+  ],
+}
