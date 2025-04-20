@@ -109,8 +109,16 @@ struct Metric {
   int nround;
   int ncomp;
   int ncluster;
+  int nrecycled;
 
-  Metric(int nb) : is_ivf_ppsl(nb, false), is_graph_ppsl(nb, false), cand_dist(500), nround(0), ncomp(0), ncluster(0) {}
+  Metric(int nb)
+      : is_ivf_ppsl(nb, false),
+        is_graph_ppsl(nb, false),
+        cand_dist(500),
+        nround(0),
+        ncomp(0),
+        ncluster(0),
+        nrecycled(0) {}
 };
 
 struct Stat {
@@ -135,6 +143,7 @@ struct Stat {
   vector<int> num_computations;
   vector<int> num_rounds;
   vector<long> num_clusters;
+  vector<long> num_recycled;
   // system
   vector<long> latencies;
 
@@ -164,5 +173,6 @@ struct Stat {
         num_computations(nq, 0),
         num_rounds(nq, 0),
         num_clusters(nq, 0),
+        num_recycled(nq, 0),
         latencies(nq, 0) {}
 };

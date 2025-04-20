@@ -394,6 +394,7 @@ nlohmann::json collate_stat(
   auto sum_of_num_cluster = std::accumulate(s.num_clusters.begin(), s.num_clusters.end(), 0);
   auto sum_of_num_comp = std::accumulate(s.num_computations.begin(), s.num_computations.end(), 0);
   auto sum_of_num_round = std::accumulate(s.num_rounds.begin(), s.num_rounds.end(), 0);
+  auto sum_of_num_recycled = std::accumulate(s.num_recycled.begin(), s.num_recycled.end(), 0);
 
   nlohmann::json json;
   json["recall"] = s.rec_at_ks;
@@ -428,7 +429,8 @@ nlohmann::json collate_stat(
       {"num_threads", nthread},
       {"num_computations", (double)sum_of_num_comp / nq},
       {"num_clusters", (double)sum_of_num_cluster / nq},
-      {"num_rounds", (double)sum_of_num_round / nq}
+      {"num_rounds", (double)sum_of_num_round / nq},
+      {"num_recycled", (double)sum_of_num_recycled / nq},
   };
   return json;
 }
