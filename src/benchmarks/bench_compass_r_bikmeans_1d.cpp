@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
-  std::string method = "CompassR1d";
+  std::string method = "CompassRBikmeans1d";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
 
@@ -67,23 +67,17 @@ int main(int argc, char **argv) {
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
   std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
-  fs::path ckp_dir = ckp_root / method / c.name;
-  if (fs::exists(ckp_dir / ivf_ckp)) {
-    comp.LoadIvf(ckp_dir / ivf_ckp);
+  fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
+  if (fs::exists(ckp_root / "BisectingKMeans" / c.name / ivf_ckp)) {
+    comp.LoadIvf(ckp_root / "BisectingKMeans" / c.name / ivf_ckp);
     fmt::print("Finished loading IVF index.\n");
   } else {
-    auto train_ivf_start = high_resolution_clock::now();
-    comp.TrainIvf(nb, xb);
-    auto train_ivf_stop = high_resolution_clock::now();
-    fmt::print(
-        "Finished training IVF, took {} microseconds.\n",
-        duration_cast<microseconds>(train_ivf_stop - train_ivf_start).count()
-    );
-    comp.SaveIvf(ckp_dir / ivf_ckp);
+    fmt::print("Cannot find transplanted centroids. Exitting now.\n");
+    return -1;
   }
 
-  if (fs::exists(ckp_dir / rank_ckp)) {
-    comp.LoadRanking(ckp_dir / rank_ckp, attrs.data());
+  if (fs::exists(ckp_root / "BisectingKMeans" / c.name / rank_ckp)) {
+    comp.LoadRanking(ckp_root / "BisectingKMeans" / c.name / rank_ckp, attrs.data());
     fmt::print("Finished loading IVF ranking.\n");
   } else {
     auto add_points_start = high_resolution_clock::now();
@@ -95,7 +89,7 @@ int main(int argc, char **argv) {
         "Finished adding points, took {} microseconds.\n",
         duration_cast<microseconds>(add_points_stop - add_points_start).count()
     );
-    comp.SaveRanking(ckp_dir / rank_ckp);
+    comp.SaveRanking(ckp_root / "BisectingKMeans" / c.name / rank_ckp);
   }
 
   if (fs::exists(ckp_dir / graph_ckp)) {

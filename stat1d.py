@@ -24,7 +24,7 @@ def stat_top_k_in_cluster_by_selectivity():
           bins = list(range(0, len(data) + 1))
           hist, _, _ = axs[i].hist(bins[:-1], bins, weights=data, density=True)
           # axs[i].vlines(50, ymin=0, ymax=0.05, linestyles='dashed', c='r')
-          target = 0.95
+          target = 0.9
           j, cumu = 0, 0
           while j < len(hist):
             cumu += hist[j]

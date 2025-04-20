@@ -2,7 +2,7 @@ from pathlib import Path
 
 types = [{"shortcut": "bikmeans", "method": "BisectingKMeans"}]
 datasets = ["sift", "glove100", "gist", "crawl", "video", "audio"]
-nlist_s = [1000, 2000]
+nlist_s = [1000, 2000, 5000, 10000]
 
 for dataset in datasets:
   for nlist in nlist_s:
