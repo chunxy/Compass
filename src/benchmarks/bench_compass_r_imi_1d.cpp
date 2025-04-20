@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
   // std::string checkpoint = fmt::format(COMPASS_CHECKPOINT_TMPL, M, efc, nlist);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IMI_CHECKPOINT_TMPL, args.nsub, args.nbits);
-  fs::path ckp_dir = ckp_root / method / c.name;
+  fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
     fmt::print("Finished loading IMI index.\n");
