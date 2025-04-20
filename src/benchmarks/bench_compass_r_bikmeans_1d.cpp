@@ -222,6 +222,7 @@ int main(int argc, char **argv) {
           stat.num_computations[j] = metric.ncomp;
           stat.num_rounds[j] = metric.nround;
           stat.num_clusters[j] = metric.ncluster;
+          stat.num_recycled[j] = metric.nrecycled;
           stat.latencies[j] = duration_cast<microseconds>(search_stop - search_start).count();
           j++;
         }
