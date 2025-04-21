@@ -521,7 +521,7 @@ class CompassR1d {
   ) {
     auto efs_ = std::max(k, efs);
     hnsw_.setEf(efs_);
-    int nprobe = ivf_->nlist / 20;
+    int nprobe = ivf_->nlist / 50;
     // this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
