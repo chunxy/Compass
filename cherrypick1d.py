@@ -246,7 +246,7 @@ tot_selected_methods = {
     CompassBuild(32, 200, 1000),
     CompassBuild(32, 200, 10000),
   ],
-  "CompassIvf1d": [CompassIvfBuild(1000)],
+  "CompassIvf1d": [CompassIvfBuild(1000), CompassIvfBuild(5000), CompassIvfBuild(10000)],
   "CompassGraph1d": [CompassGraphBuild(32, 200)],
 }
 tot_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200, 500]]}
@@ -264,7 +264,11 @@ mom_selected_methods = {
     CompassBuild(32, 200, 10000),
   ],
 }
-mom_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200,]]}
+mom_selected_searches = {
+  "CompassR1d": [f"nrel_{nrel}" for nrel in [
+    100,
+    200, ]]
+}
 draw_1d_comp_fixed_recall_by_selectivity(mom_selected_methods, mom_selected_searches, "MoM")
 
 # Compare #Comp-Recall when using different efs
