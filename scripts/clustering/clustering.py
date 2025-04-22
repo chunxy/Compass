@@ -36,7 +36,7 @@ training_data = np.fromfile(file, dtype=np.float32).reshape((-1, d))
 # centroids_kmeans.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.kmeans.centroids")
 
 # Perform BisectingKMeans clustering
-bikmeans = BisectingKMeans(n_clusters=nlist, init="k-means++", max_iter=500, bisecting_strategy="largest_cluster")
+bikmeans = BisectingKMeans(n_clusters=nlist, init="k-means++", max_iter=500, bisecting_strategy="biggest_inertia")
 bikmeans.fit(training_data)
 centroids_bisect_kmeans = bikmeans.cluster_centers_.astype(np.float32)
 centroids_bisect_kmeans.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.bikmeans.centroids")
