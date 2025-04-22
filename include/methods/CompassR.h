@@ -338,14 +338,11 @@ class CompassR {
       const int efs,
       const int nrel,
       const int nthread,
-      vector<Metric> &metrics,
-      faiss::idx_t *ranked_clusters,
-      float *distances
+      vector<Metric> &metrics
   ) {
     auto efs_ = std::max(k, efs);
     hnsw_.setEf(efs_);
     int nprobe = ivf_->nlist / 50;
-    this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 
@@ -358,6 +355,7 @@ class CompassR {
       priority_queue<pair<float, int64_t>> top_candidates;
       priority_queue<pair<float, int64_t>> candidate_set;
       priority_queue<pair<float, int64_t>> recycle_set;
+      vector<pair<float, labeltype>> clusters = cgraph_.searchKnnCloserFirst((float *)(query) + q * ivf_->d, nprobe);
 
       vector<bool> visited(hnsw_.cur_element_count, false);
 
@@ -365,21 +363,21 @@ class CompassR {
       metrics[q].ncomp = 0;
 
       int curr_ci = q * nprobe;
-      auto itr_beg = rtrees_[ranked_clusters[curr_ci]].qbegin(geo::index::covered_by(b));
-      auto itr_end = rtrees_[ranked_clusters[curr_ci]].qend();
+      auto itr_beg = rtrees_[clusters[curr_ci].second].qbegin(geo::index::covered_by(b));
+      auto itr_end = rtrees_[clusters[curr_ci].second].qend();
 
       int cnt = 0;
       while (true) {
         int crel = 0;
-        if (candidate_set.empty() || (curr_ci < nprobe * (q + 1) && -candidate_set.top().first > distances[curr_ci])) {
+        if (candidate_set.empty() || (curr_ci < nprobe * (q + 1) && -candidate_set.top().first > clusters[curr_ci].first)) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
               curr_ci++;
               if (curr_ci >= (q + 1) * nprobe)
                 break;
               else {
-                itr_beg = rtrees_[ranked_clusters[curr_ci]].qbegin(geo::index::covered_by(b));
-                itr_end = rtrees_[ranked_clusters[curr_ci]].qend();
+                itr_beg = rtrees_[clusters[curr_ci].second].qbegin(geo::index::covered_by(b));
+                itr_end = rtrees_[clusters[curr_ci].second].qend();
                 continue;
               }
             }

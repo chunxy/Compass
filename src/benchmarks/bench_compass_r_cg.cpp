@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
-  std::string method = "CompassR";
+  std::string method = "CompassRCg";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bounds, args.u_bounds, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
 
@@ -163,9 +163,7 @@ int main(int argc, char **argv) {
             efs,
             nrel,
             args.nthread,
-            metrics,
-            ranked_clusters,
-            distances
+            metrics
         );
       }
       auto search_stop = high_resolution_clock::system_clock::now();
@@ -185,9 +183,7 @@ int main(int argc, char **argv) {
             efs,
             nrel,
             args.nthread,
-            metrics,
-            ranked_clusters,
-            distances
+            metrics
         );
         auto search_stop = high_resolution_clock::now();
 
