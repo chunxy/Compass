@@ -117,7 +117,8 @@ class CompassR {
             auto tableid = (*itr_beg).second;
             itr_beg++;
 #ifdef USE_SSE
-            _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+            if (itr_beg != itr_end)
+              _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
             visited[tableid] = true;
@@ -278,7 +279,8 @@ class CompassR {
             auto tableid = (*itr_beg).second;
             itr_beg++;
 #ifdef USE_SSE
-            _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+            if (itr_beg != itr_end)
+              _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
             visited[tableid] = true;
@@ -342,7 +344,7 @@ class CompassR {
   ) {
     auto efs_ = std::max(k, efs);
     hnsw_.setEf(efs_);
-    int nprobe = ivf_->nlist / 50;
+    int nprobe = ivf_->nlist / 20;
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 
@@ -362,18 +364,18 @@ class CompassR {
       metrics[q].nround = 0;
       metrics[q].ncomp = 0;
 
-      int curr_ci = q * nprobe;
+      int curr_ci = 0;
       auto itr_beg = rtrees_[clusters[curr_ci].second].qbegin(geo::index::covered_by(b));
       auto itr_end = rtrees_[clusters[curr_ci].second].qend();
 
       int cnt = 0;
       while (true) {
         int crel = 0;
-        if (candidate_set.empty() || (curr_ci < nprobe * (q + 1) && -candidate_set.top().first > clusters[curr_ci].first)) {
+        if (candidate_set.empty() || (curr_ci < nprobe && -candidate_set.top().first > clusters[curr_ci].first)) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
               curr_ci++;
-              if (curr_ci >= (q + 1) * nprobe)
+              if (curr_ci >= nprobe)
                 break;
               else {
                 itr_beg = rtrees_[clusters[curr_ci].second].qbegin(geo::index::covered_by(b));
@@ -385,7 +387,8 @@ class CompassR {
             auto tableid = (*itr_beg).second;
             itr_beg++;
 #ifdef USE_SSE
-            _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+            if (itr_beg != itr_end)
+              _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
             visited[tableid] = true;
@@ -419,12 +422,12 @@ class CompassR {
             std::ref(metrics[q].ncomp),
             std::ref(metrics[q].is_graph_ppsl)
         );
-        if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
+        if ((top_candidates.size() >= efs_) || curr_ci >= nprobe) {
           break;
         }
       }
 
-      metrics[q].ncluster = curr_ci - q * nprobe;
+      metrics[q].ncluster = curr_ci;
       int nrecycled = 0;
       while (top_candidates.size() > k) top_candidates.pop();
       while (!recycle_set.empty()) {
