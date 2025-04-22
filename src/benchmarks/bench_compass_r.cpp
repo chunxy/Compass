@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
 // #pragma omp taskloop
 #endif
       for (int j = 0; j < nq; j += args.batchsz) {
-        comp.SearchKnnV2(
+        comp.SearchKnn(
             xq + j * d,
             args.batchsz,
             args.k,
@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
       for (int j = 0; j < nq;) {
         vector<Metric> metrics(args.batchsz, Metric(nb));
         auto search_start = high_resolution_clock::now();
-        auto results = comp.SearchKnnV2(
+        auto results = comp.SearchKnn(
             xq + j * d,
             args.batchsz,
             args.k,
