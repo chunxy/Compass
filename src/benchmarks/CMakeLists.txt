@@ -31,11 +31,13 @@ target_link_libraries(bench_hop_hnsw_1d Boost::filesystem)
 
 # add_executable(bench_compass bench_compass.cpp)
 add_executable(bench_compass_r bench_compass_r.cpp)
+add_executable(bench_compass_r_cg bench_compass_r_cg.cpp)
 add_executable(bench_compass_ivf bench_compass_ivf.cpp)
 add_executable(bench_compass_graph bench_compass_graph.cpp)
 
 # target_link_libraries(bench_compass Boost::context Boost::filesystem)
 target_link_libraries(bench_compass_r Boost::filesystem)
+target_link_libraries(bench_compass_r_cg Boost::filesystem)
 target_link_libraries(bench_compass_ivf Boost::filesystem)
 target_link_libraries(bench_compass_graph Boost::filesystem)
 
