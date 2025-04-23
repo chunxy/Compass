@@ -1,16 +1,19 @@
 from collections import namedtuple
 from itertools import product
 
+# This file is mainly for summarizing JSON files into CSV file.
+# For figures, configs are set up separately.
+
 # Directories
 LOGS_TMPL = "/home/chunxy/repos/Compass/logs_{}"
 
 # Names
 ONED_METHODS = ("CompassR1d", "CompassROld1d", "CompassRImi1d", "CompassIvf1d", "CompassImi1d", "CompassGraph1d", "Serf", "iRangeGraph")
-TWOD_METHODS = ("CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d")
+TWOD_METHODS = ("CompassR", "CompassRCg", "CompassIvf", "CompassGraph", "iRangeGraph2d")
 DATASETS = ("sift", "gist", "crawl", "glove100", "audio", "video")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
-# TWOD_PASSRATES = ("0.01", "0.09", "0.25", "0.64", "0.81")
-TWOD_RANGES = [f"{pcnt1}-{pcnt2}" for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])]
+# TWOD_RANGES = [f"{pcnt1}-{pcnt2}" for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])]
+TWOD_RANGES = [f"{pcnt}-{pcnt}" for pcnt in [1, 5, 10, 30, 50, 80, 90]]
 
 # Arguments
 RangeFilterRange = namedtuple("RangeFilterRange", ["l", "r"])
@@ -106,29 +109,46 @@ typical_compass_r_1d_builds = [
   CompassBuild(16, 200, 2000),
   CompassBuild(16, 200, 5000),
   CompassBuild(16, 200, 10000),
+  CompassBuild(16, 200, 20000),
   CompassBuild(32, 200, 1000),
   CompassBuild(32, 200, 2000),
   CompassBuild(32, 200, 5000),
   CompassBuild(32, 200, 10000),
+  CompassBuild(32, 200, 20000),
 ]
-typical_compass_r_cg_1d_builds = [CompassBuild(32, 200, 1000)]
+typical_compass_r_cg_1d_builds = [
+  CompassBuild(16, 200, 1000),
+  CompassBuild(16, 200, 2000),
+  CompassBuild(16, 200, 5000),
+  CompassBuild(16, 200, 10000),
+  CompassBuild(16, 200, 20000),
+  CompassBuild(32, 200, 1000),
+  CompassBuild(32, 200, 2000),
+  CompassBuild(32, 200, 5000),
+  CompassBuild(32, 200, 10000),
+  CompassBuild(32, 200, 20000),
+]
 typical_compass_r_builds = typical_compass_r_1d_builds
+typical_compass_r_cg_builds = typical_compass_r_cg_1d_builds
 
 CompassSearch = namedtuple("CompassSearch", ["efs", "nrel", "mincomp"])
 typical_compass_r_1d_searches = [
   # *[CompassSearch(efs, 500, 1000) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
-  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800])],
+  *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800, 1000])],
   # *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 120, 140, 160, 180, 200, 250, 300, 400, 500], [100, 200])]
+]
+typical_compass_r_cg_1d_searches = [
+  *[CompassSearch(efs, nrel, 1000) for efs in (10, 20, 60, 100, 200) for nrel in (500, 600, 800, 1000)],
 ]
 typical_compass_r_old_1d_searches = [
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 15, 20, 25, 30, 35, 40, 50, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])],
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([300, 500], [100, 500, 1000, 1500])]
 ]
-typical_compass_r_cg_1d_searches = [
-  *[CompassSearch(efs, nrel, 1000) for efs in (10, 20, 60, 100, 200) for nrel in (500, 600, 800)],
-]
 typical_compass_r_searches = [
-  CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300], [100, 200])
+  CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800, 1000])
+]
+typical_compass_r_cg_searches = [
+  CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800, 1000])
 ]
 
 CompassRImiBuild = namedtuple("CompassRImiBuild", ["M", "efc", "nsub", "nbits"])
@@ -207,6 +227,7 @@ ONED_RUNS = {
 }
 TWOD_RUNS = {
   "CompassR": Run("CompassR", typical_wf_ranges, typical_compass_r_builds, typical_compass_r_searches, "o"),
+  "CompassRCg": Run("CompassR", typical_wf_ranges, typical_compass_r_cg_builds, typical_compass_r_cg_searches, "<"),
   "CompassIvf": Run("CompassIvf", typical_ivf_wf_ranges, typical_compass_ivf_builds, typical_compass_ivf_searches, "*"),
   "CompassGraph": Run("CompassGraph", typical_graph_wf_ranges, typical_compass_graph_builds, typical_compass_graph_searches, "^"),
   "iRangeGraph2d": Run("iRangeGraph2d", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
@@ -226,6 +247,7 @@ TEMPLATES = {
   "Serf": Template("{}_{}_{}_{}", "M_{}_efc_{}_efmax_{}", "efs_{}"),
   "iRangeGraph": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
   "CompassR": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}"),
+  "CompassRCg": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}"),
   "CompassGraph": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
   "CompassIvf": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "nlist_{}", "nprobe_{}"),
   "iRangeGraph2d": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
