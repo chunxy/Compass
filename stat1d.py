@@ -9,7 +9,7 @@ STATS_DIR = "/home/chunxy/repos/Compass/stats"
 def stat_top_k_in_cluster_by_selectivity():
   stat_dir = Path(STATS_DIR)
   stat_tmpl = "bikmeans_top_{}_in_cluster_hist_{}_{}_{}_{}.bin"
-  nlist_s = [1000, 2000, 5000, 10000]
+  nlist_s = [1000, 2000, 5000, 10000, 20000]
   k = 10
   ranges = [(0, 10000), *[(100, r) for r in (200, 300, 600)], *[(100, r) for r in range(1100, 10000, 1000)]]
 
@@ -42,7 +42,7 @@ def stat_top_k_in_cluster_by_selectivity():
 def stat_cluster_imbalance_factor():
   stat_dir = Path(STATS_DIR)
   stat_tmpl = "bikmeans_cluster_element_count_{}_{}.bin"
-  nlist_s = [1000, 2000, 5000, 10000]
+  nlist_s = [1000, 2000, 5000, 10000, 20000]
 
   for nlist in nlist_s:
     fig, axs = plt.subplots(1, len(DATASETS), layout='constrained')
