@@ -10,7 +10,7 @@ LOGS_TMPL = "/home/chunxy/repos/Compass/logs_{}"
 # Names
 ONED_METHODS = ("CompassR1d", "CompassROld1d", "CompassRImi1d", "CompassIvf1d", "CompassImi1d", "CompassGraph1d", "Serf", "iRangeGraph")
 TWOD_METHODS = ("CompassR", "CompassRCg", "CompassIvf", "CompassGraph", "iRangeGraph2d")
-DATASETS = ("sift", "gist", "crawl", "glove100", "audio", "video")
+DATASETS = ("sift", "audio", "video", "crawl", "gist", "glove100")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
 # TWOD_RANGES = [f"{pcnt1}-{pcnt2}" for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])]
 TWOD_RANGES = [f"{pcnt}-{pcnt}" for pcnt in [1, 5, 10, 30, 50, 80, 90]]
@@ -144,12 +144,8 @@ typical_compass_r_old_1d_searches = [
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 15, 20, 25, 30, 35, 40, 50, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])],
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([300, 500], [100, 500, 1000, 1500])]
 ]
-typical_compass_r_searches = [
-  CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800, 1000])
-]
-typical_compass_r_cg_searches = [
-  CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800, 1000])
-]
+typical_compass_r_searches = [CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800, 1000])]
+typical_compass_r_cg_searches = [CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800, 1000])]
 
 CompassRImiBuild = namedtuple("CompassRImiBuild", ["M", "efc", "nsub", "nbits"])
 typical_compass_r_imi_builds = [*[CompassRImiBuild(M, efc, *imi) for M, efc, imi in product([16, 32, 64], [100, 200], [(4, 4), (2, 9)])]]
@@ -159,8 +155,9 @@ typical_compass_ivf_1d_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, 20
 typical_compass_ivf_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, 2000, 5000, 10000)]]
 
 CompassIvfSearch = namedtuple("CompassIvfSearch", ["nprobe"])
-typical_compass_ivf_1d_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50, 100)],
-                                   *[CompassIvfSearch(nprobe) for nprobe in (60, 80, 150)]]
+typical_compass_ivf_1d_searches = [
+  *[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50, 100)], *[CompassIvfSearch(nprobe) for nprobe in (60, 80, 150)]
+]
 typical_compass_ivf_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100)]]
 
 CompassImiBuild = namedtuple("CompassImiBuild", ["nsub", "nbits"])
@@ -209,7 +206,7 @@ typical_irangegraph_builds = [
 iRangeGraphSearch = namedtuple("iRangeGraphSearch", ["efs"])
 typical_irangegraph_searches = [
   # *[iRangeGraphSearch(efs) for efs in (100, 110, 120, 130, 140, 150, 160, 180, 200, 250, 300)],
-  *[iRangeGraphSearch(efs) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200)],
+  *[iRangeGraphSearch(efs) for efs in (10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500)],
 ]
 
 # Runs
