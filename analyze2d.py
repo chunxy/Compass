@@ -71,7 +71,7 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
 
   selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in TWOD_RANGES]
-  selected_methods = ["CompassIvf", "CompassR", "CompassGraph", "iRangeGraph2d"]
+  selected_methods = ["CompassIvf", "CompassR", "CompassRCg", "CompassGraph", "iRangeGraph2d"]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -85,7 +85,7 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
         data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
         marker = COMPASS_BUILD_MARKER_MAPPING.get(b, TWOD_RUNS[m].marker)
         if m == "CompassR" or m == "CompassGraph":
-          for nrel in [100, 200, 500]:
+          for nrel in [500, 600, 800, 1000]:
             data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
             if data_by_m_b_nrel.size == 0: continue
             recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
@@ -135,7 +135,7 @@ def draw_2d_qps_comp_wrt_recall_by_selectivity():
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
 
   selectors = [df["selectivity"] == r for r in TWOD_RANGES]
-  selected_methods = ["CompassIvf", "CompassR", "CompassGraph", "iRangeGraph2d"]
+  selected_methods = ["CompassIvf", "CompassR", "CompassRCg", "CompassGraph", "iRangeGraph2d"]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -148,8 +148,8 @@ def draw_2d_qps_comp_wrt_recall_by_selectivity():
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b) & (data["dataset"] == dataset)]
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, TWOD_RUNS[m].marker)
-          if m == "CompassR" or m == "CompassGraph":
-            for nrel in [100, 200, 500]:
+          if m == "CompassR" or m == "CompassRCg":
+            for nrel in [500, 600, 800, 1000]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
               recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
@@ -218,8 +218,8 @@ def draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, TWOD_RUNS[m].marker)
-          if m == "CompassR" or m == "CompassGraph":
-            for nrel in [100, 200, 500]:
+          if m == "CompassR" or m == "CompassRCg":
+            for nrel in [500, 600, 800, 1000]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
               rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
@@ -259,5 +259,5 @@ summarize_2d()
 draw_2d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_2d_qps_comp_wrt_recall_by_selectivity()
 
-selected_methods = ["CompassR", "CompassIvf", "CompassGraph", "iRangeGraph2d"]
+selected_methods = ["CompassR", "CompassRCg", "CompassIvf", "CompassGraph", "iRangeGraph2d"]
 # draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, "ToT")
