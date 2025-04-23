@@ -114,7 +114,7 @@ def draw_1d_qps_wrt_recall_by_selectivity(selected_builds, selected_searches=Non
     fig.set_size_inches(15, 10)
     handles, labels = axs[0, 1].get_legend_handles_labels()
     fig.legend(handles, labels, loc='outside right upper')
-    fig.savefig(f"cherrypick_{K}/" + f"{purpose}" + f"All-{selectivity:.1%}-Comp-Recall.jpg", dpi=200)
+    fig.savefig(f"cherrypick_{K}/" + f"{purpose}" + f"All-{selectivity:.1%}-QPS-Recall.jpg", dpi=200)
     plt.close()
 
 
