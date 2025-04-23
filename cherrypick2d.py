@@ -108,7 +108,7 @@ def draw_2d_qps_wrt_recall_by_selectivity(selected_workloads, selected_builds, s
             axs[i // ncol, i % ncol].scatter(qps_recall[:, 0], qps_recall[:, 1], label=f"{m}-{b}", marker=marker)
 
           axs[i // ncol, i % ncol].set_xlabel('Recall')
-          axs[i // ncol, i % ncol].set_ylabel('# Comp')
+          axs[i // ncol, i % ncol].set_ylabel('QPS')
           axs[i // ncol, i % ncol].set_title("{}, Selectivity-{}".format(dataset.capitalize(), selectivity))
 
     fig.set_size_inches(15, 10)
