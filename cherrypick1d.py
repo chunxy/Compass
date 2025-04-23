@@ -157,18 +157,18 @@ def draw_1d_comp_fixed_recall_by_selectivity(selected_methods, selected_searches
               if data_by_m_b_s.size == 0: continue
               rec_sel_qps_comp = data_by_m_b_s[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
 
-              grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["qps"].max()
-              grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["comp"].min()
+              grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.02)].groupby("selectivity", as_index=False)["qps"].max()
+              grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.02)].groupby("selectivity", as_index=False)["comp"].min()
               grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selectivities)]
               grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
               pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
               axs[i // ncol][i % ncol].plot(pos_s, grouped_comp["comp"])
-              axs[i // ncol][i % ncol].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
+              axs[i // ncol][i % ncol].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}-{s}", marker=marker)
           else:
             rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
 
-            grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["qps"].max()
-            grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["comp"].min()
+            grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.02)].groupby("selectivity", as_index=False)["qps"].max()
+            grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.02)].groupby("selectivity", as_index=False)["comp"].min()
             grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selectivities)]
             grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
             pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
@@ -299,35 +299,31 @@ tot_selected_methods = {
   "CompassR1d": [
     CompassBuild(16, 200, 5000),
     CompassBuild(16, 200, 10000),
-    CompassBuild(32, 200, 5000),
-    CompassBuild(32, 200, 10000),
   ],
   "CompassIvf1d": [CompassIvfBuild(1000), CompassIvfBuild(5000), CompassIvfBuild(10000)],
   "CompassGraph1d": [CompassGraphBuild(32, 200)],
 }
-tot_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [100, 200, 500]]}
+tot_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800]]}
 draw_1d_comp_fixed_recall_by_selectivity(tot_selected_methods, tot_selected_searches, "ToT")
 draw_1d_comp_wrt_recall_by_selectivity(tot_selected_methods, tot_selected_searches, "baseline/")
 
 # Compare the QPS between original and cluster-graph version
 time_trial_methods = {
   "CompassR1d": [
+    CompassBuild(16, 200, 1000),
     CompassBuild(16, 200, 5000),
     CompassBuild(16, 200, 10000),
-    CompassBuild(32, 200, 5000),
-    CompassBuild(32, 200, 10000),
   ],
   "CompassRCg1d": [
+    CompassBuild(16, 200, 1000),
     CompassBuild(16, 200, 5000),
     CompassBuild(16, 200, 10000),
-    CompassBuild(32, 200, 5000),
-    CompassBuild(32, 200, 10000),
   ],
   "iRangeGraph": [iRangeGraphBuild(32, 200)]
 }
 time_trial_searches = {
-  "CompassR1d": [f"nrel_{nrel}" for nrel in [500, 600, 800, 1000]],
-  "CompassRCg1d": [f"nrel_{nrel}" for nrel in [500, 600, 800, 1000]],
+  "CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800]],
+  "CompassRCg1d": [f"nrel_{nrel}" for nrel in [500, 800]],
 }
 time_trial_markers = {
   "CompassR1d": "o",
@@ -341,11 +337,11 @@ mom_selected_methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [
-    CompassBuild(32, 200, 5000),
-    CompassBuild(32, 200, 10000),
+    CompassBuild(16, 200, 5000),
+    CompassBuild(16, 200, 10000),
   ],
 }
-mom_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 600, 800, 1000]]}
+mom_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800]]}
 draw_1d_comp_fixed_recall_by_selectivity(mom_selected_methods, mom_selected_searches, "MoM")
 
 # Compare #Comp-Recall when using different efs
@@ -354,7 +350,7 @@ methods = {
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [CompassBuild(32, 200, 10000), CompassBuild(32, 200, 1000)],
 }
-searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 600, 800, 1000]]}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 600, 800]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-efs/")
 
 # Compare #Comp-Recall when using different nrel
@@ -363,7 +359,7 @@ methods = {
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [CompassBuild(32, 200, 1000)],
 }
-searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 600, 800, 1000]]}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 600, 800]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nrel/")
 
 # Compare #Comp-Recall when using different M
@@ -387,10 +383,10 @@ methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [
-    CompassBuild(32, 200, 1000),
-    CompassBuild(32, 200, 2000),
-    CompassBuild(32, 200, 5000),
-    CompassBuild(32, 200, 10000),
+    CompassBuild(16, 200, 1000),
+    CompassBuild(16, 200, 2000),
+    CompassBuild(16, 200, 5000),
+    CompassBuild(16, 200, 10000),
   ],
 }
 searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500]]}
@@ -405,5 +401,5 @@ methods = {
     CompassBuild(32, 200, 10000),
   ],
 }
-searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 600, 800, 1000]]}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches)
