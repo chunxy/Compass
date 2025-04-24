@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
-  std::string method = "CompassR1d";
+  std::string method = "CompassRR1d";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
 
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
   std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
-  fs::path ckp_dir = ckp_root / method / c.name;
+  fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
     fmt::print("Finished loading IVF index.\n");
@@ -129,6 +129,7 @@ int main(int argc, char **argv) {
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
       FILE *out = stdout;
+      nq = 1000;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
@@ -141,7 +142,7 @@ int main(int argc, char **argv) {
 // #pragma omp taskloop
 #endif
       for (int j = 0; j < nq; j += args.batchsz) {
-        comp.SearchKnnV2(
+        comp.SearchKnnV1(
             xq + j * d,
             args.batchsz,
             args.k,
@@ -163,7 +164,7 @@ int main(int argc, char **argv) {
       for (int j = 0; j < nq;) {
         vector<Metric> metrics(args.batchsz, Metric(nb));
         auto search_start = high_resolution_clock::now();
-        auto results = comp.SearchKnnV2(
+        auto results = comp.SearchKnnV1(
             xq + j * d,
             args.batchsz,
             args.k,

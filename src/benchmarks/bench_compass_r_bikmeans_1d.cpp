@@ -123,6 +123,7 @@ int main(int argc, char **argv) {
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
       FILE *out = stdout;
+      nq = 1000;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
@@ -135,7 +136,7 @@ int main(int argc, char **argv) {
 // #pragma omp taskloop
 #endif
       for (int j = 0; j < nq; j += args.batchsz) {
-        comp.SearchKnnV2(
+        comp.SearchKnnV1(
             xq + j * d,
             args.batchsz,
             args.k,
@@ -157,7 +158,7 @@ int main(int argc, char **argv) {
       for (int j = 0; j < nq;) {
         vector<Metric> metrics(args.batchsz, Metric(nb));
         auto search_start = high_resolution_clock::now();
-        auto results = comp.SearchKnnV2(
+        auto results = comp.SearchKnnV1(
             xq + j * d,
             args.batchsz,
             args.k,

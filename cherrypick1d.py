@@ -341,7 +341,7 @@ mom_selected_methods = {
     CompassBuild(16, 200, 10000),
   ],
 }
-mom_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800]]}
+mom_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 1000]]}
 draw_1d_comp_fixed_recall_by_selectivity(mom_selected_methods, mom_selected_searches, "MoM")
 
 # Compare #Comp-Recall when using different efs
@@ -350,7 +350,7 @@ methods = {
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [CompassBuild(32, 200, 10000), CompassBuild(32, 200, 1000)],
 }
-searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 600, 800]]}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800, 1000]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-efs/")
 
 # Compare #Comp-Recall when using different nrel
@@ -359,7 +359,7 @@ methods = {
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [CompassBuild(32, 200, 1000)],
 }
-searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 600, 800]]}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800, 1000]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nrel/")
 
 # Compare #Comp-Recall when using different M
@@ -398,8 +398,7 @@ methods = {
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [
     CompassBuild(16, 200, 10000),
-    CompassBuild(32, 200, 10000),
   ],
 }
-searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800]]}
+searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 1000]]}
 draw_1d_comp_wrt_recall_by_selectivity(methods, searches)
