@@ -1,4 +1,4 @@
-from sklearn.cluster import KMeans, BisectingKMeans
+from sklearn.cluster import BisectingKMeans
 import numpy as np
 import argparse
 
@@ -46,3 +46,5 @@ centroids_bisect_kmeans.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.
 # mean_shift_labels = mean_shift.fit_predict(training_data)
 # centroids_meanshift = mean_shift.cluster_centers_.astype(np.float32)
 # centroids_meanshift.tofile(f"{name}.centroids.meanshift")
+
+
