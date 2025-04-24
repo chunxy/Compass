@@ -85,6 +85,8 @@ d = datasets[name]
 nlist = args.nlist
 ndim = args.ndim
 
+print(f"Running {name}: {d} -> {ndim}")
+
 # Example data (replace this with your actual data)
 file = f"/home/chunxy/repos/Compass/data/{name}_base.float32"
 data = np.fromfile(file, dtype=np.float32).reshape((-1, d))
