@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
-
+import argparse
 
 def proclus(data, k, l, max_iter=10, random_state=None):
   """
@@ -62,17 +62,52 @@ def proclus(data, k, l, max_iter=10, random_state=None):
   return cluster_labels, medoids, subspaces
 
 
-# Example usage
-if __name__ == "__main__":
-  # Generate synthetic data
-  np.random.seed(42)
-  data = np.random.rand(1000, 10)
+datasets = {
+  "gist": 960,
+  "crawl": 300,
+  "glove100": 100,
+  "audio": 128,
+  "video": 1024,
+  "sift": 128,
+}
 
-  # Run PROCLUS
-  k = 10  # Number of clusters
-  l = 3  # Average number of dimensions for subspaces
-  cluster_labels, medoids, subspaces = proclus(data, k, l, random_state=42)
+parser = argparse.ArgumentParser(description="Clustering script")
+parser.add_argument("--name", type=str, required=True, help="Dataset name to process")
+parser.add_argument("--nlist", type=int, required=True, help="Number of clusters")
+parser.add_argument("--ndim", type=int, required=True, help="Intrinsic dimension")
+args = parser.parse_args()
 
-  # print("Cluster labels:", cluster_labels)
-  print("Medoids:", medoids)
-  print("Subspaces:", subspaces)
+if args.name not in datasets:
+  raise ValueError(f"Invalid dataset name: {args.name}. Must be one of {list(datasets.keys())}")
+
+name = args.name
+d = datasets[name]
+nlist = args.nlist
+ndim = args.ndim
+
+# Example data (replace this with your actual data)
+file = f"/home/chunxy/repos/Compass/data/{name}_base.float32"
+data = np.fromfile(file, dtype=np.float32).reshape((-1, d))
+
+labels, medoids, subspaces = proclus(data, nlist, ndim, random_state=42)
+labels.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.ranking")
+medoids.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.medoids")
+np.array(subspaces).tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.subspaces")
+
+# # Example usage
+# if __name__ == "__main__":
+#   # Generate synthetic data
+#   np.random.seed(42)
+#   data = np.random.rand(1000, 10)
+
+#   # Run PROCLUS
+#   nlist = 10  # Number of clusters
+#   ndim = 3  # Average number of dimensions for subspaces
+#   labels, medoids, subspaces = proclus(data, nlist, ndim, random_state=42)
+
+#   print("Cluster labels:", labels)
+#   print("Medoids:", medoids)
+#   print("Subspaces:", subspaces)
+#   labels.tofile(f"/home/chunxy/repos/Compass/test.{nlist}.{ndim}.proclus.ranking")
+#   medoids.tofile(f"/home/chunxy/repos/Compass/test.{nlist}.{ndim}.proclus.medoids")
+#   np.array(subspaces).tofile(f"/home/chunxy/repos/Compass/test.{nlist}.{ndim}.proclus.subspaces")
