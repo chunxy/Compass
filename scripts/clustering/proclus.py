@@ -75,6 +75,7 @@ parser = argparse.ArgumentParser(description="Clustering script")
 parser.add_argument("--name", type=str, required=True, help="Dataset name to process")
 parser.add_argument("--nlist", type=int, required=True, help="Number of clusters")
 parser.add_argument("--ndim", type=int, required=True, help="Intrinsic dimension")
+parser.add_argument("--nsample", type=int, required=True, help="Number of subsample")
 args = parser.parse_args()
 
 if args.name not in datasets:
@@ -84,17 +85,24 @@ name = args.name
 d = datasets[name]
 nlist = args.nlist
 ndim = args.ndim
+nsample = args.nsample
 
 print(f"Running {name}: {d} -> {ndim}")
 
 # Example data (replace this with your actual data)
 file = f"/home/chunxy/repos/Compass/data/{name}_base.float32"
 data = np.fromfile(file, dtype=np.float32).reshape((-1, d))
+np.random.shuffle(data)
+data = data[:nsample]
 
 labels, medoids, subspaces = proclus(data, nlist, ndim, random_state=42)
 labels.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.ranking")
 medoids.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.medoids")
-np.array(subspaces).tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.subspaces")
+# Pad subspaces to a fixed size (ndim) with -1
+padded_subspaces = np.full((len(subspaces), ndim), -1, dtype=int)
+for i, subspace in enumerate(subspaces):
+  padded_subspaces[i, :len(subspace)] = subspace
+padded_subspaces.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.subspaces")
 
 # # Example usage
 # if __name__ == "__main__":
