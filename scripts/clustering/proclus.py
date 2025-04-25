@@ -75,7 +75,7 @@ parser = argparse.ArgumentParser(description="Clustering script")
 parser.add_argument("--name", type=str, required=True, help="Dataset name to process")
 parser.add_argument("--nlist", type=int, required=True, help="Number of clusters")
 parser.add_argument("--ndim", type=int, required=True, help="Intrinsic dimension")
-parser.add_argument("--nsample", type=int, required=True, help="Number of subsample")
+parser.add_argument("--nsample", type=int, required=False, help="Number of subsample")
 args = parser.parse_args()
 
 if args.name not in datasets:
@@ -92,8 +92,9 @@ print(f"Running {name}: {d} -> {ndim}")
 # Example data (replace this with your actual data)
 file = f"/home/chunxy/repos/Compass/data/{name}_base.float32"
 data = np.fromfile(file, dtype=np.float32).reshape((-1, d))
-np.random.shuffle(data)
-data = data[:nsample]
+if nsample is not None:
+  np.random.shuffle(data)
+  data = data[:nsample]
 
 labels, medoids, subspaces = proclus(data, nlist, ndim, random_state=42)
 labels.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.ranking")
