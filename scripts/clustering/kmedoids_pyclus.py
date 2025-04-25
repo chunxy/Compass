@@ -34,7 +34,7 @@ np.random.shuffle(ordinals)
 initial_medoids = ordinals[:nlist].tolist()
 
 # Create instance of K-Medoids algorithm.
-kmedoids_instance = kmedoids(training_data, initial_medoids)
+kmedoids_instance = kmedoids(training_data, initial_medoids, ccore=False, itermax=100)
 
 # Run cluster analysis and obtain results.
 kmedoids_instance.process()
