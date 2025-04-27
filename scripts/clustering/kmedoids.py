@@ -19,6 +19,11 @@ class KMedoids:
 
     for _ in range(self.max_iter):
       # Assign each point to the nearest medoid
+      batch_size = 100000  # Process 10,000 vectors at a time
+      distances = np.zeros((X.shape[0], self.medoids.shape[0]), dtype=np.float32)
+      for start in range(0, X.shape[0], batch_size):
+        end = min(start + batch_size, X.shape[0])
+        distances[start:end] = euclidean_distances(X[start:end], self.medoids)
       distances = euclidean_distances(X, self.medoids)
       self.labels_ = np.argmin(distances, axis=1)
 
