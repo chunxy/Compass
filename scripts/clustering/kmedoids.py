@@ -24,7 +24,6 @@ class KMedoids:
       for start in range(0, X.shape[0], batch_size):
         end = min(start + batch_size, X.shape[0])
         distances[start:end] = euclidean_distances(X[start:end], self.medoids)
-      distances = euclidean_distances(X, self.medoids)
       self.labels_ = np.argmin(distances, axis=1)
 
       # Update medoids
@@ -32,7 +31,13 @@ class KMedoids:
       for i in range(self.n_clusters):
         cluster_points = X[self.labels_ == i]
         if len(cluster_points) > 0:
-          medoid_idx = np.argmin(np.sum(np.linalg.norm(cluster_points[:, np.newaxis] - cluster_points, axis=2), axis=1))
+          batch_size = 1000  # Process 1000 vectors at a time
+          num_points = len(cluster_points)
+          pairwise_distances = np.zeros((num_points, num_points), dtype=np.float32)
+          for start in range(0, num_points, batch_size):
+              end = min(start + batch_size, num_points)
+              pairwise_distances[start:end] = np.linalg.norm(cluster_points[start:end, np.newaxis] - cluster_points, axis=2)
+          medoid_idx = np.argmin(np.sum(pairwise_distances, axis=1))
           new_medoids[i] = cluster_points[medoid_idx]
 
       # Check for convergence
