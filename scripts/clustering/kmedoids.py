@@ -1,7 +1,9 @@
 import numpy as np
 from sklearn.metrics.pairwise import euclidean_distances
 
+
 class KMedoids:
+
   def __init__(self, n_clusters, max_iter=300, random_state=None):
     self.n_clusters = n_clusters
     self.max_iter = max_iter
@@ -9,7 +11,7 @@ class KMedoids:
     self.medoids = None
     self.labels_ = None
 
-  def fit(self, X):
+  def fit(self, X, bs1=100000, bs2=100000):
     np.random.seed(self.random_state)
     n_samples = X.shape[0]
 
@@ -19,10 +21,9 @@ class KMedoids:
 
     for _ in range(self.max_iter):
       # Assign each point to the nearest medoid
-      batch_size = 100000  # Process 10,000 vectors at a time
       distances = np.zeros((X.shape[0], self.medoids.shape[0]), dtype=np.float32)
-      for start in range(0, X.shape[0], batch_size):
-        end = min(start + batch_size, X.shape[0])
+      for start in range(0, X.shape[0], bs1):
+        end = min(start + bs1, X.shape[0])
         distances[start:end] = euclidean_distances(X[start:end], self.medoids)
       self.labels_ = np.argmin(distances, axis=1)
 
@@ -31,12 +32,12 @@ class KMedoids:
       for i in range(self.n_clusters):
         cluster_points = X[self.labels_ == i]
         if len(cluster_points) > 0:
-          batch_size = 1000  # Process 1000 vectors at a time
           num_points = len(cluster_points)
           pairwise_distances = np.zeros((num_points, num_points), dtype=np.float32)
-          for start in range(0, num_points, batch_size):
-              end = min(start + batch_size, num_points)
-              pairwise_distances[start:end] = np.linalg.norm(cluster_points[start:end, np.newaxis] - cluster_points, axis=2)
+          for start in range(0, num_points, bs2):
+            end = min(start + bs2, num_points)
+            # pairwise_distances[start:end] = np.linalg.norm(cluster_points[start:end, np.newaxis] - cluster_points, axis=2)
+            pairwise_distances[start:end] = euclidean_distances(cluster_points[start:end], cluster_points)
           medoid_idx = np.argmin(np.sum(pairwise_distances, axis=1))
           new_medoids[i] = cluster_points[medoid_idx]
 
@@ -49,6 +50,7 @@ class KMedoids:
     distances = np.linalg.norm(X[:, np.newaxis] - self.medoids, axis=2)
     return np.argmin(distances, axis=1)
 
+
 datasets = {
   "gist": 960,
   "crawl": 300,
@@ -59,6 +61,7 @@ datasets = {
 }
 
 import argparse
+
 parser = argparse.ArgumentParser(description="Clustering script")
 parser.add_argument("--name", type=str, required=True, help="Dataset name to process")
 parser.add_argument("--nlist", type=int, required=True, help="Number of clusters")
