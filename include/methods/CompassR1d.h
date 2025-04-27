@@ -225,7 +225,7 @@ class CompassR1d {
       int curr_ci = q * nprobe;
       auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
       auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
-      float stop_bound = distances[curr_ci];
+      float stop_bound = 1e10;
 
       while (true) {
         int crel = 0;
@@ -781,22 +781,25 @@ class CompassR1d {
             metrics[q].is_ivf_ppsl[tableid] = true;
             crel++;
 
-            candidate_set.emplace(-dist, tableid);
-            auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
-            if (dist < upper_bound) {
-              top_candidates.emplace(dist, tableid);
-              if (top_candidates.size() > efs_) top_candidates.pop();
-            } else {
-              recycle_set.emplace(-dist, tableid);
-            }
+            recycle_set.emplace(-dist, tableid);
           }
           metrics[q].nround++;
+          int cnt = hnsw_.M_;
+          while (!recycle_set.empty() && cnt > 0) {
+            auto top = recycle_set.top();
+            candidate_set.emplace(top.first, top.second);
+            top_candidates.emplace(-top.first, top.second);
+            if (top_candidates.size() >= efs_) top_candidates.pop(); // better not to overflow the result queue
+            recycle_set.pop();
+            cnt--;
+          }
         }
 
         hnsw_.ReentrantSearchKnnBounded(
             (float *)query + q * ivf_->d,
             k,
-            clusters[curr_ci].first,
+            // clusters[curr_ci].first,
+            1e10,
             top_candidates,
             candidate_set,
             visited,
