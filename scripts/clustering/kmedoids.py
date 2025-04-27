@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.metrics.pairwise import euclidean_distances
 
 class KMedoids:
   def __init__(self, n_clusters, max_iter=300, random_state=None):
@@ -18,7 +19,7 @@ class KMedoids:
 
     for _ in range(self.max_iter):
       # Assign each point to the nearest medoid
-      distances = np.linalg.norm(X[:, np.newaxis] - self.medoids, axis=2)
+      distances = euclidean_distances(X, self.medoids)
       self.labels_ = np.argmin(distances, axis=1)
 
       # Update medoids
@@ -63,6 +64,6 @@ nlist = args.nlist
 # Example data (replace this with your actual data)
 file = f"/home/chunxy/repos/Compass/data/{name}_base.float32"
 training_data = np.fromfile(file, dtype=np.float32).reshape((-1, d))
-kmedoid = KMedoids(nlist)
+kmedoid = KMedoids(nlist, 100)
 kmedoid.fit(training_data)
 kmedoid.medoids.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.kmedoids.medoids")
