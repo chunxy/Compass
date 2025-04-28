@@ -14,3 +14,4 @@ generate.py
 src/tests/test_rng/
 src/tests/test_hnsw/
 src/tests/test_reentrant_hnsw/
+logs_10_special
