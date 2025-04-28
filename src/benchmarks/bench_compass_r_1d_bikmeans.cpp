@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
-  std::string method = "CompassRRCgBikmeans1d";
+  std::string method = "CompassR1dBikmeans";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
 
@@ -67,7 +67,6 @@ int main(int argc, char **argv) {
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
   std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
-  std::string cluster_graph_ckp = fmt::format(COMPASS_CLUSTER_GRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_root / "BisectingKMeans" / c.name / ivf_ckp)) {
     comp.LoadIvf(ckp_root / "BisectingKMeans" / c.name / ivf_ckp);
@@ -91,20 +90,6 @@ int main(int argc, char **argv) {
         duration_cast<microseconds>(add_points_stop - add_points_start).count()
     );
     comp.SaveRanking(ckp_root / "BisectingKMeans" / c.name / rank_ckp);
-  }
-
-  if (fs::exists(ckp_root / "BisectingKMeans" / c.name / cluster_graph_ckp)) {
-    comp.LoadClusterGraph((ckp_root / "BisectingKMeans" / c.name / cluster_graph_ckp).string());
-    fmt::print("Finished loading cluster graph index.\n");
-  } else {
-    auto build_index_start = high_resolution_clock::now();
-    comp.BuildClusterGraph();
-    auto build_index_stop = high_resolution_clock::now();
-    fmt::print(
-        "Finished building cluster graph, took {} microseconds.\n",
-        duration_cast<microseconds>(build_index_stop - build_index_start).count()
-    );
-    comp.SaveClusterGraph(ckp_root / "BisectingKMeans" / c.name / cluster_graph_ckp);
   }
 
   if (fs::exists(ckp_dir / graph_ckp)) {
@@ -133,7 +118,7 @@ int main(int argc, char **argv) {
       std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", efs, nrel, args.mincomp);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-      fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      fs::path log_root(fmt::format(LOGS, args.k));
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
@@ -151,8 +136,18 @@ int main(int argc, char **argv) {
 // #pragma omp taskloop
 #endif
       for (int j = 0; j < nq; j += args.batchsz) {
-        comp.SearchKnnV5(
-            xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, efs, nrel, args.nthread, metrics
+        comp.SearchKnnV1(
+            xq + j * d,
+            args.batchsz,
+            args.k,
+            args.l_bound,
+            args.u_bound,
+            efs,
+            nrel,
+            args.nthread,
+            metrics,
+            ranked_clusters,
+            distances
         );
       }
       auto search_stop = high_resolution_clock::system_clock::now();
@@ -163,8 +158,18 @@ int main(int argc, char **argv) {
       for (int j = 0; j < nq;) {
         vector<Metric> metrics(args.batchsz, Metric(nb));
         auto search_start = high_resolution_clock::now();
-        auto results = comp.SearchKnnV5(
-            xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, efs, nrel, args.nthread, metrics
+        auto results = comp.SearchKnnV1(
+            xq + j * d,
+            args.batchsz,
+            args.k,
+            args.l_bound,
+            args.u_bound,
+            efs,
+            nrel,
+            args.nthread,
+            metrics,
+            ranked_clusters,
+            distances
         );
         auto search_stop = high_resolution_clock::now();
 
@@ -182,7 +187,7 @@ int main(int argc, char **argv) {
               ivf_ppsl_in_rz++;
             else if (metric.is_graph_ppsl[i])
               graph_ppsl_in_rz++;
-            if (d <= gt_max + EPSILON) {
+            if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), i) != hybrid_topks[j].end() || d <= gt_max + EPSILON) {
               if (metric.is_ivf_ppsl[i])
                 ivf_ppsl_in_tp++;
               else if (metric.is_graph_ppsl[i])
