@@ -13,6 +13,7 @@ add_executable(bench_compass_rr_1d_bikmeans bench_compass_rr_1d_bikmeans.cpp)
 add_executable(bench_compass_rr_1d_kmedoids bench_compass_rr_1d_kmedoids.cpp)
 add_executable(bench_compass_rr_cg_1d bench_compass_rr_cg_1d.cpp)
 add_executable(bench_compass_rr_cg_1d_bikmeans bench_compass_rr_cg_1d_bikmeans.cpp)
+add_executable(bench_compass_rr_cg_1d_kmedoids bench_compass_rr_cg_1d_kmedoids.cpp)
 
 add_executable(bench_compass_ivf_1d bench_compass_ivf_1d.cpp)
 add_executable(bench_compass_ivf_1d_kmeanspp bench_compass_ivf_1d_kmeanspp.cpp)
@@ -37,6 +38,7 @@ target_link_libraries(bench_compass_rr_1d_bikmeans Boost::context Boost::filesys
 target_link_libraries(bench_compass_rr_1d_kmedoids Boost::context Boost::filesystem)
 target_link_libraries(bench_compass_rr_cg_1d Boost::context Boost::filesystem)
 target_link_libraries(bench_compass_rr_cg_1d_bikmeans Boost::context Boost::filesystem)
+target_link_libraries(bench_compass_rr_cg_1d_kmedoids Boost::context Boost::filesystem)
 
 target_link_libraries(bench_compass_ivf_1d Boost::filesystem)
 target_link_libraries(bench_compass_ivf_1d_kmeanspp Boost::filesystem)
