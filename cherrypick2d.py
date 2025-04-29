@@ -118,7 +118,7 @@ def draw_2d_qps_wrt_recall_by_selectivity(selected_workloads, selected_builds, s
     plt.close()
 
 
-def draw_2d_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
+def draw_2d_comp_fixed_recall_by_selectivity(selected_workloads, selected_methods, compare_by):
   types = {
     "path": str,
     "method": str,
@@ -134,7 +134,7 @@ def draw_2d_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
   cutoff_recalls = [0.8, 0.9, 0.95]
 
-  selectivities = ["0.01", "0.09", "0.25", "0.64", "0.81"]
+  selectivities = [f"{int(w.split('-')[0]) * int(w.split('-')[1]) / 10000:.2f}" for w in selected_workloads]
 
   for recall in cutoff_recalls:
     nrow = 2
@@ -155,9 +155,9 @@ def draw_2d_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
 
           grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["qps"].max()
           grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall - 0.05)].groupby("selectivity", as_index=False)["comp"].min()
-          grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
-          grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selectivities)]
-          pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
+          grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selected_workloads)]
+          grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selected_workloads)]
+          pos_s = np.array([bisect.bisect(selectivities, f"{int(w.split('-')[0]) * int(w.split('-')[1]) / 10000:.2f}") for w in grouped_qps["selectivity"]]) - 1
           axs[i // ncol][i % ncol].plot(pos_s, grouped_comp["comp"])
           axs[i // ncol][i % ncol].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
 
@@ -177,21 +177,22 @@ plt.rcParams.update({
 })
 
 evenhand_ranges = [f"{pcnt}-{pcnt}" for pcnt in [1, 5, 10, 30, 50, 80, 90]]
+tot_mom_ranges = [f"{pcnt}-{pcnt}" for pcnt in [10, 30, 50, 80, 90]]
 
 # Compare with baseline methods to reach recall
 tot_selected_methods = {
   "CompassR": [
     CompassBuild(16, 200, 10000),
-    CompassBuild(32, 200, 10000),
+    # CompassBuild(32, 200, 10000),
   ],
   "CompassIvf": [
-    CompassIvfBuild(1000),
+    # CompassIvfBuild(1000),
     CompassIvfBuild(5000),
     CompassIvfBuild(10000),
   ],
   "CompassGraph": [CompassGraphBuild(32, 200)],
 }
-# draw_2d_comp_fixed_recall_by_selectivity(tot_selected_methods, "ToT")
+draw_2d_comp_fixed_recall_by_selectivity(tot_mom_ranges, tot_selected_methods, "ToT")
 searches = {"CompassR": [f"nrel_{nrel}" for nrel in [500, 1000]]}
 draw_2d_comp_wrt_recall_by_selectivity(evenhand_ranges, tot_selected_methods, searches, "baseline/")
 
@@ -220,16 +221,16 @@ draw_2d_qps_wrt_recall_by_selectivity(evenhand_ranges, time_trial_methods, time_
 
 # Compare with SotA methods to reach recall
 mom_selected_methods = {
-  # "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
+  "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
   # "Serf2d": [SerfBuild(32, 200, 500)],
   "CompassR": [
-    CompassBuild(16, 200, 1000),
-    CompassBuild(32, 200, 1000),
-    CompassBuild(32, 200, 2000),
-    CompassBuild(32, 200, 5000),
+    CompassBuild(16, 200, 10000),
+    # CompassBuild(32, 200, 1000),
+    # CompassBuild(32, 200, 2000),
+    # CompassBuild(32, 200, 5000),
   ],
 }
-# draw_2d_comp_fixed_recall_by_selectivity(mom_selected_methods, "MoM")
+draw_2d_comp_fixed_recall_by_selectivity(tot_mom_ranges, mom_selected_methods, "MoM")
 
 # Compare #Comp-Recall when using different efs
 methods = {
