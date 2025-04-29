@@ -249,7 +249,7 @@ TEMPLATES = {
   "CompassRR1dBikmeans": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
   "CompassRR1dKmedoids": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
   "CompassRRCg1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
-  "CompassRRCg1dBikmenas": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
+  "CompassRRCg1dBikmeans": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
   "CompassRRCg1dKmedoids": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}_mincomp_{}"),
   "CompassIvf1d": Template("{}_10000_{}_{}_{}", "nlist_{}", "nprobe_{}"),
   "CompassImi1d": Template("{}_10000_{}_{}_{}", "nsub_{}_nbits_{}", "nprobe_{}"),
