@@ -118,7 +118,7 @@ def draw_1d_qps_wrt_recall_by_selectivity(selected_builds, selected_searches=Non
     plt.close()
 
 
-def draw_1d_comp_fixed_recall_by_selectivity(selected_methods, selected_searches, compare_by):
+def draw_1d_comp_fixed_recall_by_selectivity(selected_datasets, selected_methods, selected_searches, compare_by):
   types = {
     "path": str,
     "method": str,
@@ -138,9 +138,9 @@ def draw_1d_comp_fixed_recall_by_selectivity(selected_methods, selected_searches
 
   for recall in cutoff_recalls:
     nrow = 2
-    ncol = (len(DATASETS) + nrow - 1) // nrow
+    ncol = (len(selected_datasets) + nrow - 1) // nrow
     fig, axs = plt.subplots(nrow, ncol, layout='constrained')
-    for i, dataset in enumerate(DATASETS):
+    for i, dataset in enumerate(selected_datasets):
       axs[i // ncol][i % ncol].set_xticks(np.arange(len(selectivities)))
       axs[i // ncol][i % ncol].set_xticklabels(selectivities)
       axs[i // ncol][i % ncol].set_title(dataset.upper())
@@ -337,12 +337,14 @@ mom_selected_methods = {
   "iRangeGraph": [iRangeGraphBuild(32, 200)],
   "Serf": [SerfBuild(32, 200, 500)],
   "CompassR1d": [
-    CompassBuild(16, 200, 5000),
+    # CompassBuild(16, 200, 5000),
     CompassBuild(16, 200, 10000),
+    CompassBuild(16, 200, 20000),
   ],
 }
-mom_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 1000]]}
-draw_1d_comp_fixed_recall_by_selectivity(mom_selected_methods, mom_selected_searches, "MoM")
+mom_selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500]]}
+mom_selected_datasets = ("sift", "audio", "crawl")
+draw_1d_comp_fixed_recall_by_selectivity(DATASETS, mom_selected_methods, mom_selected_searches, "MoM")
 
 # Compare #Comp-Recall when using different efs
 methods = {
