@@ -70,7 +70,7 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in ONED_PASSRATES]
-  selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassR1d", "CompassRCg1d"]
+  selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassR1d", "CompassRCg1d", "CompassRR1d", "CompassRR1dBikmeans", "CompassRR1dKmedoids",]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -136,7 +136,8 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectors = [df["selectivity"] == r for r in ONED_PASSRATES]
-  selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassR1d", "CompassRCg1d"]
+  # selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassR1d", "CompassRCg1d"]
+  selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassR1d", "CompassRCg1d", "CompassRR1d", "CompassRR1dBikmeans", "CompassRR1dKmedoids",]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -424,7 +425,7 @@ plt.rcParams.update({
   'axes.titlesize': 15,
   'figure.figsize': (10, 15),
 })
-summarize_1d()
+# summarize_1d()
 
 draw_1d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_1d_qps_comp_wrt_recall_by_selectivity()
