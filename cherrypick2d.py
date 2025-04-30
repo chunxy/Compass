@@ -167,7 +167,7 @@ def draw_2d_comp_fixed_recall_by_selectivity(workloads, ranges, compare_by):
                 bisect.bisect(selectivities, f"{int(w.split('-')[0]) * int(w.split('-')[1]) / 10000:.2f}") for w in grouped_qps["selectivity"]
               ]) - 1
               axs[i].plot(pos_s, grouped_comp["comp"])
-              axs[i].scatter(pos_s, grouped_comp["comp"], label=f"{m}", marker=marker)
+              axs[i].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}-{s}", marker=marker)
           else:
             rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
 
@@ -179,7 +179,7 @@ def draw_2d_comp_fixed_recall_by_selectivity(workloads, ranges, compare_by):
               bisect.bisect(selectivities, f"{int(w.split('-')[0]) * int(w.split('-')[1]) / 10000:.2f}") for w in grouped_qps["selectivity"]
             ]) - 1
             axs[i].plot(pos_s, grouped_comp["comp"])
-            axs[i].scatter(pos_s, grouped_comp["comp"], label=f"{m}", marker=marker)
+            axs[i].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
 
     fig.set_size_inches(21, 6)
     unique_labels = {}
