@@ -138,37 +138,58 @@ def draw_2d_comp_fixed_recall_by_selectivity(workloads, ranges, compare_by):
   selectivities = [f"{int(w.split('-')[0]) * int(w.split('-')[1]) / 10000:.2f}" for w in ranges]
 
   for recall in cutoff_recalls:
-    nrow = 2
+    nrow = 2 if len(workloads) >= 4 else 1
     ncol = (len(workloads) + nrow - 1) // nrow
     fig, axs = plt.subplots(nrow, ncol, layout='constrained')
+    axs = axs.flat
     for i, dataset in enumerate(workloads):
-      axs[i // ncol][i % ncol].set_xticks(np.arange(len(selectivities)))
-      axs[i // ncol][i % ncol].set_xticklabels(selectivities)
-      axs[i // ncol][i % ncol].set_title(dataset.upper())
-      axs[i // ncol][i % ncol].set_ylabel('# Comp')
-      axs[i // ncol][i % ncol].set_xlabel('Selectivity')
+      axs[i].set_xticks(np.arange(len(selectivities)))
+      axs[i].set_xticklabels(selectivities)
+      axs[i].set_title(dataset.upper())
+      axs[i].set_ylabel('# Comp')
+      axs[i].set_xlabel('Selectivity')
       data = df[df["dataset"] == dataset]
       for m in workloads[dataset]:
-        for b in [TEMPLATES[m].build.format(*b) for b in workloads[dataset][m]]:
+        for b in [TEMPLATES[m].build.format(*b) for b in workloads[dataset][m]["build"]]:
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, TWOD_RUNS[m].marker)
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if data_by_m_b.size == 0: continue
-          rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
+          if "search" in workloads[dataset][m]:
+            for s in workloads[dataset][m]["search"]:
+              data_by_m_b_s = data_by_m_b[data_by_m_b["run"].str.contains(s)]
+              rec_sel_qps_comp = data_by_m_b_s[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
 
-          grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["qps"].max()
-          grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["comp"].min()
-          grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(ranges)]
-          grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(ranges)]
-          pos_s = np.array([
-            bisect.bisect(selectivities, f"{int(w.split('-')[0]) * int(w.split('-')[1]) / 10000:.2f}") for w in grouped_qps["selectivity"]
-          ]) - 1
-          axs[i // ncol][i % ncol].plot(pos_s, grouped_comp["comp"])
-          axs[i // ncol][i % ncol].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
+              grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["qps"].max()
+              grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["comp"].min()
+              grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(ranges)]
+              grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(ranges)]
+              pos_s = np.array([
+                bisect.bisect(selectivities, f"{int(w.split('-')[0]) * int(w.split('-')[1]) / 10000:.2f}") for w in grouped_qps["selectivity"]
+              ]) - 1
+              axs[i].plot(pos_s, grouped_comp["comp"])
+              axs[i].scatter(pos_s, grouped_comp["comp"], label=f"{m}", marker=marker)
+          else:
+            rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
 
-    fig.set_size_inches(21, 12)
-    handles, labels = axs[0][0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="outside right upper")
-    fig.savefig(f"cherrypick2d_{K}/Recall-{recall:.2g}-{compare_by}-All-Comp.jpg", dpi=200)
+            grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["qps"].max()
+            grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["comp"].min()
+            grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(ranges)]
+            grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(ranges)]
+            pos_s = np.array([
+              bisect.bisect(selectivities, f"{int(w.split('-')[0]) * int(w.split('-')[1]) / 10000:.2f}") for w in grouped_qps["selectivity"]
+            ]) - 1
+            axs[i].plot(pos_s, grouped_comp["comp"])
+            axs[i].scatter(pos_s, grouped_comp["comp"], label=f"{m}", marker=marker)
+
+    fig.set_size_inches(21, 6)
+    unique_labels = {}
+    for ax in axs:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label not in unique_labels:
+          unique_labels[label] = handle
+    fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
+    fig.savefig(f"cherrypick2d_{K}/2D-Recall-{recall:.2g}-{compare_by}-All-Comp.jpg", dpi=200)
     plt.close()
 
 
@@ -197,18 +218,20 @@ def compare_with_baseline_to_reach_recall():
     ],
     "CompassGraph": [CompassGraphBuild(32, 200)],
   }
-  workloads = OrderedDict()
-  for d in DATASETS:
-    workloads[d] = base_builds
-  # workloads["crawl"] = {
-  #   "CompassR": [CompassBuild(16, 200, 20000)],
-  #   "CompassIvf": [CompassIvfBuild(20000)],
-  #   "CompassGraph": [CompassGraphBuild(32, 200)],
-  # }
-
-  draw_2d_comp_fixed_recall_by_selectivity(workloads, tot_mom_ranges, "ToT")
   searches = {"CompassR": [f"nrel_{nrel}" for nrel in [500, 1000]]}
   draw_2d_comp_wrt_recall_by_selectivity(evenhand_ranges, base_builds, searches, "baseline/")
+
+  workloads = OrderedDict()
+  for d in DATASETS:
+    workloads[d] = {}
+    for m in base_builds:
+      workloads[d][m] = {}
+      workloads[d][m]["build"] = base_builds[m]
+    workloads[d]["CompassR"]["search"] = [f"nrel_{nrel}" for nrel in [500]]
+  workloads["crawl"]["CompassR"]["build"] = [CompassBuild(16, 200, 20000)]
+  workloads["crawl"]["CompassR"]["search"] = [f"nrel_{nrel}" for nrel in [1000]]
+  workloads["video"]["CompassR"]["search"] = [f"nrel_{nrel}" for nrel in [1000]]
+  draw_2d_comp_fixed_recall_by_selectivity(workloads, tot_mom_ranges, "ToT")
 
 
 compare_with_baseline_to_reach_recall()
@@ -258,16 +281,35 @@ def compare_qps_with_cluster_graph():
 
 # Compare with SotA methods to reach recall
 def compare_with_sota_to_reach_recall():
-  builds = {
-    "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
-    "CompassR": [CompassBuild(16, 200, 10000)],
+  build_search = {
+    "iRangeGraph2d": {
+      "build": [iRangeGraphBuild(32, 200)],
+    },
+    "CompassR": {
+      "build": [CompassBuild(16, 200, 10000)],
+      "search": [f"nrel_{nrel}" for nrel in [800]],
+    },
   }
   workloads = OrderedDict()
-  for d in DATASETS:
-    workloads[d] = builds
+  for d in ("sift", "audio", "crawl"):
+    workloads[d] = build_search
   # workloads["crawl"] = {
-  #   "iRangeGraph2d": [iRangeGraphBuild(32, 200)],
-  #   "CompassR": [CompassBuild(16, 200, 20000)],
+  #   "iRangeGraph2d": {
+  #     "build": [iRangeGraphBuild(32, 200)],
+  #   },
+  #   "CompassR": {
+  #     "build": [CompassBuild(16, 200, 10000)],
+  #     "search": [f"nrel_{nrel}" for nrel in [1000]],
+  #   },
+  # }
+  # workloads["video"] = {
+  #   "iRangeGraph2d": {
+  #     "build": [iRangeGraphBuild(32, 200)],
+  #   },
+  #   "CompassR": {
+  #     "build": [CompassBuild(16, 200, 10000)],
+  #     "search": [f"nrel_{nrel}" for nrel in [1000]],
+  #   },
   # }
 
   draw_2d_comp_fixed_recall_by_selectivity(workloads, tot_mom_ranges, "MoM")
