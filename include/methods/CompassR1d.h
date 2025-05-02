@@ -265,8 +265,8 @@ class CompassR1d {
           int cnt = hnsw_.M_;
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
-            candidate_set.emplace(-top.first, top.second);
-            top_candidates.emplace(top.first, top.second);
+            candidate_set.emplace(top.first, top.second);
+            top_candidates.emplace(-top.first, top.second);
             if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
             recycle_set.pop();
             cnt--;
@@ -788,8 +788,8 @@ class CompassR1d {
           int cnt = hnsw_.M_;
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
-            candidate_set.emplace(-top.first, top.second);
-            top_candidates.emplace(top.first, top.second);
+            candidate_set.emplace(top.first, top.second);
+            top_candidates.emplace(-top.first, top.second);
             if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
             recycle_set.pop();
             cnt--;
