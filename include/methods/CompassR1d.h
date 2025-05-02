@@ -189,6 +189,7 @@ class CompassR1d {
     return results;
   }
 
+  // For CompassRR1d series.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV1(
       const void *query,
       const int nq,
@@ -259,15 +260,14 @@ class CompassR1d {
             crel++;
 
             recycle_set.emplace(-dist, tableid);
-
           }
           metrics[q].nround++;
           int cnt = hnsw_.M_;
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
-            candidate_set.emplace(top.first, top.second);
-            top_candidates.emplace(-top.first, top.second);
-            if (top_candidates.size() >= efs_) top_candidates.pop(); // better not to overflow the result queue
+            candidate_set.emplace(-top.first, top.second);
+            top_candidates.emplace(top.first, top.second);
+            if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
             recycle_set.pop();
             cnt--;
           }
@@ -316,6 +316,7 @@ class CompassR1d {
     return results;
   }
 
+  // For CompassR1d series
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV2(
       const void *query,
       const int nq,
@@ -596,6 +597,7 @@ class CompassR1d {
   //     return results;
   //   }
 
+  // For CompassRCg1d series.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV4(
       const void *query,
       const int nq,
@@ -684,8 +686,6 @@ class CompassR1d {
             std::ref(metrics[q].ncomp),
             std::ref(metrics[q].is_graph_ppsl)
         );
-        // if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) ||
-        //     curr_ci >= (q + 1) * nprobe) {
         if ((top_candidates.size() >= efs_) || curr_ci >= nprobe) {
           break;
         }
@@ -700,7 +700,7 @@ class CompassR1d {
           break;
         else {
           top_candidates.emplace(-top.first, top.second);
-          top_candidates.pop();
+          if (top_candidates.size() > k) top_candidates.pop();
           nrecycled++;
         }
         recycle_set.pop();
@@ -717,6 +717,7 @@ class CompassR1d {
     return results;
   }
 
+  // For CompassRRCg1d series
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV5(
       const void *query,
       const int nq,
@@ -787,9 +788,9 @@ class CompassR1d {
           int cnt = hnsw_.M_;
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
-            candidate_set.emplace(top.first, top.second);
-            top_candidates.emplace(-top.first, top.second);
-            if (top_candidates.size() >= efs_) top_candidates.pop(); // better not to overflow the result queue
+            candidate_set.emplace(-top.first, top.second);
+            top_candidates.emplace(top.first, top.second);
+            if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
             recycle_set.pop();
             cnt--;
           }
@@ -823,7 +824,7 @@ class CompassR1d {
           break;
         else {
           top_candidates.emplace(-top.first, top.second);
-          top_candidates.pop();
+          if (top_candidates.size() > k) top_candidates.pop();
           nrecycled++;
         }
         recycle_set.pop();
