@@ -14,7 +14,7 @@ for dataset in datasets:
       template_npath = "/home/chunxy/repos/Compass/checkpoints/{}/{}/{}.ivf"
       new_ivf_path = template_npath.format(what_kmeans["method"], dataset, nlist)
 
-      template_centroid_path = "/home/chunxy/repos/Compass/data/{}.{}.{}.medoids"
+      template_centroid_path = "/home/chunxy/repos/Compass/data/{}.{}.{}.centroids"
       centroid_path = template_centroid_path.format(dataset, nlist, what_kmeans["shortcut"])
 
       if not Path(centroid_path).exists(): continue
