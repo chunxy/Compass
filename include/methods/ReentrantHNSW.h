@@ -304,7 +304,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       auto curr_dist = -candidate_set.top().first;
       candidate_set.pop();
 
-      if (curr_dist > upper_bound && top_candidates.size() >= efs) {
+      if (curr_dist > upper_bound) {
         break;
       }
 
@@ -328,7 +328,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         is_graph_ppsl[cand_nbr] = true;
         dist_t cand_nbr_dist =
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
-        if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
+        if (cand_nbr_dist < upper_bound) {
           candidate_set.emplace(-cand_nbr_dist, cand_nbr);
 #ifdef USE_SSE
           _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
