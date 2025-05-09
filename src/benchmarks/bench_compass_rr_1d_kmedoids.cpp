@@ -18,7 +18,7 @@
 #include "config.h"
 #include "faiss/MetricType.h"
 #include "json.hpp"
-#include "methods/CompassR1d.h"
+#include "methods/CompassRKmedoids1d.h"
 #include "methods/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  CompassR1d<float, float> comp(d, args.M, args.efc, nb, args.nlist);
+  CompassRKmedoids1d<float, float> comp(d, args.M, args.efc, nb, args.nlist);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
