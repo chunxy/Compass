@@ -227,7 +227,6 @@ class CompassR1d {
       int curr_ci = q * nprobe;
       auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
       auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
-      float stop_bound = 1e10;
 
       while (true) {
         int crel = 0;
@@ -240,7 +239,6 @@ class CompassR1d {
               else {
                 itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
                 itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
-                stop_bound = 1e10;
                 // recycle_set = priority_queue<pair<float, int64_t>>();
                 continue;
               }
@@ -252,7 +250,7 @@ class CompassR1d {
             _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
-            visited[tableid] = true;
+            // visited[tableid] = true;
 
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
@@ -266,10 +264,12 @@ class CompassR1d {
           int cnt = hnsw_.M_;
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
+            recycle_set.pop();
+            if (visited[top.second]) continue;
+            visited[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
-            recycle_set.pop();
             cnt--;
           }
         }
@@ -277,8 +277,9 @@ class CompassR1d {
         hnsw_.ReentrantSearchKnnBounded(
             (float *)query + q * ivf_->d,
             k,
-            -recycle_set.top().first, // cause infinite loop?
-            // 1e10,
+            // -recycle_set.top().first, // cause infinite loop?
+            // distances[curr_ci],
+            1e10,
             top_candidates,
             candidate_set,
             visited,
@@ -410,6 +411,132 @@ class CompassR1d {
         );
         // if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) ||
         //     curr_ci >= (q + 1) * nprobe) {
+        if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
+          break;
+        }
+      }
+
+      metrics[q].ncluster = curr_ci - q * nprobe;
+      int nrecycled = 0;
+      while (top_candidates.size() > k) top_candidates.pop();
+      while (!recycle_set.empty()) {
+        auto top = recycle_set.top();
+        if (top_candidates.size() >= k && -top.first > top_candidates.top().first)
+          break;
+        else {
+          top_candidates.emplace(-top.first, top.second);
+          if (top_candidates.size() > k) top_candidates.pop();
+          nrecycled++;
+        }
+        recycle_set.pop();
+      }
+      metrics[q].nrecycled = nrecycled;
+      while (top_candidates.size() > k) top_candidates.pop();
+      size_t sz = top_candidates.size();
+      while (!top_candidates.empty()) {
+        results[q][--sz] = top_candidates.top();
+        top_candidates.pop();
+      }
+    }
+
+    return results;
+  }
+
+  // For CompassRR1dKmedoids
+  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3(
+      const void *query,
+      const int nq,
+      const int k,
+      const attr_t &l_bound,
+      const attr_t &u_bound,
+      const int efs,
+      const int nrel,
+      const int nthread,
+      vector<Metric> &metrics,
+      faiss::idx_t *ranked_clusters,
+      float *distances
+  ) {
+    auto efs_ = std::max(k, efs);
+    hnsw_.setEf(efs_);
+    int nprobe = ivf_->nlist / 20;
+    this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
+
+    vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
+
+    RangeQuery<float> pred(l_bound, u_bound, &attrs_);
+
+    // #pragma omp parallel for num_threads(nthread) schedule(static)
+    for (int q = 0; q < nq; q++) {
+      priority_queue<pair<float, int64_t>> top_candidates;
+      priority_queue<pair<float, int64_t>> candidate_set;
+      priority_queue<pair<float, int64_t>> recycle_set;
+
+      vector<bool> visited(hnsw_.cur_element_count, false);
+
+      metrics[q].nround = 0;
+      metrics[q].ncomp = 0;
+
+      int curr_ci = q * nprobe;
+      auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
+      auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
+
+      while (true) {
+        int crel = 0;
+        if (candidate_set.empty() || (curr_ci < nprobe * (q + 1))) {
+          while (crel < nrel) {
+            if (itr_beg == itr_end) {
+              curr_ci++;
+              if (curr_ci >= (q + 1) * nprobe)
+                break;
+              else {
+                itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
+                itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
+                continue;
+              }
+            }
+
+            auto tableid = (*itr_beg).second;
+            itr_beg++;
+#ifdef USE_SSE
+            _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+#endif
+            if (visited[tableid]) continue;
+            // visited[tableid] = true;
+
+            auto vect = hnsw_.getDataByInternalId(tableid);
+            auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
+            metrics[q].ncomp++;
+            metrics[q].is_ivf_ppsl[tableid] = true;
+            crel++;
+
+            recycle_set.emplace(-dist, tableid);
+          }
+          metrics[q].nround++;
+          int cnt = hnsw_.M_;
+          while (!recycle_set.empty() && cnt > 0) {
+            auto top = recycle_set.top();
+            recycle_set.pop();
+            if (visited[top.second]) continue;
+            visited[top.second] = true;
+            candidate_set.emplace(top.first, top.second);
+            top_candidates.emplace(-top.first, top.second);
+            if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
+            cnt--;
+          }
+        }
+
+        hnsw_.ReentrantSearchKnnBounded(
+            (float *)query + q * ivf_->d,
+            k,
+            // -recycle_set.top().first, // cause infinite loop?
+            distances[curr_ci],
+            top_candidates,
+            candidate_set,
+            visited,
+            &pred,
+            std::ref(metrics[q].ncomp),
+            std::ref(metrics[q].is_graph_ppsl)
+        );
         if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
           break;
         }
