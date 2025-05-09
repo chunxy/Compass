@@ -15,6 +15,7 @@ struct IvfGraph1dArgs {
   int M = 32;
   int efc = 100;
   int nlist = 1000;  // the number of coarse clusters
+  int dproclus = 128;
   int nsub = 4;
   int nbits = 4;
   vector<int> nrel = {100};  // the number of candidates proposed by IVF per round
@@ -37,6 +38,7 @@ struct IvfGraph1dArgs {
     optional_configs.add_options()("M", po::value<decltype(M)>(&M));
     optional_configs.add_options()("efc", po::value<decltype(efc)>(&efc));
     optional_configs.add_options()("nlist", po::value<decltype(nlist)>(&nlist));
+    optional_configs.add_options()("dproclus", po::value<decltype(dproclus)>(&dproclus));
     optional_configs.add_options()("nsub", po::value<decltype(nsub)>(&nsub));
     optional_configs.add_options()("nbits", po::value<decltype(nbits)>(&nbits));
     // index search parameters
