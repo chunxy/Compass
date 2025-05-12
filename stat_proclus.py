@@ -2,8 +2,16 @@ from matplotlib import pyplot as plt
 import numpy as np
 from pathlib import Path
 
-dataset_config = {"sift": [(1000, 64)]}
+dataset_config = {
+  "sift": [(1000, 64), (10000, 64)],
+  "glove100": [(1000, 50)],
+  "gist": [(1000, 320)],
+  "crawl": [(2000, 100)],
+  "video": [(10000, 128)],
+  "audio": [(1000, 64), (10000, 64)],
+}
 dataset_nb = {"sift": 1_000_000}
+
 
 def stat_top_k_in_cluster_by_selectivity():
   STATS_DIR = "/home/chunxy/repos/Compass/stats"
@@ -12,10 +20,10 @@ def stat_top_k_in_cluster_by_selectivity():
   k = 10
   ranges = [(0, 10000), *[(100, r) for r in (200, 300, 600)], *[(100, r) for r in range(1100, 10000, 1000)]]
 
-  for i, d in enumerate(dataset_config.keys()):
+  for d in dataset_config.keys():
     for rg in ranges:
-      fig, axs = plt.subplots(1, len(dataset_config[d]) + 1, layout='constrained')
-      for config in dataset_config[d]:
+      fig, axs = plt.subplots(1, max(2, len(dataset_config[d])), layout='constrained')
+      for i, config in enumerate(dataset_config[d]):
         nlist, dim = config
         stat_path = stat_dir / stat_tmpl.format(k, d, nlist, dim, *rg)
         if not stat_path.exists(): continue
@@ -42,7 +50,7 @@ def stat_cluster_imbalance_factor():
   STATS_DIR = "/home/chunxy/repos/Compass/checkpoints/Proclus"
   stat_dir = Path(STATS_DIR)
   for d, configs in dataset_config.items():
-    fig, axs = plt.subplots(1, len(configs), layout='constrained')
+    fig, axs = plt.subplots(1, max(2, len(configs)), layout='constrained')
     axs = axs.flat
     for i, c in enumerate(configs):
       nlist, dproclus = c

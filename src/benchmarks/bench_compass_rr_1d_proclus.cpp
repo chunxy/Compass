@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
   std::string rank_ckp = fmt::format("{}-{}.ranking", args.nlist, args.dproclus);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
 
-  Proclus proclus(args.nlist, nb, d);
+  Proclus proclus(args.nlist, d);
   if (fs::exists(ckp_root / "Proclus" / c.name / subspace_ckp)) {
     proclus.read_subspaces((ckp_root / "Proclus" / c.name / subspace_ckp).string());
     fmt::print("Finished loading subspace mask.\n");

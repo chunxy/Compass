@@ -1,4 +1,5 @@
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
@@ -46,17 +47,36 @@ int main(int argc, char **argv) {
   fs::path ckp_root(CKPS);
   std::string medoids_ckp = fmt::format("{}-{}.medoids", nlist, dproclus);
   std::string subspace_ckp = fmt::format("{}-{}.subspaces", nlist, dproclus);
+  std::string ranking_ckp = fmt::format("{}-{}.ranking", nlist, dproclus);
   Proclus proclus(nlist, d);
-  proclus.read_subspaces((ckp_root / "Proclus" / c.name / subspace_ckp).string());
-  std::ifstream in(ckp_root / "Proclus" / c.name / medoids_ckp);
-  in.read((char *)proclus.medoids, nlist * d * sizeof(float));
+
+  if (fs::exists(ckp_root / "Proclus" / c.name / subspace_ckp)) {
+    proclus.read_subspaces((ckp_root / "Proclus" / c.name / subspace_ckp).string());
+  } else {
+    fmt::print("Subspace file does not exist. Exitting...\n");
+    return -1;
+  }
+
+  if (fs::exists(ckp_root / "Proclus" / c.name / medoids_ckp)) {
+    std::ifstream in(ckp_root / "Proclus" / c.name / medoids_ckp);
+    in.read((char *)proclus.medoids, nlist * d * sizeof(float));
+  } else {
+    fmt::print("Medoids file does not exist. Exiting...\n");
+    return -1;
+  }
+
+  auto b_ranked_clusters = new faiss::idx_t[c.n_base];
+  if (fs::exists(ckp_root / "Proclus" / c.name / ranking_ckp)) {
+    std::ifstream in(ckp_root / "Proclus" / c.name / ranking_ckp);
+    in.read((char *)b_ranked_clusters, c.n_base * sizeof(faiss::idx_t));
+  } else {
+    fmt::print("Ranking file does not exist. Exitting...\n");
+    return -1;
+  }
 
   float* distances = new float[c.n_queries * nlist];
   auto q_ranked_clusters = new faiss::idx_t[c.n_queries * nlist];
   proclus.search(c.n_queries, xq, q_ranked_clusters, nlist);
-
-  auto b_ranked_clusters = new faiss::idx_t[c.n_base];
-  proclus.search(c.n_base, xb, b_ranked_clusters, 1);
 
   int32_t *hist = new int32_t[nlist];
   memset(hist, 0, sizeof(int32_t) * nlist); // Corrected sizeof(int) to sizeof(int32_t)
@@ -72,7 +92,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  string hist_file = fmt::format("proclus_top_{}_in_cluster_hist_{}_{}_{}_{}.bin", k, c.name, nlist, dproclus, l, r);
+  string hist_file = fmt::format("proclus_top_{}_in_cluster_hist_{}_{}_{}_{}_{}.bin", k, c.name, nlist, dproclus, l, r);
   fs::path stat_root(STATS);
   fs::path hist_path = stat_root / hist_file;
   std::ofstream out(hist_path.c_str());
