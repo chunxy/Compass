@@ -10,7 +10,14 @@ dataset_config = {
   "video": [(10000, 128)],
   "audio": [(1000, 64), (10000, 64)],
 }
-dataset_nb = {"sift": 1_000_000}
+dataset_nb = {
+  "sift": 1_000_000,
+  "audio": 1_000_000,
+  "glove100": 1_000_000,
+  "gist": 1_183_514,
+  "crawl": 2_000_000,
+  "video": 1_000_000,
+}
 
 
 def stat_top_k_in_cluster_by_selectivity():
@@ -46,6 +53,7 @@ def stat_top_k_in_cluster_by_selectivity():
       fig.savefig(f"figures_10/clustering/{d.upper()}-Proclus-{(rg[1] - rg[0]) / 10000:.1%}-Clustering-Quality.jpg", dpi=100)
       plt.close()
 
+
 def stat_cluster_imbalance_factor():
   STATS_DIR = "/home/chunxy/repos/Compass/checkpoints/Proclus"
   stat_dir = Path(STATS_DIR)
@@ -72,5 +80,6 @@ def stat_cluster_imbalance_factor():
     fig.savefig(f"figures_10/clustering/{d.upper()}-Proclus-Cluster-Imbalance.jpg", dpi=200)
     plt.close(fig)
 
-# stat_cluster_imbalance_factor()
-stat_top_k_in_cluster_by_selectivity()
+
+stat_cluster_imbalance_factor()
+# stat_top_k_in_cluster_by_selectivity()
