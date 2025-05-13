@@ -255,7 +255,6 @@ class CompassR1d {
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
             metrics[q].ncomp++;
-            metrics[q].is_ivf_ppsl[tableid] = true;
             crel++;
 
             recycle_set.emplace(-dist, tableid);
@@ -267,6 +266,7 @@ class CompassR1d {
             recycle_set.pop();
             if (visited[top.second]) continue;
             visited[top.second] = true;
+            metrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
@@ -277,9 +277,8 @@ class CompassR1d {
         hnsw_.ReentrantSearchKnnBounded(
             (float *)query + q * ivf_->d,
             k,
-            // -recycle_set.top().first, // cause infinite loop?
+            -recycle_set.top().first, // cause infinite loop?
             // distances[curr_ci],
-            1e10,
             top_candidates,
             candidate_set,
             visited,
@@ -442,7 +441,7 @@ class CompassR1d {
     return results;
   }
 
-  // For CompassRR1dKmedoids
+  // For clustering that returns medoids
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3(
       const void *query,
       const int nq,
@@ -506,7 +505,6 @@ class CompassR1d {
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
             metrics[q].ncomp++;
-            metrics[q].is_ivf_ppsl[tableid] = true;
             crel++;
 
             recycle_set.emplace(-dist, tableid);
@@ -518,6 +516,7 @@ class CompassR1d {
             recycle_set.pop();
             if (visited[top.second]) continue;
             visited[top.second] = true;
+            metrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
@@ -745,12 +744,10 @@ class CompassR1d {
             _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
-            visited[tableid] = true;
 
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
             metrics[q].ncomp++;
-            metrics[q].is_ivf_ppsl[tableid] = true;
             crel++;
 
             recycle_set.emplace(-dist, tableid);
@@ -759,10 +756,13 @@ class CompassR1d {
           int cnt = hnsw_.M_;
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
+            recycle_set.pop();
+            if (visited[top.second]) continue;
+            visited[top.second] = true;
+            metrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
-            recycle_set.pop();
             cnt--;
           }
         }
@@ -770,8 +770,7 @@ class CompassR1d {
         hnsw_.ReentrantSearchKnnBounded(
             (float *)query + q * ivf_->d,
             k,
-            // clusters[curr_ci].first,
-            1e10,
+            -recycle_set.top().first,
             top_candidates,
             candidate_set,
             visited,
@@ -779,8 +778,6 @@ class CompassR1d {
             std::ref(metrics[q].ncomp),
             std::ref(metrics[q].is_graph_ppsl)
         );
-        // if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) ||
-        //     curr_ci >= (q + 1) * nprobe) {
         if ((top_candidates.size() >= efs_) || curr_ci >= nprobe) {
           break;
         }

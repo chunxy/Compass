@@ -123,12 +123,11 @@ class CompassRProclus1d {
             _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
-            visited[tableid] = true;
+            // visited[tableid] = true;
 
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * dim_, vect, hnsw_.dist_func_param_);
             metrics[q].ncomp++;
-            metrics[q].is_ivf_ppsl[tableid] = true;
             crel++;
 
             recycle_set.emplace(-dist, tableid);
@@ -137,18 +136,21 @@ class CompassRProclus1d {
           int cnt = hnsw_.M_;
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
+            recycle_set.pop();
+            if (visited[top.second]) continue;
+            visited[top.second] = true;
+            metrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
-            recycle_set.pop();
             cnt--;
           }
         }
 
-        hnsw_.ReentrantSearchKnn(
+        hnsw_.ReentrantSearchKnnBounded(
             (float *)query + q * dim_,
             k,
-            -1,
+            distances[curr_ci],
             top_candidates,
             candidate_set,
             visited,
@@ -156,13 +158,12 @@ class CompassRProclus1d {
             std::ref(metrics[q].ncomp),
             std::ref(metrics[q].is_graph_ppsl)
         );
-        // if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) ||
-        //     curr_ci >= (q + 1) * nprobe) {
         if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
           break;
         }
       }
 
+      metrics[q].ncluster = curr_ci - q * nprobe;
       while (top_candidates.size() > k) top_candidates.pop();
       size_t sz = top_candidates.size();
       // vector<std::pair<dist_t, labeltype>> result(sz);
