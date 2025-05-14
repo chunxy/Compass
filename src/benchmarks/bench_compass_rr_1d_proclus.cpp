@@ -82,8 +82,7 @@ int main(int argc, char **argv) {
     return -1;
   }
   if (fs::exists(ckp_root / "Proclus" / c.name / medoids_ckp)) {
-    std::ifstream in(ckp_root / "Proclus" / c.name / medoids_ckp);
-    in.read((char *)proclus.medoids, args.nlist * d * sizeof(float));
+    proclus.read_medoids((ckp_root / "Proclus" / c.name / medoids_ckp).string());
     fmt::print("Finished loading medoids.\n");
   } else {
     fmt::print("Cannot find medoids. Exitting now.\n");

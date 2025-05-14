@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
 
   float* distances = new float[c.n_queries * nlist];
   auto q_ranked_clusters = new faiss::idx_t[c.n_queries * nlist];
-  proclus.search(c.n_queries, xq, q_ranked_clusters, nlist);
+  proclus.search_l1(c.n_queries, xq, q_ranked_clusters, nlist);
 
   int32_t *hist = new int32_t[nlist];
   memset(hist, 0, sizeof(int32_t) * nlist); // Corrected sizeof(int) to sizeof(int32_t)

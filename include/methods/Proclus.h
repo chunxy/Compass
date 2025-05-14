@@ -18,19 +18,7 @@ struct Proclus {
     memset(mask, 0, nclusters * d * sizeof(float));
   }
 
-  // write a function read in medoids and mask from float*
-  void read(float *medoids, int32_t *subspaces) {
-    memcpy(this->medoids, medoids, nclusters * d * sizeof(float));
-    memset(this->mask, 0, nclusters * d * sizeof(float));
-    for (int i = 0; i < nclusters; i++) {
-      for (int j = 0; j < d; j++) {
-        if (subspaces[i * d + j] == -1) break;
-        this->mask[i * d + subspaces[i * d + j]] = 1;
-      }
-    }
-  }
-
-  void read_subspaces(std::string path) {
+  void read_subspaces_deprecated(std::string path) {
     std::ifstream in(path);
     for (int i = 0; i < nclusters; i++) {
       for (int j = 0; j < d; j++) {
@@ -42,7 +30,17 @@ struct Proclus {
     }
   }
 
-  void search_rerank(int n, float *x, faiss::idx_t *labels, float *distances, int k = 1) {
+  void read_subspaces(std::string path) {
+    std::ifstream in(path);
+    in.read((char *)mask, nclusters * d * sizeof(float));
+  }
+
+  void read_medoids(std::string path) {
+    std::ifstream in(path);
+    in.read((char *)medoids, nclusters * d * sizeof(float));
+  }
+
+  void search_l1_rerank_l2(int n, float *x, faiss::idx_t *labels, float *distances, int k = 1) {
     std::fill(labels, labels + n, -1);
     std::fill(distances, distances + n * k, std::numeric_limits<float>::max());
 #pragma omp parallel for
@@ -73,7 +71,7 @@ struct Proclus {
     }
   }
 
-  void search(int n, float *x, faiss::idx_t *labels, int k = 1) {
+  void search_l1(int n, float *x, faiss::idx_t *labels, int k = 1) {
     std::fill(labels, labels + n, -1);
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {

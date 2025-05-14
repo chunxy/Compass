@@ -80,7 +80,7 @@ class CompassRProclus1d {
     auto efs_ = std::max(k, efs);
     hnsw_.setEf(efs_);
     int nprobe = nlist_ / 20;
-    proclus_->search_rerank(nq, (float *)query, ranked_clusters, distances, nprobe);
+    proclus_->search_l1_rerank_l2(nq, (float *)query, ranked_clusters, distances, nprobe);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 
@@ -227,7 +227,7 @@ int CompassRProclus1d<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data, 
   // ivf_->add(n, (float *)data);  // add_sa_codes
   ranked_clusters_ = new faiss::idx_t[n];
   float *distances = new float[n];
-  proclus_->search_rerank(n, (float *)data, ranked_clusters_, distances);
+  proclus_->search_l1_rerank_l2(n, (float *)data, ranked_clusters_, distances);
   for (int i = 0; i < n; i++) {
     attrs_[labels[i]] = attr[i];
     btrees_[ranked_clusters_[i]].insert(std::make_pair(attr[i], labels[i]));
