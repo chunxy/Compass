@@ -82,4 +82,4 @@ def stat_cluster_imbalance_factor():
 
 
 stat_cluster_imbalance_factor()
-# stat_top_k_in_cluster_by_selectivity()
+stat_top_k_in_cluster_by_selectivity()

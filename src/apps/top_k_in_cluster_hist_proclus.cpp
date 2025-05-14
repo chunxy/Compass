@@ -58,8 +58,7 @@ int main(int argc, char **argv) {
   }
 
   if (fs::exists(ckp_root / "Proclus" / c.name / medoids_ckp)) {
-    std::ifstream in(ckp_root / "Proclus" / c.name / medoids_ckp);
-    in.read((char *)proclus.medoids, nlist * d * sizeof(float));
+    proclus.read_medoids((ckp_root / "Proclus" / c.name / medoids_ckp).string());
   } else {
     fmt::print("Medoids file does not exist. Exiting...\n");
     return -1;
