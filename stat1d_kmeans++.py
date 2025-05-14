@@ -8,7 +8,7 @@ STATS_DIR = "/home/chunxy/repos/Compass/stats"
 
 def stat_top_k_in_cluster_by_selectivity():
   stat_dir = Path(STATS_DIR)
-  stat_tmpl = "top_{}_in_cluster_hist_{}_{}_{}_{}.bin"
+  stat_tmpl = "kmeans++_top_{}_in_cluster_hist_{}_{}_{}_{}.bin"
   nlist_s = [1000, 2000, 5000, 10000, 20000]
   k = 10
   ranges = [(0, 10000), *[(100, r) for r in (200, 300, 600)], *[(100, r) for r in range(1100, 10000, 1000)]]
@@ -35,13 +35,13 @@ def stat_top_k_in_cluster_by_selectivity():
           axs[i].set_ylim(0, 0.5)
           axs[i].set_title(f"{dataset.upper()}-{rg}")
       fig.set_size_inches(20, 5)
-      fig.savefig(f"figures_10/clustering/All-KMeans-{(rg[1] - rg[0]) / 10000:.1%}-Clustering-{nlist}-Quality.jpg", dpi=100)
+      fig.savefig(f"figures_10/clustering/All-KMeans++-{(rg[1] - rg[0]) / 10000:.1%}-Clustering-{nlist}-Quality.jpg", dpi=100)
       plt.close()
 
 
 def stat_cluster_imbalance_factor():
   stat_dir = Path(STATS_DIR)
-  stat_tmpl = "cluster_element_count_{}_{}.bin"
+  stat_tmpl = "kmeans++_cluster_element_count_{}_{}.bin"
   nlist_s = [1000, 2000, 5000, 10000, 20000]
 
   for nlist in nlist_s:
@@ -57,7 +57,7 @@ def stat_cluster_imbalance_factor():
         axs[i].set_ylim(0, 0.015)
         axs[i].set_title(f"{dataset.upper()}-{nlist}")
     fig.set_size_inches(20, 5)
-    fig.savefig(f"figures_10/clustering/All-KMeans-Cluster-{nlist}-Imbalance.jpg", dpi=200)
+    fig.savefig(f"figures_10/clustering/All-KMeans++-Cluster-{nlist}-Imbalance.jpg", dpi=200)
 
 
 stat_top_k_in_cluster_by_selectivity()
