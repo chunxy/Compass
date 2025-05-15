@@ -59,6 +59,7 @@ class CompassR {
   int AddIvfPoints(size_t n, const void *data, labeltype *labels, const vector<vector<attr_t>> &attrs);
   void TrainIvf(size_t n, const void *data);
 
+  // For CompassR series.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
       const void *query,
       const int nq,
@@ -117,8 +118,7 @@ class CompassR {
             auto tableid = (*itr_beg).second;
             itr_beg++;
 #ifdef USE_SSE
-            if (itr_beg != itr_end)
-              _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+            if (itr_beg != itr_end) _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
             visited[tableid] = true;
@@ -166,7 +166,7 @@ class CompassR {
           break;
         else {
           top_candidates.emplace(-top.first, top.second);
-          top_candidates.pop();
+          if (top_candidates.size() > k) top_candidates.pop();
           nrecycled++;
         }
         recycle_set.pop();
@@ -183,7 +183,8 @@ class CompassR {
     return results;
   }
 
-  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV2(
+  // For CompassRR series.
+  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV1(
       const void *query,
       const int nq,
       const int k,
@@ -198,7 +199,7 @@ class CompassR {
   ) {
     auto efs_ = std::max(k, efs);
     hnsw_.setEf(efs_);
-    int nprobe = 100;
+    int nprobe = ivf_->nlist / 20;
     this->ivf_->quantizer->search(nq, (float *)query, nprobe, distances, ranked_clusters);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
@@ -211,50 +212,12 @@ class CompassR {
     for (int q = 0; q < nq; q++) {
       priority_queue<pair<float, int64_t>> top_candidates;
       priority_queue<pair<float, int64_t>> candidate_set;
+      priority_queue<pair<float, int64_t>> recycle_set;
 
       vector<bool> visited(hnsw_.cur_element_count, false);
 
       metrics[q].nround = 0;
       metrics[q].ncomp = 0;
-
-      {
-        tableint currObj = hnsw_.enterpoint_node_;
-        dist_t currDist = hnsw_.fstdistfunc_(
-            (float *)query + q * ivf_->d, hnsw_.getDataByInternalId(hnsw_.enterpoint_node_), hnsw_.dist_func_param_
-        );
-
-        for (int level = hnsw_.maxlevel_; level > 0; level--) {
-          bool changed = true;
-          while (changed) {
-            changed = false;
-            unsigned int *data;
-
-            data = (unsigned int *)hnsw_.get_linklist(currObj, level);
-            int size = hnsw_.getListCount(data);
-            metrics[q].ncomp += size;
-
-            tableint *datal = (tableint *)(data + 1);
-            for (int i = 0; i < size; i++) {
-              tableint cand = datal[i];
-
-              if (cand < 0 || cand > hnsw_.max_elements_) throw std::runtime_error("cand error");
-              dist_t d = hnsw_.fstdistfunc_(
-                  (float *)query + q * ivf_->d, hnsw_.getDataByInternalId(cand), hnsw_.dist_func_param_
-              );
-
-              if (d < currDist) {
-                currDist = d;
-                currObj = cand;
-                changed = true;
-              }
-            }
-          }
-        }
-        visited[currObj] = true;
-        candidate_set.emplace(-currDist, currObj);
-        metrics[q].is_graph_ppsl[currObj] = true;
-        if (pred(currObj)) top_candidates.emplace(currDist, currObj);
-      }
 
       int curr_ci = q * nprobe;
       auto itr_beg = rtrees_[ranked_clusters[curr_ci]].qbegin(geo::index::covered_by(b));
@@ -279,8 +242,7 @@ class CompassR {
             auto tableid = (*itr_beg).second;
             itr_beg++;
 #ifdef USE_SSE
-            if (itr_beg != itr_end)
-              _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+            if (itr_beg != itr_end) _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
             visited[tableid] = true;
@@ -288,17 +250,21 @@ class CompassR {
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
             metrics[q].ncomp++;
+            metrics[q].is_ivf_ppsl[tableid] = true;
             crel++;
 
-            auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
-            if (top_candidates.size() < efs || dist < upper_bound) {
-              candidate_set.emplace(-dist, tableid);
-              top_candidates.emplace(dist, tableid);
-              metrics[q].is_ivf_ppsl[tableid] = true;
-              if (top_candidates.size() > efs_) top_candidates.pop();
-            }
+            recycle_set.emplace(-dist, tableid);
           }
           metrics[q].nround++;
+          int cnt = hnsw_.M_;
+          while (!recycle_set.empty() && cnt > 0) {
+            auto top = recycle_set.top();
+            candidate_set.emplace(top.first, top.second);
+            top_candidates.emplace(-top.first, top.second);
+            if (top_candidates.size() > efs_) top_candidates.pop();  // better not to overflow the result queue
+            recycle_set.pop();
+            cnt--;
+          }
         }
 
         hnsw_.ReentrantSearchKnn(
@@ -312,14 +278,26 @@ class CompassR {
             std::ref(metrics[q].ncomp),
             std::ref(metrics[q].is_graph_ppsl)
         );
-        // if ((top_candidates.size() >= efs_ && min_comp - metrics[q].ncomp < 0) ||
-        //     curr_ci >= (q + 1) * nprobe) {
         if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
           break;
         }
       }
 
       metrics[q].ncluster = curr_ci - q * nprobe;
+      int nrecycled = 0;
+      while (top_candidates.size() > k) top_candidates.pop();
+      while (!recycle_set.empty()) {
+        auto top = recycle_set.top();
+        if (top_candidates.size() >= k && -top.first > top_candidates.top().first)
+          break;
+        else {
+          top_candidates.emplace(-top.first, top.second);
+          if (top_candidates.size() > k) top_candidates.pop();
+          nrecycled++;
+        }
+        recycle_set.pop();
+      }
+      metrics[q].nrecycled = nrecycled;
       while (top_candidates.size() > k) top_candidates.pop();
       size_t sz = top_candidates.size();
       while (!top_candidates.empty()) {
@@ -331,6 +309,7 @@ class CompassR {
     return results;
   }
 
+  // For CompassRCg series.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3(
       const void *query,
       const int nq,
@@ -387,8 +366,7 @@ class CompassR {
             auto tableid = (*itr_beg).second;
             itr_beg++;
 #ifdef USE_SSE
-            if (itr_beg != itr_end)
-              _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+            if (itr_beg != itr_end) _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
             visited[tableid] = true;
@@ -436,7 +414,7 @@ class CompassR {
           break;
         else {
           top_candidates.emplace(-top.first, top.second);
-          top_candidates.pop();
+          if (top_candidates.size() > k) top_candidates.pop();
           nrecycled++;
         }
         recycle_set.pop();
