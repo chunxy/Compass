@@ -6,8 +6,8 @@
 struct Proclus {
   float *medoids;
   float *mask;  // Changed from int32_t* to float*
+  int *dsubspaces;
   int nclusters;
-  int nb;
   int d;
   hnswlib::L1MaskedSpace space;
   hnswlib::L2Space l2space;
@@ -16,6 +16,7 @@ struct Proclus {
     medoids = new float[nclusters * d];
     mask = new float[nclusters * d];  // Changed from int32_t* to float*
     memset(mask, 0, nclusters * d * sizeof(float));
+    dsubspaces = new int[nclusters];
   }
 
   void read_subspaces_deprecated(std::string path) {
@@ -33,6 +34,9 @@ struct Proclus {
   void read_subspaces(std::string path) {
     std::ifstream in(path);
     in.read((char *)mask, nclusters * d * sizeof(float));
+    for (int i = 0; i < nclusters; i++) {
+      dsubspaces[i] = std::accumulate(mask + i * d, mask + (i + 1) * d, 0);
+    }
   }
 
   void read_medoids(std::string path) {
@@ -48,6 +52,7 @@ struct Proclus {
       std::priority_queue<std::pair<float, int>> max_heap;
       for (int j = 0; j < nclusters; j++) {
         float dist = space.get_dist_func()(x + i * d, medoids + j * d, space.get_dist_func_param(), mask + j * d);
+        dist /= dsubspaces[j];
         max_heap.emplace(dist, j);
         if (max_heap.size() > k) {
           max_heap.pop();
@@ -78,6 +83,7 @@ struct Proclus {
       std::priority_queue<std::pair<float, int>> max_heap;
       for (int j = 0; j < nclusters; j++) {
         float dist = space.get_dist_func()(x + i * d, medoids + j * d, space.get_dist_func_param(), mask + j * d);
+        dist /= dsubspaces[j];
         max_heap.emplace(dist, j);
         if (max_heap.size() > k) {
           max_heap.pop();
