@@ -118,12 +118,13 @@ int main(int argc, char **argv) {
       std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", efs, nrel, args.mincomp);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-      fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      fs::path log_root(fmt::format(LOGS, args.k));
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
       FILE *out = stdout;
-      nq = 1000;
+      // nq = 1000;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");

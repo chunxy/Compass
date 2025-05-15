@@ -1,6 +1,6 @@
-datasets=(video audio)
+datasets=(video glove100)
 M_s=(16 32)
-nlist_s=(1000 5000 10000)
+nlist_s=(20000)
 r_s=(200 300 600 1100 2100 3100 4100 5100 6100 7100 8100 9100)
 efs_s=(10 20 60 100 200)
 nrel_s=(500 600 800)
