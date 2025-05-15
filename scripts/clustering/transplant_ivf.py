@@ -1,21 +1,21 @@
 from pathlib import Path
 
-types = [{"shortcut": "bikmeans", "method": "BisectingKMeans"}]
+algos = [{"shortcut": "bikmeans", "method": "BisectingKMeans"}]
 # types = [{"shortcut": "kmedoids", "method": "KMedoids"}]
 datasets = ["sift", "glove100", "gist", "crawl", "video", "audio"]
 nlist_s = [1000, 2000, 5000, 10000, 20000]
 
 for dataset in datasets:
   for nlist in nlist_s:
-    for what_kmeans in types:
+    for algo in algos:
       template_opath = "/home/chunxy/repos/Compass/checkpoints/CompassR1d/{}/{}.ivf"
       old_ivf_path = template_opath.format(dataset, nlist)
 
       template_npath = "/home/chunxy/repos/Compass/checkpoints/{}/{}/{}.ivf"
-      new_ivf_path = template_npath.format(what_kmeans["method"], dataset, nlist)
+      new_ivf_path = template_npath.format(algo["method"], dataset, nlist)
 
-      template_centroid_path = "/home/chunxy/repos/Compass/data/{}.{}.{}.centroids"
-      centroid_path = template_centroid_path.format(dataset, nlist, what_kmeans["shortcut"])
+      template_centroid_path = "/home/chunxy/repos/Compass/data/{}/{}.{}.{}.centroids"
+      centroid_path = template_centroid_path.format(algo["shortcut"], dataset, nlist, algo["shortcut"])
 
       if not Path(centroid_path).exists(): continue
       with open(new_ivf_path, "wb") as new_ivf:
