@@ -34,12 +34,17 @@ struct Proclus {
   void read_subspaces(std::string path) {
     std::ifstream in(path);
     in.read((char *)mask, nclusters * d * sizeof(float));
+    bool has_zero = false;
     for (int i = 0; i < nclusters; i++) {
       dsubspaces[i] = std::accumulate(mask + i * d, mask + (i + 1) * d, 0);
       if (dsubspaces[i] == 0) {
-        printf("Cluster %d has no subspaces. Exiting...\n", i);
-        exit(-1);
+        printf("Cluster %d has no subspaces.\n", i);
+        has_zero = true;
       }
+    }
+    if (has_zero) {
+      printf("Exiting...\n");
+      exit(-1);
     }
   }
 

@@ -65,12 +65,13 @@ int main(int argc, char **argv) {
   }
 
   auto b_ranked_clusters = new faiss::idx_t[c.n_base];
-  if (fs::exists(ckp_root / "Proclus" / c.name / ranking_ckp)) {
+  if (fs::exists(ckp_root / "Proclus" / c.name / ranking_ckp) && false) {
     std::ifstream in(ckp_root / "Proclus" / c.name / ranking_ckp);
     in.read((char *)b_ranked_clusters, c.n_base * sizeof(faiss::idx_t));
   } else {
-    fmt::print("Ranking file does not exist. Exitting...\n");
-    return -1;
+    proclus.search_l1(c.n_base, xb, b_ranked_clusters);
+    std::ofstream out(ckp_root / "Proclus" / c.name / ranking_ckp);
+    out.write((char *)b_ranked_clusters, c.n_base * sizeof(faiss::idx_t));
   }
 
   float* distances = new float[c.n_queries * nlist];
