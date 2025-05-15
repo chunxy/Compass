@@ -36,6 +36,10 @@ struct Proclus {
     in.read((char *)mask, nclusters * d * sizeof(float));
     for (int i = 0; i < nclusters; i++) {
       dsubspaces[i] = std::accumulate(mask + i * d, mask + (i + 1) * d, 0);
+      if (dsubspaces[i] == 0) {
+        printf("Cluster %d has no subspaces. Exiting...\n", i);
+        exit(-1);
+      }
     }
   }
 
