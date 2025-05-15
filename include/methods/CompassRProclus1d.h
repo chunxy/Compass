@@ -142,7 +142,7 @@ class CompassRProclus1d {
             metrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
-            if (top_candidates.size() >= efs_) top_candidates.pop();  // better not to overflow the result queue
+            if (top_candidates.size() > efs_) top_candidates.pop();  // better not to overflow the result queue
             cnt--;
           }
         }
