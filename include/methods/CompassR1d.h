@@ -606,7 +606,7 @@ class CompassR1d {
       int cnt = 0;
       while (true) {
         int crel = 0;
-        if (candidate_set.empty() || (curr_ci < nprobe && -candidate_set.top().first > clusters[curr_ci].first)) {
+        if (candidate_set.empty() || (curr_ci < nprobe)) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
               curr_ci++;
@@ -725,7 +725,7 @@ class CompassR1d {
 
       while (true) {
         int crel = 0;
-        if (candidate_set.empty() || (curr_ci < nprobe && -candidate_set.top().first > clusters[curr_ci].first)) {
+        if (candidate_set.empty() || (curr_ci < nprobe)) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
               curr_ci++;
