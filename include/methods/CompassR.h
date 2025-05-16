@@ -226,7 +226,7 @@ class CompassR {
       int cnt = 0;
       while (true) {
         int crel = 0;
-        if (candidate_set.empty() || (curr_ci < nprobe * (q + 1) && -candidate_set.top().first > distances[curr_ci])) {
+        if (candidate_set.empty() || (curr_ci < nprobe * (q + 1))) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
               curr_ci++;
@@ -250,7 +250,6 @@ class CompassR {
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
             metrics[q].ncomp++;
-            metrics[q].is_ivf_ppsl[tableid] = true;
             crel++;
 
             recycle_set.emplace(-dist, tableid);
@@ -259,18 +258,21 @@ class CompassR {
           int cnt = hnsw_.M_;
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
+            recycle_set.pop();
+            if (visited[top.second]) continue;
+            visited[top.second] = true;
+            metrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             if (top_candidates.size() > efs_) top_candidates.pop();  // better not to overflow the result queue
-            recycle_set.pop();
             cnt--;
           }
         }
 
-        hnsw_.ReentrantSearchKnn(
+        hnsw_.ReentrantSearchKnnBounded(
             (float *)query + q * ivf_->d,
             k,
-            -1,
+            -recycle_set.top().first,
             top_candidates,
             candidate_set,
             visited,
@@ -310,7 +312,7 @@ class CompassR {
   }
 
   // For CompassRCg series.
-  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3(
+  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV2(
       const void *query,
       const int nq,
       const int k,
@@ -393,6 +395,132 @@ class CompassR {
             (float *)query + q * ivf_->d,
             k,
             -1,
+            top_candidates,
+            candidate_set,
+            visited,
+            &pred,
+            std::ref(metrics[q].ncomp),
+            std::ref(metrics[q].is_graph_ppsl)
+        );
+        if ((top_candidates.size() >= efs_) || curr_ci >= nprobe) {
+          break;
+        }
+      }
+
+      metrics[q].ncluster = curr_ci;
+      int nrecycled = 0;
+      while (top_candidates.size() > k) top_candidates.pop();
+      while (!recycle_set.empty()) {
+        auto top = recycle_set.top();
+        if (top_candidates.size() >= k && -top.first > top_candidates.top().first)
+          break;
+        else {
+          top_candidates.emplace(-top.first, top.second);
+          if (top_candidates.size() > k) top_candidates.pop();
+          nrecycled++;
+        }
+        recycle_set.pop();
+      }
+      metrics[q].nrecycled = nrecycled;
+      while (top_candidates.size() > k) top_candidates.pop();
+      size_t sz = top_candidates.size();
+      while (!top_candidates.empty()) {
+        results[q][--sz] = top_candidates.top();
+        top_candidates.pop();
+      }
+    }
+
+    return results;
+  }
+
+  // For CompassRRCg series.
+  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV3(
+      const void *query,
+      const int nq,
+      const int k,
+      const vector<attr_t> &l_bounds,
+      const vector<attr_t> &u_bounds,
+      const int efs,
+      const int nrel,
+      const int nthread,
+      vector<Metric> &metrics
+  ) {
+    auto efs_ = std::max(k, efs);
+    hnsw_.setEf(efs_);
+    int nprobe = ivf_->nlist / 20;
+
+    vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
+
+    WindowQuery<float> pred(l_bounds, u_bounds, &attrs_);
+    point min_corner(l_bounds[0], l_bounds[1]), max_corner(u_bounds[0], u_bounds[1]);
+    box b(min_corner, max_corner);
+
+    // #pragma omp parallel for num_threads(nthread) schedule(static)
+    for (int q = 0; q < nq; q++) {
+      priority_queue<pair<float, int64_t>> top_candidates;
+      priority_queue<pair<float, int64_t>> candidate_set;
+      priority_queue<pair<float, int64_t>> recycle_set;
+      vector<pair<float, labeltype>> clusters = cgraph_.searchKnnCloserFirst((float *)(query) + q * ivf_->d, nprobe);
+
+      vector<bool> visited(hnsw_.cur_element_count, false);
+
+      metrics[q].nround = 0;
+      metrics[q].ncomp = 0;
+
+      int curr_ci = 0;
+      auto itr_beg = rtrees_[clusters[curr_ci].second].qbegin(geo::index::covered_by(b));
+      auto itr_end = rtrees_[clusters[curr_ci].second].qend();
+
+      int cnt = 0;
+      while (true) {
+        int crel = 0;
+        if (candidate_set.empty() || (curr_ci < nprobe)) {
+          while (crel < nrel) {
+            if (itr_beg == itr_end) {
+              curr_ci++;
+              if (curr_ci >= nprobe)
+                break;
+              else {
+                itr_beg = rtrees_[clusters[curr_ci].second].qbegin(geo::index::covered_by(b));
+                itr_end = rtrees_[clusters[curr_ci].second].qend();
+                continue;
+              }
+            }
+
+            auto tableid = (*itr_beg).second;
+            itr_beg++;
+#ifdef USE_SSE
+            if (itr_beg != itr_end) _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+#endif
+            if (visited[tableid]) continue;
+            visited[tableid] = true;
+
+            auto vect = hnsw_.getDataByInternalId(tableid);
+            auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
+            metrics[q].ncomp++;
+            crel++;
+
+            recycle_set.emplace(-dist, tableid);
+          }
+          metrics[q].nround++;
+          int cnt = hnsw_.M_;
+          while (!recycle_set.empty() && cnt > 0) {
+            auto top = recycle_set.top();
+            recycle_set.pop();
+            if (visited[top.second]) continue;
+            visited[top.second] = true;
+            metrics[q].is_ivf_ppsl[top.second] = true;
+            candidate_set.emplace(top.first, top.second);
+            top_candidates.emplace(-top.first, top.second);
+            if (top_candidates.size() > efs_) top_candidates.pop();  // better not to overflow the result queue
+            cnt--;
+          }
+        }
+
+        hnsw_.ReentrantSearchKnn(
+            (float *)query + q * ivf_->d,
+            k,
+            -recycle_set.top().first,
             top_candidates,
             candidate_set,
             visited,
