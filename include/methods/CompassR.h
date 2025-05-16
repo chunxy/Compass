@@ -245,7 +245,6 @@ class CompassR {
             if (itr_beg != itr_end) _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
-            visited[tableid] = true;
 
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
@@ -493,7 +492,6 @@ class CompassR {
             if (itr_beg != itr_end) _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
-            visited[tableid] = true;
 
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
