@@ -54,7 +54,7 @@ struct Proclus {
   }
 
   void search_l1_rerank_l2(int n, float *x, faiss::idx_t *labels, float *distances, int k = 1) {
-    std::fill(labels, labels + n, -1);
+    std::fill(labels, labels + n * k, -1);
     std::fill(distances, distances + n * k, std::numeric_limits<float>::max());
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
@@ -86,7 +86,7 @@ struct Proclus {
   }
 
   void search_l1(int n, float *x, faiss::idx_t *labels, int k = 1) {
-    std::fill(labels, labels + n, -1);
+    std::fill(labels, labels + n * k, -1);
 #pragma omp parallel for
     for (int i = 0; i < n; i++) {
       std::priority_queue<std::pair<float, int>> max_heap;
