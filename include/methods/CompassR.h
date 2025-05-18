@@ -611,7 +611,7 @@ CompassR<dist_t, attr_t>::CompassR(size_t d, size_t M, size_t efc, size_t max_el
       ivf_(new faiss::IndexIVFFlat(&quantizer_, d, nlist)),
       attrs_(max_elements, vector<attr_t>()),
       rtrees_(nlist, rtree()),
-      cgraph_(&space_, nlist, 8, 200) {
+      cgraph_(&space_, nlist, 4, 200) {
   ivf_->nprobe = nlist;
 }
 
