@@ -13,7 +13,7 @@ for dataset in ${datasets[@]}; do
       while [ $i -lt ${#r1_s[@]} ]; do
         r1=${r1_s[$i]}
         r2=${r2_s[$i]}
-        /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_rr_cg_bikmeans --datacard ${d}_2_10000_float32 \
+        /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_rr_cg_bikmeans --datacard ${dataset}_2_10000_float32 \
           --l 100 200 --r ${r1} ${r2} --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
         i=$((i + 1))
       done
@@ -31,7 +31,7 @@ for dataset in ${datasets[@]}; do
       while [ $i -lt ${#r1_s[@]} ]; do
         r1=${r1_s[$i]}
         r2=${r2_s[$i]}
-        /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_rr_cg_bikmeans --datacard ${d}_2_10000_float32 \
+        /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_rr_cg_bikmeans --datacard ${dataset}_2_10000_float32 \
           --l 100 200 --r ${r1} ${r2} --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
         i=$((i + 1))
       done
