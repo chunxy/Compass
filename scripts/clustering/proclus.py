@@ -100,9 +100,10 @@ labels, medoids, subspaces = proclus(data, nlist, ndim, random_state=42)
 labels.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.ranking")
 medoids.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.medoids")
 # Pad subspaces to a fixed size (ndim) with -1
-padded_subspaces = np.full((len(subspaces), ndim), -1, dtype=np.int64)
+padded_subspaces = np.full((len(subspaces), ndim), 0, dtype=np.float32)
 for i, subspace in enumerate(subspaces):
-  padded_subspaces[i, :len(subspace)] = subspace
+  for dim in subspace:
+    padded_subspaces[i, dim] = 1
 padded_subspaces.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.subspaces")
 
 # # Example usage
