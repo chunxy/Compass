@@ -23,7 +23,9 @@
 #include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
+#include "faiss/IndexPreTransform.h"
 #include "faiss/MetricType.h"
+#include "faiss/VectorTransform.h"
 #include "faiss/index_io.h"
 #include "hnswalg.h"
 #include "hnswlib/hnswlib.h"
@@ -42,8 +44,9 @@ class CompassR1d {
  private:
   L2Space space_;
   ReentrantHNSW<dist_t> hnsw_;
-  faiss::IndexFlatL2 quantizer_;
   faiss::IndexIVFFlat *ivf_;
+  faiss::PCAMatrix *pca_;
+  faiss::IndexPreTransform *pca_ivf_;
   // faiss::IndexIVFPQ ivfpq_;
 
   HierarchicalNSW<dist_t> cgraph_;
@@ -55,11 +58,13 @@ class CompassR1d {
 
  public:
   CompassR1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist);
-  CompassR1d(size_t d, size_t M, size_t efc, size_t max_elements, faiss::Index *quantizer, size_t nlist);
-  int AddPoint(const void *data_point, labeltype label, attr_t attr);
+  CompassR1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist, size_t dout);
+  // int AddPoint(const void *data_point, labeltype label, attr_t attr);
   int AddGraphPoint(const void *data_point, labeltype label);
   int AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attrs);
+  int AddPcaIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attrs);
   void TrainIvf(size_t n, const void *data);
+  void TrainPcaIvf(size_t n, const void *data);
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
       const void *query,
       const int nq,
@@ -809,6 +814,133 @@ class CompassR1d {
     return results;
   }
 
+  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnnV6(
+      const void *query,
+      const int nq,
+      const int k,
+      const attr_t &l_bound,
+      const attr_t &u_bound,
+      const int efs,
+      const int nrel,
+      const int nthread,
+      vector<Metric> &metrics,
+      faiss::idx_t *ranked_clusters,
+      float *distances
+  ) {
+    auto efs_ = std::max(k, efs);
+    hnsw_.setEf(efs_);
+    int nprobe = ivf_->nlist / 20;
+    auto xt = this->pca_ivf_->apply_chain(nq, (float *)query);
+    this->ivf_->quantizer->assign(nq, xt, ranked_clusters, nprobe);
+
+    vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
+
+    RangeQuery<float> pred(l_bound, u_bound, &attrs_);
+
+    // #pragma omp parallel for num_threads(nthread) schedule(static)
+    for (int q = 0; q < nq; q++) {
+      priority_queue<pair<float, int64_t>> top_candidates;
+      priority_queue<pair<float, int64_t>> candidate_set;
+      priority_queue<pair<float, int64_t>> recycle_set;
+
+      vector<bool> visited(hnsw_.cur_element_count, false);
+
+      metrics[q].nround = 0;
+      metrics[q].ncomp = 0;
+
+      int curr_ci = q * nprobe;
+      auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
+      auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
+
+      while (true) {
+        int crel = 0;
+        if (candidate_set.empty() || (curr_ci < nprobe * (q + 1))) {
+          while (crel < nrel) {
+            if (itr_beg == itr_end) {
+              curr_ci++;
+              if (curr_ci >= (q + 1) * nprobe)
+                break;
+              else {
+                itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
+                itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
+                // recycle_set = priority_queue<pair<float, int64_t>>();
+                continue;
+              }
+            }
+
+            auto tableid = (*itr_beg).second;
+            itr_beg++;
+#ifdef USE_SSE
+            _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+#endif
+            if (visited[tableid]) continue;
+            // visited[tableid] = true;
+
+            auto vect = hnsw_.getDataByInternalId(tableid);
+            auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
+            metrics[q].ncomp++;
+            crel++;
+
+            recycle_set.emplace(-dist, tableid);
+          }
+          metrics[q].nround++;
+          int cnt = hnsw_.M_;
+          while (!recycle_set.empty() && cnt > 0) {
+            auto top = recycle_set.top();
+            recycle_set.pop();
+            if (visited[top.second]) continue;
+            visited[top.second] = true;
+            metrics[q].is_ivf_ppsl[top.second] = true;
+            candidate_set.emplace(top.first, top.second);
+            top_candidates.emplace(-top.first, top.second);
+            if (top_candidates.size() > efs_) top_candidates.pop();  // better not to overflow the result queue
+            cnt--;
+          }
+        }
+
+        hnsw_.ReentrantSearchKnnBounded(
+            (float *)query + q * ivf_->d,
+            k,
+            -recycle_set.top().first, // cause infinite loop?
+            // distances[curr_ci],
+            top_candidates,
+            candidate_set,
+            visited,
+            &pred,
+            std::ref(metrics[q].ncomp),
+            std::ref(metrics[q].is_graph_ppsl)
+        );
+        if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
+          break;
+        }
+      }
+
+      metrics[q].ncluster = curr_ci - q * nprobe;
+      int nrecycled = 0;
+      while (top_candidates.size() > k) top_candidates.pop();
+      while (!recycle_set.empty()) {
+        auto top = recycle_set.top();
+        if (top_candidates.size() >= k && -top.first > top_candidates.top().first)
+          break;
+        else {
+          top_candidates.emplace(-top.first, top.second);
+          if (top_candidates.size() > k) top_candidates.pop();
+          nrecycled++;
+        }
+        recycle_set.pop();
+      }
+      metrics[q].nrecycled = nrecycled;
+      while (top_candidates.size() > k) top_candidates.pop();
+      size_t sz = top_candidates.size();
+      while (!top_candidates.empty()) {
+        results[q][--sz] = top_candidates.top();
+        top_candidates.pop();
+      }
+    }
+
+    return results;
+  }
+
   void LoadGraph(fs::path path) { this->hnsw_.loadIndex(path.string(), &this->space_); }
 
   void LoadClusterGraph(fs::path path) { this->cgraph_.loadIndex(path.string(), &this->space_); }
@@ -857,17 +989,29 @@ class CompassR1d {
       out.write((char *)(ranked_clusters_ + i), sizeof(faiss::idx_t));
     }
   }
+
+  void SavePcaIvf(fs::path path) {
+    fs::create_directories(path.parent_path());
+    faiss::write_index(dynamic_cast<faiss::Index *>(this->pca_ivf_), path.c_str());
+  }
+
+  void LoadPcaIvf(fs::path path) {
+    auto pca_ivf_file = fopen(path.c_str(), "r");
+    auto index = faiss::read_index(pca_ivf_file);
+    this->pca_ivf_ = dynamic_cast<faiss::IndexPreTransform *>(index);
+    this->ivf_ = dynamic_cast<faiss::IndexIVFFlat *>(this->pca_ivf_->index);
+    this->pca_ = dynamic_cast<faiss::PCAMatrix *>(this->pca_ivf_->chain.at(0));
+  }
 };
 
 template <typename dist_t, typename attr_t>
 CompassR1d<dist_t, attr_t>::CompassR1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist)
     : space_(d),
       hnsw_(&space_, max_elements, M, efc),
-      quantizer_(d),
-      ivf_(new faiss::IndexIVFFlat(&quantizer_, d, nlist)),
+      ivf_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist)),
       attrs_(max_elements, std::numeric_limits<attr_t>::max()),
       btrees_(nlist, btree::btree_map<attr_t, labeltype>()),
-      cgraph_(&space_, nlist, 8, 100) {
+      cgraph_(&space_, nlist, 8, 200) {
   ivf_->nprobe = nlist;
 }
 
@@ -877,27 +1021,29 @@ CompassR1d<dist_t, attr_t>::CompassR1d(
     size_t M,
     size_t efc,
     size_t max_elements,
-    faiss::Index *quantizer,
-    size_t nlist
+    size_t nlist,
+    size_t dout
 )
     : space_(d),
       hnsw_(&space_, max_elements, M, efc),
-      ivf_(new faiss::IndexIVFFlat(quantizer, d, nlist)),
+      ivf_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dout), dout, nlist)),
+      pca_(new faiss::PCAMatrix(d, dout)),
+      pca_ivf_(new faiss::IndexPreTransform(pca_, ivf_)),
       attrs_(max_elements, std::numeric_limits<attr_t>::max()),
       btrees_(nlist, btree::btree_map<attr_t, labeltype>()),
-      cgraph_(&space_, nlist, 8, 100) {}
+      cgraph_(&space_, nlist, 8, 200) {}
 
-template <typename dist_t, typename attr_t>
-int CompassR1d<dist_t, attr_t>::AddPoint(const void *data_point, labeltype label, attr_t attr) {
-  hnsw_.addPoint(data_point, label, -1);
-  attrs_[label] = attr;
-  ivf_->add(1, (float *)data_point);  // add_sa_codes
+// template <typename dist_t, typename attr_t>
+// int CompassR1d<dist_t, attr_t>::AddPoint(const void *data_point, labeltype label, attr_t attr) {
+//   hnsw_.addPoint(data_point, label, -1);
+//   attrs_[label] = attr;
+//   ivf_->add(1, (float *)data_point);  // add_sa_codes
 
-  faiss::idx_t assigned_cluster;
-  quantizer_.assign(1, (float *)data_point, &assigned_cluster, 1);
-  btrees_[assigned_cluster].insert(std::make_pair(attr, label));
-  return 1;
-}
+//   faiss::idx_t assigned_cluster;
+//   quantizer_.assign(1, (float *)data_point, &assigned_cluster, 1);
+//   btrees_[assigned_cluster].insert(std::make_pair(attr, label));
+//   return 1;
+// }
 
 template <typename dist_t, typename attr_t>
 int CompassR1d<dist_t, attr_t>::AddGraphPoint(const void *data_point, labeltype label) {
@@ -918,10 +1064,29 @@ int CompassR1d<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data, labelty
 }
 
 template <typename dist_t, typename attr_t>
+int CompassR1d<dist_t, attr_t>::AddPcaIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attr) {
+  // ivf_->add(n, (float *)data);  // add_sa_codes
+  ranked_clusters_ = new faiss::idx_t[n];
+  auto xt = pca_ivf_->apply_chain(n, (float *)data);
+  this->ivf_->quantizer->assign(n, xt, ranked_clusters_);
+  for (int i = 0; i < n; i++) {
+    attrs_[labels[i]] = attr[i];
+    btrees_[ranked_clusters_[i]].insert(std::make_pair(attr[i], labels[i]));
+  }
+  return n;
+}
+
+template <typename dist_t, typename attr_t>
 void CompassR1d<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
   ivf_->train(n, (float *)data);
   // ivf_->add(n, (float *)data);
   // ivfpq_.train(n, (float *)data);
   // auto assigned_clusters = new faiss::idx_t[n * 1];
   // ivf_->quantizer->assign(n, (float *)data, assigned_clusters, 1);
+}
+
+template <typename dist_t, typename attr_t>
+void CompassR1d<dist_t, attr_t>::TrainPcaIvf(size_t n, const void *data) {
+  pca_ivf_->train(n, (float *)data);
+  pca_ivf_->add(n, (float *)data);
 }
