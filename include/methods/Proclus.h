@@ -40,12 +40,16 @@ struct Proclus {
       if (dsubspaces[i] == 0) {
         printf("Cluster %d has no subspaces.\n", i);
         has_zero = true;
+        for (int j = 0; j < d; j++) {
+          mask[i * d + j] = 1;
+        }
+        dsubspaces[i] = d;
       }
     }
-    if (has_zero) {
-      printf("Exiting...\n");
-      exit(-1);
-    }
+    // if (has_zero) {
+    //   printf("Exiting...\n");
+    //   exit(-1);
+    // }
   }
 
   void read_medoids(std::string path) {
