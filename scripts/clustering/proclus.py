@@ -97,14 +97,14 @@ if nsample is not None:
   data = data[:nsample]
 
 labels, medoids, subspaces = proclus(data, nlist, ndim, random_state=42)
-labels.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.ranking")
-medoids.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.medoids")
+labels.tofile(f"/home/chunxy/repos/Compass/data/proclus-cpu/{name}.{nlist}.{ndim}.proclus.ranking")
+medoids.tofile(f"/home/chunxy/repos/Compass/data/proclus-cpu/{name}.{nlist}.{ndim}.proclus.medoids")
 # Pad subspaces to a fixed size (ndim) with -1
 padded_subspaces = np.full((len(subspaces), d), 0, dtype=np.float32)
 for i, subspace in enumerate(subspaces):
   for dim in subspace:
     padded_subspaces[i, dim] = 1
-padded_subspaces.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.{ndim}.proclus.subspaces")
+padded_subspaces.tofile(f"/home/chunxy/repos/Compass/data/proclus-cpu/{name}.{nlist}.{ndim}.proclus.subspaces")
 
 # # Example usage
 # if __name__ == "__main__":
