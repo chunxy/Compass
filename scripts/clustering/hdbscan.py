@@ -30,9 +30,9 @@ hdbscan = HDBSCAN(min_cluster_size=100, store_centers="medoid")
 hdbscan.fit(training_data)
 centroids_hdbscan = hdbscan.centroids_.astype(np.float32)
 nlist = len(centroids_hdbscan)
-centroids_hdbscan.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.hdbscan.medoids")
+centroids_hdbscan.tofile(f"/home/chunxy/repos/Compass/data/hdbscan/{name}.{nlist}.hdbscan.medoids")
 labels_hdbscan = hdbscan.labels_.astype(np.int64)
-labels_hdbscan.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.hdbscan.ranking")
+labels_hdbscan.tofile(f"/home/chunxy/repos/Compass/data/hdbscan/{name}.{nlist}.hdbscan.ranking")
 
 
 
