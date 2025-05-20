@@ -18,6 +18,7 @@ for dataset in datasets:
       centroid_path = template_centroid_path.format(algo["shortcut"], dataset, nlist, algo["shortcut"])
 
       if not Path(centroid_path).exists(): continue
+      print(f"{old_ivf_path} -> {new_ivf_path}")
       with open(new_ivf_path, "wb") as new_ivf:
         with open(old_ivf_path, "rb") as old_ivf:
           first_90 = old_ivf.read(90)
