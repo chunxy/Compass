@@ -39,7 +39,7 @@ training_data = np.fromfile(file, dtype=np.float32).reshape((-1, d))
 bikmeans = BisectingKMeans(n_clusters=nlist, init="k-means++", max_iter=300, bisecting_strategy="biggest_inertia")
 bikmeans.fit(training_data)
 centroids_bisect_kmeans = bikmeans.cluster_centers_.astype(np.float32)
-centroids_bisect_kmeans.tofile(f"/home/chunxy/repos/Compass/data/{name}.{nlist}.bikmeans.centroids")
+centroids_bisect_kmeans.tofile(f"/home/chunxy/repos/Compass/data/bikmeans/{name}.{nlist}.bikmeans.centroids")
 
 # # Perform MeanShift clustering
 # mean_shift = MeanShift()
