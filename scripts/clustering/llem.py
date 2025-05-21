@@ -1,5 +1,6 @@
 from sklearn.manifold import LocallyLinearEmbedding as LLE
 import numpy as np
+import pickle
 import argparse
 
 datasets = {
@@ -29,20 +30,18 @@ n_components = args.n_components
 n_samples = args.n_samples
 base_file = f"/home/chunxy/repos/Compass/data/{name}_base.float32"
 base_data = np.fromfile(base_file, dtype=np.float32).reshape((-1, d))
-base_data = np.random.permutation(base_data)[:n_samples]
+sample_data = np.random.permutation(base_data)[:n_samples]
 query_data = np.fromfile(f"/home/chunxy/repos/Compass/data/{name}_query.float32", dtype=np.float32).reshape((-1, d))
 
 # Perform BisectingKMeans clustering
 lle = LLE(n_neighbors=n_neighbors, n_components=n_components)
-lle.fit(base_data)
+lle.fit(sample_data)
 
 base_x = lle.transform(base_data).astype(np.float32)
 query_x = lle.transform(query_data).astype(np.float32)
 base_x.tofile(f"/home/chunxy/repos/Compass/data/llem/{name}.{n_neighbors}.{n_components}.base.float32")
 query_x.tofile(f"/home/chunxy/repos/Compass/data/llem/{name}.{n_neighbors}.{n_components}.query.float32")
 
-
-
-
-
+with open(f"/home/chunxy/repos/Compass/data/llem/{name}.{n_neighbors}.{n_components}.lle.pkl", "wb") as f:
+  pickle.dump(lle, f)
 
