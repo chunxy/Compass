@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <fstream>
 #include <numeric>
 #include <string>
 #include <vector>
@@ -15,6 +16,13 @@
 #include "utils/reader.h"
 
 using std::vector;
+
+float* load_float32(const string &path, const int n, const int d) {
+  auto storage = new float[n * d];
+  std::ifstream in(path);
+  in.read((char *)storage, sizeof(float) * n * d);
+  return storage;
+}
 
 void load_hybrid_data(
     const DataCard &c,

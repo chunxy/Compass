@@ -11,6 +11,8 @@
 using hnswlib::labeltype;
 using std::vector;
 
+float* load_float32(const string &path, const int n, const int d);
+
 void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, vector<vector<float>> &attrs);
 
 void load_hybrid_query_gt(
