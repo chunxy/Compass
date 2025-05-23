@@ -17,7 +17,6 @@ while [ $i -lt ${#datasets[@]} ]; do
         /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_rr_cg_1d_pca --datacard ${dataset}_1_10000_float32 --l 100 --r ${r} --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dpca ${dpca}
       done
       /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_rr_cg_1d_pca --datacard ${dataset}_1_10000_float32 --l 0 --r 10000 --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dpca ${dpca}
-      done
     done
   done
 done
