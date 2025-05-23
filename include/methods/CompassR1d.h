@@ -881,7 +881,7 @@ class CompassR1d {
             // visited[tableid] = true;
 
             auto vect = hnsw_.getDataByInternalId(tableid);
-            auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
+            auto dist = hnsw_.fstdistfunc_((float *)query + q * d_, vect, hnsw_.dist_func_param_);
             metrics[q].ncomp++;
             crel++;
 
@@ -903,7 +903,7 @@ class CompassR1d {
         }
 
         hnsw_.ReentrantSearchKnnBounded(
-            (float *)query + q * ivf_->d,
+            (float *)query + q * d_,
             k,
             -recycle_set.top().first,  // cause infinite loop?
             // distances[curr_ci],
@@ -1009,7 +1009,7 @@ class CompassR1d {
             // visited[tableid] = true;
 
             auto vect = hnsw_.getDataByInternalId(tableid);
-            auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
+            auto dist = hnsw_.fstdistfunc_((float *)query + q * d_, vect, hnsw_.dist_func_param_);
             metrics[q].ncomp++;
             crel++;
 
@@ -1031,7 +1031,7 @@ class CompassR1d {
         }
 
         hnsw_.ReentrantSearchKnnBounded(
-            (float *)query + q * ivf_->d,
+            (float *)query + q * d_,
             k,
             -recycle_set.top().first,  // cause infinite loop?
             // distances[curr_ci],
@@ -1143,7 +1143,8 @@ CompassR1d<dist_t, attr_t>::CompassR1d(size_t d, size_t M, size_t efc, size_t ma
       ivf_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist)),
       attrs_(max_elements, std::numeric_limits<attr_t>::max()),
       btrees_(nlist, btree::btree_map<attr_t, labeltype>()),
-      cgraph_(&space_, nlist, 8, 200) {
+      cgraph_(&space_, nlist, 8, 200),
+      d_(d) {
   ivf_->nprobe = nlist;
 }
 
@@ -1174,7 +1175,8 @@ CompassR1d<dist_t, attr_t>::CompassR1d(size_t d, size_t M, size_t efc, size_t ma
       pca_ivf_(new faiss::IndexPreTransform(pca_, ivf_)),
       attrs_(max_elements, std::numeric_limits<attr_t>::max()),
       btrees_(nlist, btree::btree_map<attr_t, labeltype>()),
-      cgraph_(&space_, nlist, 8, 200) {
+      cgraph_(&space_, nlist, 8, 200),
+      d_(d) {
   pca_ivf_->prepend_transform(new faiss::CenteringTransform(d));
   pca_->eigen_power = -0.5;
   pca_->max_points_per_d = 2000;

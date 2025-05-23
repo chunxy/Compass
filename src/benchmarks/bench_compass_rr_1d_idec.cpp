@@ -62,17 +62,17 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  CompassR1d<float, float> comp(d, args.M, args.efc, nb, args.nlist);
+  int dx = args.dx;
+  CompassR1d<float, float> comp(d, args.M, args.efc, nb, args.nlist, dx, -1);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
-  std::string ivf_ckp = fmt::format(COMPASS_X_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
-  std::string rank_ckp = fmt::format(COMPASS_X_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dx);
+  std::string ivf_ckp = fmt::format(COMPASS_X_IVF_CHECKPOINT_TMPL, args.nlist, dx);
+  std::string rank_ckp = fmt::format(COMPASS_X_RANK_CHECKPOINT_TMPL, nb, args.nlist, dx);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
 
-  int dx = args.dx;
   fs::path data_root(DATA);
-  auto xbx = load_float32((data_root / "IDEC" / fmt::format("{}.100.{}.base.float32", c.name, dx)).string(), nb, dx);
-  auto xqx = load_float32((data_root / "IDEC" / fmt::format("{}.100.{}.query.float32", c.name, dx)).string(), nq, dx);
+  auto xbx = load_float32((data_root / "idec" / fmt::format("{}-100-{}.base.float32", c.name, dx)).string(), nb, dx);
+  auto xqx = load_float32((data_root / "idec" / fmt::format("{}-100-{}.query.float32", c.name, dx)).string(), nq, dx);
   if (fs::exists(ckp_root / "IDEC" / c.name / ivf_ckp)) {
     comp.LoadIvf(ckp_root / "IDEC" / c.name / ivf_ckp);
     fmt::print("Finished loading IVF index.\n");
