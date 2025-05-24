@@ -8,9 +8,9 @@ from itertools import product
 LOGS_TMPL = "/home/chunxy/repos/Compass/logs_{}"
 
 # Names
-ONED_METHODS = ("CompassR1d", "CompassROld1d", "CompassRImi1d", "CompassIvf1d", "CompassImi1d", "CompassGraph1d", "Serf", "iRangeGraph")
-ONED_METHODS += ("CompassRR1d", "CompassRR1dBikmeans", "CompassRR1dKmedoids", "CompassRRCg1d", "CompassRRCg1dBikmeans", "CompassRRCg1dKmedoids")
-TWOD_METHODS = ("CompassR", "CompassRCg", "CompassIvf", "CompassGraph", "iRangeGraph2d")
+ONED_METHODS = ("CompassRImi1d", "CompassIvf1d", "CompassImi1d", "CompassGraph1d", "Serf", "iRangeGraph")
+ONED_METHODS += ("CompassRR1dBikmeans", "CompassRRCg1dBikmeans",)
+TWOD_METHODS = ("CompassRRBi", "CompassRRCgBikmeans", "CompassIvf", "CompassGraph", "iRangeGraph2d")
 DATASETS = ("sift", "audio", "video", "crawl", "gist", "glove100")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
 # TWOD_RANGES = [f"{pcnt1}-{pcnt2}" for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])]
@@ -230,8 +230,8 @@ ONED_RUNS = {
   "iRangeGraph": Run("iRangeGraph", typical_fraction_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
 TWOD_RUNS = {
-  "CompassR": Run("CompassR", typical_wf_ranges, typical_compass_r_builds, typical_compass_r_searches, "o"),
-  "CompassRCg": Run("CompassR", typical_wf_ranges, typical_compass_r_cg_builds, typical_compass_r_cg_searches, "<"),
+  "CompassRRBikmeans": Run("CompassRRBikmeans", typical_wf_ranges, typical_compass_r_builds, typical_compass_r_searches, "o"),
+  "CompassRRCgBikmeans": Run("CompassRRCgBikmeans", typical_wf_ranges, typical_compass_r_cg_builds, typical_compass_r_cg_searches, "<"),
   "CompassIvf": Run("CompassIvf", typical_ivf_wf_ranges, typical_compass_ivf_builds, typical_compass_ivf_searches, "*"),
   "CompassGraph": Run("CompassGraph", typical_graph_wf_ranges, typical_compass_graph_builds, typical_compass_graph_searches, "^"),
   "iRangeGraph2d": Run("iRangeGraph2d", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
@@ -256,8 +256,8 @@ TEMPLATES = {
   "CompassGraph1d": Template("{}_10000_{}_{}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
   "Serf": Template("{}_{}_{}_{}", "M_{}_efc_{}_efmax_{}", "efs_{}"),
   "iRangeGraph": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),
-  "CompassR": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}"),
-  "CompassRCg": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}"),
+  "CompassRRBikmeans": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}"),
+  "CompassRRCgBikmeans": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}_nlist_{}", "efs_{}_nrel_{}"),
   "CompassGraph": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "M_{}_efc_{}", "efs_{}_nrel_{}"),
   "CompassIvf": Template("{}_10000_{{{}, {}}}_{{{}, {}}}_{}", "nlist_{}", "nprobe_{}"),
   "iRangeGraph2d": Template("{}_{}_{}_{}", "M_{}_efc_{}", "efs_{}"),

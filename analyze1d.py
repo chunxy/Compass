@@ -425,17 +425,17 @@ plt.rcParams.update({
   'axes.titlesize': 15,
   'figure.figsize': (10, 15),
 })
-# summarize_1d()
+summarize_1d()
 
 draw_1d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_1d_qps_comp_wrt_recall_by_selectivity()
 
-selected_methods = ["CompassR1d", "CompassIvf1d", "CompassGraph1d", "CompassRCg1d"]
+selected_methods = ["CompassIvf1d", "CompassGraph1d", "CompassRR1dBikmeans", "CompassRRCg1dBikmeans"]
 compare_by = "ToT"
 draw_1d_qps_comp_fixed_recall_by_dataset_selectivity(selected_methods, compare_by)
 draw_1d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by)
 
-selected_methods = ["iRangeGraph", "Serf", "CompassR1d", "CompassRCg1d"]
+selected_methods = ["iRangeGraph", "Serf", "CompassRR1dBikmeans", "CompassRRCg1dBikmeans"]
 compare_by = "MoM"
 draw_1d_qps_comp_fixed_recall_by_dataset_selectivity(selected_methods, compare_by)
 draw_1d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by)
