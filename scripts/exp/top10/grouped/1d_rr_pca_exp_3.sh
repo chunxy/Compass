@@ -23,7 +23,7 @@ done
 
 datasets=(gist)
 dpca_s=(512)
-nlist_s=(1000020000)
+nlist_s=(10000 20000)
 
 i=0
 while [ $i -lt ${#datasets[@]} ]; do
