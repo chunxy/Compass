@@ -70,10 +70,11 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
 
   selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in ONED_PASSRATES]
-  selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassR1d", "CompassRCg1d", "CompassRR1d", "CompassRR1dBikmeans", "CompassRR1dKmedoids",]
+  selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassRR1dBikmeans", "CompassRRCg1dBikmeans",]
 
   for selector in selectors:
-    if not selector.any(): continue
+    if not selector.any():
+      continue
     data = df[selector]
     dataset = data["dataset"].reset_index(drop=True)[0]
     selectivity = float(data["selectivity"].reset_index(drop=True)[0])
@@ -83,8 +84,8 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
       for b in data[data["method"] == m].build.unique():
         data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
         marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
-        if m == "CompassR1d" or m == "CompassRCg1d":
-          for nrel in [500, 600, 800, 1000]:
+        if m == "CompassRR1dBikmeans" or m == "CompassRRCg1dBikmeans":
+          for nrel in [100, 200]:
             data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
             if data_by_m_b_nrel.size == 0: continue
             recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
@@ -115,8 +116,15 @@ def draw_1d_qps_comp_wrt_recall_by_dataset_selectivity():
         axs[1].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
 
     # fig.set_size_inches(15, 10)
-    handles, labels = axs[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc='outside right upper')
+    # handles, labels = axs[0].get_legend_handles_labels()
+    # fig.legend(handles, labels, loc='outside right upper')
+    unique_labels = {}
+    for ax in axs.flat:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label not in unique_labels:
+          unique_labels[label] = handle
+    fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
     fig.savefig(f"figures_{K}/{dataset.upper()}/{dataset.upper()}-{selectivity:.1%}-QPS-Comp-Recall.jpg", dpi=200)
     plt.close()
 
@@ -137,7 +145,7 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
 
   selectors = [df["selectivity"] == r for r in ONED_PASSRATES]
   # selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassR1d", "CompassRCg1d"]
-  selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassR1d", "CompassRCg1d", "CompassRR1d", "CompassRR1dBikmeans", "CompassRR1dKmedoids",]
+  selected_methods = ["iRangeGraph", "Serf", "CompassIvf1d", "CompassRR1dBikmeans", "CompassRRCg1dBikmeans",]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -150,8 +158,8 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b) & (data["dataset"] == dataset)]
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
-          if m == "CompassR1d" or m == "CompassRCg1d":
-            for nrel in [500, 600, 800, 1000]:
+          if m == "CompassRR1dBikmeans" or m == "CompassRRCg1dBikmeans":
+            for nrel in [100, 200]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
               recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
@@ -183,8 +191,15 @@ def draw_1d_qps_comp_wrt_recall_by_selectivity():
 
 
     fig.set_size_inches(35, 20)
-    handles, labels = axs[0][0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc='outside right upper')
+    # handles, labels = axs[0][0].get_legend_handles_labels()
+    # fig.legend(handles, labels, loc='outside right upper')
+    unique_labels = {}
+    for ax in axs.flat:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label not in unique_labels:
+          unique_labels[label] = handle
+    fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
     fig.savefig(f"figures_{K}/All-{selectivity:.1%}-QPS-Comp-Recall.jpg", dpi=200)
     plt.close()
 
@@ -220,8 +235,8 @@ def draw_1d_qps_comp_fixed_recall_by_dataset_selectivity(selected_methods, compa
         for b in data[data["method"] == m].build.unique():
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
-          if m == "CompassR1d" or m == "CompassRCg1d":
-            for nrel in [500, 600, 800]:
+          if m == "CompassRR1dBikmeans" or m == "CompassRRCg1dBikmeans":
+            for nrel in [100, 200]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
               rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
@@ -281,8 +296,8 @@ def draw_1d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
         for b in data[data["method"] == m].build.unique():
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
-          if m == "CompassR1d" or m == "CompassRCg1d":
-            for nrel in [500, 600, 800]:
+          if m == "CompassRR1dBikmeans" or m == "CompassRRCg1dBikmeans":
+            for nrel in [100, 200]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
               rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
@@ -304,8 +319,15 @@ def draw_1d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
             axs[1][i].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
 
     fig.set_size_inches(45, 20)
-    handles, labels = axs[0][0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="outside right upper")
+    # handles, labels = axs[0][0].get_legend_handles_labels()
+    # fig.legend(handles, labels, loc="outside right upper")
+    unique_labels = {}
+    for ax in axs.flat:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label not in unique_labels:
+          unique_labels[label] = handle
+    fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
     fig.savefig(f"figures_{K}/Recall-{recall:.2g}-{compare_by}-All-QPS-Comp.jpg", dpi=200)
     plt.close()
 
@@ -425,7 +447,7 @@ plt.rcParams.update({
   'axes.titlesize': 15,
   'figure.figsize': (10, 15),
 })
-summarize_1d()
+# summarize_1d()
 
 draw_1d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_1d_qps_comp_wrt_recall_by_selectivity()

@@ -308,9 +308,9 @@ plt.rcParams.update({
 # Compare with baseline methods to reach recall
 def compare_comp_with_baseline():
   build_search = {
-    "CompassR1d": {
-      "build": [CompassBuild(16, 200, 5000), CompassBuild(16, 200, 10000)],
-      "search": [f"nrel_{nrel}" for nrel in [500, 800]],
+    "CompassRR1dBikmeans": {
+      "build": [CompassBuild(16, 200, 10000)],
+      "search": [f"nrel_{nrel}" for nrel in [100, 200]],
     },
     "CompassIvf1d": {
       "build": [CompassBuild(16, 200, 10000)],
@@ -324,48 +324,25 @@ def compare_comp_with_baseline():
     datasets[d] = build_search
   draw_1d_comp_fixed_recall_by_selectivity(datasets, "ToT")
   base_builds = {
-    "CompassR1d": [
-      CompassBuild(16, 200, 5000),
+    "CompassRR1dBikmeans": [
       CompassBuild(16, 200, 10000),
     ],
     "CompassIvf1d": [CompassIvfBuild(1000), CompassIvfBuild(5000), CompassIvfBuild(10000)],
     "CompassGraph1d": [CompassGraphBuild(32, 200)],
   }
-  selected_searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800]]}
+  selected_searches = {"CompassRR1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]]}
   draw_1d_comp_wrt_recall_by_selectivity(base_builds, selected_searches, "baseline/")
 
 
 # Compare the QPS between original and cluster-graph version
 def compare_qps_with_cluster_graph():
-  build_search = {
-    "CompassR1d": {
-      "build": [CompassBuild(16, 200, 5000), CompassBuild(16, 200, 10000)],
-      "search": [f"nrel_{nrel}" for nrel in [500]],
-    },
-    "CompassRR1d": {
-      "build": [CompassBuild(16, 200, 10000)],
-      "search": [f"nrel_{nrel}" for nrel in [500]],
-    },
-    "CompassRRCg1d": {
-      "build": [CompassBuild(16, 200, 10000)],
-      "search": [f"nrel_{nrel}" for nrel in [500]],
-    },
-    "iRangeGraph": {
-      "build": [iRangeGraphBuild(32, 200)]
-    }
-  }
   time_trial_methods = {
-    "CompassR1d": [
+    "CompassRR1dBikmeans": [
       # CompassBuild(16, 200, 1000),
       # CompassBuild(16, 200, 5000),
       CompassBuild(16, 200, 10000),
     ],
-    "CompassRR1d": [
-      # CompassBuild(16, 200, 1000),
-      # CompassBuild(16, 200, 5000),
-      CompassBuild(16, 200, 10000),
-    ],
-    "CompassRRCg1d": [
+    "CompassRRCg1dBikmeans": [
       # CompassBuild(16, 200, 1000),
       # CompassBuild(16, 200, 5000),
       CompassBuild(16, 200, 10000),
@@ -373,14 +350,12 @@ def compare_qps_with_cluster_graph():
     "iRangeGraph": [iRangeGraphBuild(32, 200)]
   }
   time_trial_searches = {
-    "CompassR1d": [f"nrel_{nrel}" for nrel in [500]],
-    "CompassRR1d": [f"nrel_{nrel}" for nrel in [500]],
-    "CompassRRCg1d": [f"nrel_{nrel}" for nrel in [500]],
+    "CompassRR1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]],
+    "CompassRRCg1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]],
   }
   time_trial_markers = {
-    "CompassR1d": "o",
-    "CompassRR1d": "o",
-    "CompassRRCg1d": "^",
+    "CompassRR1dBikmeans": "o",
+    "CompassRRCg1dBikmeans": "^",
     "iRangeGraph": "2",
   }
   draw_1d_qps_wrt_recall_by_selectivity(time_trial_methods, time_trial_searches, time_trial_markers, "timing/")
@@ -397,35 +372,32 @@ def compare_comp_with_sota_to_reach_recall():
     },
     "Serf": {
       "build": [SerfBuild(32, 200, 500)]
-    },
-    "CompassR1d": {
+    },  # "CompassR1d": {
+  #   "build": [CompassBuild(16, 200, 10000)],
+  #   "search": [f"nrel_{nrel}" for nrel in [500]],
+  # },
+    "CompassRR1dBikmeans": {
       "build": [CompassBuild(16, 200, 10000)],
-      "search": [f"nrel_{nrel}" for nrel in [500]],
+      "search": [f"nrel_{nrel}" for nrel in [100, 200]],
     },
-    # "CompassRR1dBikmeans": {
-    #   "build": [CompassBuild(16, 200, 10000)],
-    #   "search": [f"nrel_{nrel}" for nrel in [500]],
-    # },
   }
   selected_datasets = OrderedDict()
   selected_datasets["sift"] = build_search
   selected_datasets["audio"] = build_search
-  selected_datasets["crawl"] = {
+  large_builds = {
     "iRangeGraph": {
       "build": [iRangeGraphBuild(32, 200)]
     },
     "Serf": {
       "build": [SerfBuild(32, 200, 500)]
     },
-    "CompassR1d": {
+    "CompassRR1dBikmeans": {
       "build": [CompassBuild(16, 200, 20000)],
-      "search": [f"nrel_{nrel}" for nrel in [1000]],
+      "search": [f"nrel_{nrel}" for nrel in [100, 200]],
     },
-    # "CompassRR1dBikmeans": {
-    #   "build": [CompassBuild(16, 200, 20000)],
-    #   "search": [f"nrel_{nrel}" for nrel in [1000]],
-    # },
   }
+  selected_datasets["crawl"] = large_builds
+  selected_datasets["video"] = large_builds
   draw_1d_comp_fixed_recall_by_selectivity(selected_datasets, "MoM")
 
 
@@ -478,9 +450,9 @@ def compare_comp_varying_efs():
   methods = {
     "iRangeGraph": [iRangeGraphBuild(32, 200)],
     "Serf": [SerfBuild(32, 200, 500)],
-    "CompassR1d": [CompassBuild(32, 200, 10000), CompassBuild(32, 200, 1000)],
+    "CompassRR1dBikmeans": [CompassBuild(32, 200, 10000), CompassBuild(32, 200, 1000)],
   }
-  searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800, 1000]]}
+  searches = {"CompassRR1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]]}
   draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-efs/")
 
 
@@ -489,9 +461,9 @@ def compare_comp_varying_nrel():
   methods = {
     "iRangeGraph": [iRangeGraphBuild(32, 200)],
     "Serf": [SerfBuild(32, 200, 500)],
-    "CompassR1d": [CompassBuild(32, 200, 1000)],
+    "CompassRR1dBikmeans": [CompassBuild(32, 200, 1000)],
   }
-  searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500, 800, 1000]]}
+  searches = {"CompassRR1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]]}
   draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nrel/")
 
 
@@ -500,16 +472,19 @@ def compare_comp_varying_M():
   methods = {
     "iRangeGraph": [iRangeGraphBuild(32, 200)],
     "Serf": [SerfBuild(32, 200, 500)],
-    "CompassR1d": [
+    "CompassRR1dBikmeans": [
       CompassBuild(16, 200, 10000),
       CompassBuild(32, 200, 10000),
     ],
-    "CompassRCg1d": [
+    "CompassRRCg1dBikmeans": [
       CompassBuild(16, 200, 10000),
       CompassBuild(32, 200, 10000),
     ],
   }
-  searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500]]}
+  searches = {
+    "CompassRR1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]],
+    "CompassRRCg1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]],
+  }
   draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-M/")
 
 
@@ -518,14 +493,13 @@ def compare_comp_varying_nlist():
   methods = {
     "iRangeGraph": [iRangeGraphBuild(32, 200)],
     "Serf": [SerfBuild(32, 200, 500)],
-    "CompassR1d": [
+    "CompassRR1dBikmeans": [
       CompassBuild(16, 200, 1000),
-      CompassBuild(16, 200, 2000),
-      CompassBuild(16, 200, 5000),
       CompassBuild(16, 200, 10000),
+      CompassBuild(16, 200, 20000),
     ],
   }
-  searches = {"CompassR1d": [f"nrel_{nrel}" for nrel in [500]]}
+  searches = {"CompassRR1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]]}
   draw_1d_comp_wrt_recall_by_selectivity(methods, searches, "varying-nlist/")
 
 
@@ -534,16 +508,16 @@ def compare_comp_with_sota():
   methods = {
     "iRangeGraph": [iRangeGraphBuild(8, 200), iRangeGraphBuild(32, 200)],
     "Serf": [SerfBuild(32, 200, 500)],
-    "CompassR1d": [
+    "CompassRR1dBikmeans": [
       CompassBuild(16, 200, 10000),
     ],
-    "CompassRR1d": [
+    "CompassRRCg1dBikmeans": [
       CompassBuild(16, 200, 10000),
     ],
   }
   searches = {
-    "CompassR1d": [f"nrel_{nrel}" for nrel in [500, 1000]],
-    "CompassRR1d": [f"nrel_{nrel}" for nrel in [500, 1000]],
+    "CompassRR1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]],
+    "CompassRRCg1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]],
   }
   draw_1d_comp_wrt_recall_by_selectivity(methods, searches)
 

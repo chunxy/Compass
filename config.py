@@ -9,8 +9,8 @@ LOGS_TMPL = "/home/chunxy/repos/Compass/logs_{}"
 
 # Names
 ONED_METHODS = ("CompassRImi1d", "CompassIvf1d", "CompassImi1d", "CompassGraph1d", "Serf", "iRangeGraph")
-ONED_METHODS += ("CompassRR1dBikmeans", "CompassRRCg1dBikmeans",)
-TWOD_METHODS = ("CompassRRBi", "CompassRRCgBikmeans", "CompassIvf", "CompassGraph", "iRangeGraph2d")
+ONED_METHODS += ("CompassRR1dBikmeans", "CompassRRCg1dBikmeans", "CompassRRCg1dPca")
+TWOD_METHODS = ("CompassRRBikmeans", "CompassRRCgBikmeans", "CompassIvf", "CompassGraph", "iRangeGraph2d")
 DATASETS = ("sift", "audio", "video", "crawl", "gist", "glove100")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
 # TWOD_RANGES = [f"{pcnt1}-{pcnt2}" for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])]
@@ -139,7 +139,7 @@ typical_compass_r_1d_searches = [
   # *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 120, 140, 160, 180, 200, 250, 300, 400, 500], [100, 200])]
 ]
 typical_compass_r_cg_1d_searches = [
-  *[CompassSearch(efs, nrel, 1000) for efs in (10, 20, 60, 100, 200) for nrel in (500, 600, 800, 1000)],
+  *[CompassSearch(efs, nrel, 1000) for efs in (10, 20, 60, 100, 200) for nrel in (100, 200)],
 ]
 typical_compass_r_old_1d_searches = [
   *[CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 15, 20, 25, 30, 35, 40, 50, 60, 100, 200], [500, 600, 700, 800, 1000, 1500])],
@@ -215,17 +215,18 @@ Run = namedtuple("Run", ["name", "range", "build", "search", "marker"])
 ONED_RUNS = {
   "CompassR1d": Run("CompassR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
   # "CompassROld1d": Run("CompassROld1d", typical_rf_ranges, typical_compass_r_old_1d_builds, typical_compass_r_old_1d_searches, "p"),
-  "CompassRImi1d": Run("CompassRImim1d", typical_rf_ranges, typical_compass_r_imi_builds, typical_compass_r_1d_searches, "v"),
-  "CompassRCg1d": Run("CompassRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
-  "CompassRR1d": Run("CompassRR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
+  # "CompassRImi1d": Run("CompassRImim1d", typical_rf_ranges, typical_compass_r_imi_builds, typical_compass_r_1d_searches, "v"),
+  # "CompassRCg1d": Run("CompassRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
+  # "CompassRR1d": Run("CompassRR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   "CompassRR1dBikmeans": Run("CompassRR1dBikmeans", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
-  "CompassRR1dKmedoids": Run("CompassRR1dKmedoids", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
-  "CompassRRCg1d": Run("CompassRRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
+  # "CompassRR1dKmedoids": Run("CompassRR1dKmedoids", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
+  # "CompassRRCg1d": Run("CompassRRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   "CompassRRCg1dBikmeans": Run("CompassRRCg1dBikmeans", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
-  "CompassRRCg1dKmedoids": Run("CompassRRCg1dKmedoids", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
+  "CompassRRCg1dPca": Run("CompassRRCg1dPca", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "^"),
+  # "CompassRRCg1dKmedoids": Run("CompassRRCg1dKmedoids", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   "CompassGraph1d": Run("CompassGraph1d", typical_graph_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
   "CompassIvf1d": Run("CompassIvf1d", typical_ivf_rf_ranges, typical_compass_ivf_1d_builds, typical_compass_ivf_1d_searches, "*"),
-  "CompassImi1d": Run("CompassImi1d", typical_ivf_rf_ranges, typical_compass_imi_1d_builds, typical_compass_imi_1d_searches, "v"),
+  # "CompassImi1d": Run("CompassImi1d", typical_ivf_rf_ranges, typical_compass_imi_1d_builds, typical_compass_imi_1d_searches, "v"),
   "Serf": Run("Serf", typical_fraction_ranges, typical_serf_builds, typical_serf_searches, ","),
   "iRangeGraph": Run("iRangeGraph", typical_fraction_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
