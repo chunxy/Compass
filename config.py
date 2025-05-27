@@ -14,7 +14,7 @@ TWOD_METHODS = ("CompassRRBikmeans", "CompassRRCgBikmeans", "CompassIvf", "Compa
 DATASETS = ("sift", "audio", "video", "crawl", "gist", "glove100")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
 # TWOD_RANGES = [f"{pcnt1}-{pcnt2}" for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])]
-TWOD_RANGES = [f"{pcnt}-{pcnt}" for pcnt in [1, 5, 10, 30, 50, 80, 90]]
+TWOD_RANGES = [f"{pcnt}-{pcnt}" for pcnt in [10, 30, 50, 80]]
 
 # Arguments
 RangeFilterRange = namedtuple("RangeFilterRange", ["l", "r"])
@@ -32,8 +32,15 @@ typical_ivf_rf_ranges = [*[RangeFilterRange(100, r) for r in (200, 300, 600, 110
 # typical_franges = [*[LabelFilterRange(n) for n in (2, 5, 10, 50, 100, 500, 1000)]]
 
 WindowFilterRange = namedtuple("WindowFilterRange", ["l1", "l2", "r1", "r2"])
+# typical_wf_ranges = [
+#   *[WindowFilterRange(100, 200, r1, r2) for r1, r2 in product([200, 600, 1100, 3100, 5100, 8100, 9100], [300, 700, 1200, 3200, 5200, 8200, 9200])]
+#   # WindowFilterRange(100, 200, 1100, 2200),
+#   # WindowFilterRange(100, 200, 1100, 5200),
+#   # WindowFilterRange(100, 200, 2100, 5200),
+#   # WindowFilterRange(100, 200, 4100, 5200),
+# ]
 typical_wf_ranges = [
-  *[WindowFilterRange(100, 200, r1, r2) for r1, r2 in product([200, 600, 1100, 3100, 5100, 8100, 9100], [300, 700, 1200, 3200, 5200, 8200, 9200])]
+  *[WindowFilterRange(100, 200, r1, r2) for r1, r2 in zip([1100, 3100, 5100, 8100, 9100], [1200, 3200, 5200, 8200, 9200])]
   # WindowFilterRange(100, 200, 1100, 2200),
   # WindowFilterRange(100, 200, 1100, 5200),
   # WindowFilterRange(100, 200, 2100, 5200),
@@ -92,8 +99,11 @@ typical_fraction_ranges = [
 ]
 
 WindowFilterPercentageRange = namedtuple("WindowFilterPercentageRange", ["pcnt1", "pcnt2"])
+# typical_irangegraph_2d_ranges = [
+#   *[WindowFilterPercentageRange(pcnt1, pcnt2) for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])],
+# ]
 typical_irangegraph_2d_ranges = [
-  *[WindowFilterPercentageRange(pcnt1, pcnt2) for pcnt1, pcnt2 in product([1, 5, 10, 30, 50, 80, 90], [1, 5, 10, 30, 50, 80, 90])],
+  *[WindowFilterPercentageRange(pcnt, pcnt) for pcnt in [10, 30, 50, 80, 90]]
 ]
 
 CompassBuild = namedtuple("CompassBuild", ["M", "efc", "nlist"])
@@ -147,6 +157,7 @@ typical_compass_r_old_1d_searches = [
 ]
 typical_compass_r_searches = [CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800, 1000])]
 typical_compass_r_cg_searches = [CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [500, 600, 800, 1000])]
+typical_compass_rr_searches = [CompassSearch(efs, nrel, 1000) for efs, nrel in product([10, 20, 60, 100, 200], [100, 200])]
 
 CompassRImiBuild = namedtuple("CompassRImiBuild", ["M", "efc", "nsub", "nbits"])
 typical_compass_r_imi_builds = [*[CompassRImiBuild(M, efc, *imi) for M, efc, imi in product([16, 32, 64], [100, 200], [(4, 4), (2, 9)])]]
@@ -231,8 +242,8 @@ ONED_RUNS = {
   "iRangeGraph": Run("iRangeGraph", typical_fraction_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),
 }
 TWOD_RUNS = {
-  "CompassRRBikmeans": Run("CompassRRBikmeans", typical_wf_ranges, typical_compass_r_builds, typical_compass_r_searches, "o"),
-  "CompassRRCgBikmeans": Run("CompassRRCgBikmeans", typical_wf_ranges, typical_compass_r_cg_builds, typical_compass_r_cg_searches, "<"),
+  "CompassRRBikmeans": Run("CompassRRBikmeans", typical_wf_ranges, typical_compass_r_builds, typical_compass_rr_searches, "o"),
+  "CompassRRCgBikmeans": Run("CompassRRCgBikmeans", typical_wf_ranges, typical_compass_r_cg_builds, typical_compass_rr_searches, "<"),
   "CompassIvf": Run("CompassIvf", typical_ivf_wf_ranges, typical_compass_ivf_builds, typical_compass_ivf_searches, "*"),
   "CompassGraph": Run("CompassGraph", typical_graph_wf_ranges, typical_compass_graph_builds, typical_compass_graph_searches, "^"),
   "iRangeGraph2d": Run("iRangeGraph2d", typical_irangegraph_2d_ranges, typical_irangegraph_builds, typical_irangegraph_searches, "2"),

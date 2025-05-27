@@ -71,7 +71,7 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
 
   selectors = [((df["dataset"] == d) & (df["selectivity"] == r)) for d in DATASETS for r in TWOD_RANGES]
-  selected_methods = ["CompassIvf", "CompassR", "CompassRCg", "CompassGraph", "iRangeGraph2d"]
+  selected_methods = ["CompassIvf", "CompassRRBikmeans", "CompassRRCgBikmeans", "CompassGraph", "iRangeGraph2d"]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -84,8 +84,8 @@ def draw_2d_qps_comp_wrt_recall_by_dataset_selectivity():
       for b in data[data["method"] == m].build.unique():
         data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
         marker = COMPASS_BUILD_MARKER_MAPPING.get(b, TWOD_RUNS[m].marker)
-        if m == "CompassR" or m == "CompassGraph":
-          for nrel in [500, 600, 800, 1000]:
+        if m == "CompassRRBikmeans" or m == "CompassRRCgBikmeans" or m == "CompassGraph":
+          for nrel in [100, 200]:
             data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
             if data_by_m_b_nrel.size == 0: continue
             recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
@@ -135,7 +135,7 @@ def draw_2d_qps_comp_wrt_recall_by_selectivity():
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
 
   selectors = [df["selectivity"] == r for r in TWOD_RANGES]
-  selected_methods = ["CompassIvf", "CompassR", "CompassRCg", "CompassGraph", "iRangeGraph2d"]
+  selected_methods = ["CompassIvf", "CompassRRBikmeans", "CompassRRCgBikmeans", "CompassGraph", "iRangeGraph2d"]
 
   for selector in selectors:
     if not selector.any(): continue
@@ -148,8 +148,8 @@ def draw_2d_qps_comp_wrt_recall_by_selectivity():
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b) & (data["dataset"] == dataset)]
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, TWOD_RUNS[m].marker)
-          if m == "CompassR" or m == "CompassRCg":
-            for nrel in [500, 600, 800, 1000]:
+          if m == "CompassRRBikmeans" or m == "CompassRRCgBikmeans":
+            for nrel in [100, 200]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
               recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
@@ -180,8 +180,15 @@ def draw_2d_qps_comp_wrt_recall_by_selectivity():
           axs[1][i].set_title("{}, Selectivity-{}".format(dataset.capitalize(), selectivity))
 
     fig.set_size_inches(35, 20)
-    handles, labels = axs[0][0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc='outside right upper')
+    # handles, labels = axs[0][0].get_legend_handles_labels()
+    # fig.legend(handles, labels, loc='outside right upper')
+    unique_labels = {}
+    for ax in axs.flat:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label not in unique_labels:
+          unique_labels[label] = handle
+    fig.legend(unique_labels.values(), unique_labels.keys(), loc='outside right upper')
     fig.savefig(f"figures2d_{K}/All-{selectivity}-QPS-Comp-Recall.jpg", dpi=200)
     plt.close()
 
@@ -202,13 +209,15 @@ def draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
   df = pd.read_csv(f"stats2d_{K}.csv", dtype=types)
   cutoff_recalls = [0.8, 0.9, 0.95]
 
-  selectivities = ["0.01", "0.09", "0.25", "0.64", "0.81"]
+  pcnts = [10, 30, 50, 80]
+  selectivities = [f"{pcnt}-{pcnt}" for pcnt in pcnts]
 
   for recall in cutoff_recalls:
     fig, axs = plt.subplots(2, len(DATASETS), layout='constrained', sharex=True)
     for i, dataset in enumerate(DATASETS):
       axs[0][i].set_xticks(np.arange(len(selectivities)))
-      axs[0][i].set_xticklabels(selectivities)
+      ticklabels = [f"{pcnt * pcnt / 10000:.2f}" for pcnt in pcnts]
+      axs[0][i].set_xticklabels(ticklabels)
       axs[0][i].set_title(dataset.upper())
       axs[0][i].set_ylabel('QPS')
       axs[1][i].set_ylabel('# Comp')
@@ -218,8 +227,8 @@ def draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
         for b in data[data["method"] == m].build.unique():
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           marker = COMPASS_BUILD_MARKER_MAPPING.get(b, TWOD_RUNS[m].marker)
-          if m == "CompassR" or m == "CompassRCg":
-            for nrel in [500, 600, 800, 1000]:
+          if m == "CompassRRBikmeans" or m == "CompassRRCgBikmeans":
+            for nrel in [100, 200]:
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["run"].str.contains(f"nrel_{nrel}")]
               if data_by_m_b_nrel.size == 0: continue
               rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
@@ -241,8 +250,15 @@ def draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, compare_by):
             axs[1][i].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
 
     fig.set_size_inches(45, 20)
-    handles, labels = axs[0][0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="outside right upper")
+    # handles, labels = axs[0][0].get_legend_handles_labels()
+    # fig.legend(handles, labels, loc="outside right upper")
+    unique_labels = {}
+    for ax in axs.flat:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label not in unique_labels:
+          unique_labels[label] = handle
+    fig.legend(unique_labels.values(), unique_labels.keys(), loc='outside right upper')
     fig.savefig(f"figures2d_{K}/Recall-{recall:.2g}-{compare_by}-All-QPS-Comp.jpg", dpi=200)
     plt.close()
 
@@ -259,5 +275,6 @@ summarize_2d()
 draw_2d_qps_comp_wrt_recall_by_dataset_selectivity()
 draw_2d_qps_comp_wrt_recall_by_selectivity()
 
-selected_methods = ["CompassR", "CompassRCg", "CompassIvf", "CompassGraph", "iRangeGraph2d"]
-# draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, "ToT")
+selected_methods = ["CompassRRBikmeans", "CompassRRCgBikmeans", "CompassIvf", "CompassGraph", "iRangeGraph2d"]
+draw_2d_qps_comp_fixed_recall_by_selectivity(selected_methods, "ToT")
+
