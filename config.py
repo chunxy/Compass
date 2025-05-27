@@ -9,7 +9,7 @@ LOGS_TMPL = "/home/chunxy/repos/Compass/logs_{}"
 
 # Names
 ONED_METHODS = ("CompassRImi1d", "CompassIvf1d", "CompassImi1d", "CompassGraph1d", "Serf", "iRangeGraph")
-ONED_METHODS += ("CompassRR1dBikmeans", "CompassRRCg1dBikmeans", "CompassRRCg1dPca")
+ONED_METHODS += ("CompassRR1dBikmeans", "CompassRRCg1dBikmeans")
 TWOD_METHODS = ("CompassRRBikmeans", "CompassRRCgBikmeans", "CompassIvf", "CompassGraph", "iRangeGraph2d")
 DATASETS = ("sift", "audio", "video", "crawl", "gist", "glove100")
 ONED_PASSRATES = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]
@@ -152,12 +152,12 @@ CompassRImiBuild = namedtuple("CompassRImiBuild", ["M", "efc", "nsub", "nbits"])
 typical_compass_r_imi_builds = [*[CompassRImiBuild(M, efc, *imi) for M, efc, imi in product([16, 32, 64], [100, 200], [(4, 4), (2, 9)])]]
 
 CompassIvfBuild = namedtuple("CompassIvfBuild", ["nlist"])
-typical_compass_ivf_1d_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, 2000, 5000, 10000)]]
+typical_compass_ivf_1d_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, 2000, 5000, 10000, 20000)]]
 typical_compass_ivf_builds = [*[CompassIvfBuild(nlist) for nlist in (1000, 2000, 5000, 10000)]]
 
 CompassIvfSearch = namedtuple("CompassIvfSearch", ["nprobe"])
 typical_compass_ivf_1d_searches = [
-  *[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50, 100)], *[CompassIvfSearch(nprobe) for nprobe in (60, 80, 150)]
+  *[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50, 100)], *[CompassIvfSearch(nprobe) for nprobe in (60, 80, 150, 160, 180, 200)]
 ]
 typical_compass_ivf_searches = [*[CompassIvfSearch(nprobe) for nprobe in (10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100)]]
 
@@ -213,16 +213,16 @@ typical_irangegraph_searches = [
 # Runs
 Run = namedtuple("Run", ["name", "range", "build", "search", "marker"])
 ONED_RUNS = {
-  "CompassR1d": Run("CompassR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
+  # "CompassR1d": Run("CompassR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_1d_searches, "o"),
   # "CompassROld1d": Run("CompassROld1d", typical_rf_ranges, typical_compass_r_old_1d_builds, typical_compass_r_old_1d_searches, "p"),
   # "CompassRImi1d": Run("CompassRImim1d", typical_rf_ranges, typical_compass_r_imi_builds, typical_compass_r_1d_searches, "v"),
   # "CompassRCg1d": Run("CompassRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
-  # "CompassRR1d": Run("CompassRR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
+  "CompassRR1d": Run("CompassRR1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   "CompassRR1dBikmeans": Run("CompassRR1dBikmeans", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   # "CompassRR1dKmedoids": Run("CompassRR1dKmedoids", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   # "CompassRRCg1d": Run("CompassRRCg1d", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   "CompassRRCg1dBikmeans": Run("CompassRRCg1dBikmeans", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
-  "CompassRRCg1dPca": Run("CompassRRCg1dPca", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "^"),
+  # "CompassRRCg1dPca": Run("CompassRRCg1dPca", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "^"),
   # "CompassRRCg1dKmedoids": Run("CompassRRCg1dKmedoids", typical_rf_ranges, typical_compass_r_1d_builds, typical_compass_r_cg_1d_searches, "<"),
   "CompassGraph1d": Run("CompassGraph1d", typical_graph_ranges, typical_compass_graph_1d_builds, typical_compass_graph_1d_searches, "^"),
   "CompassIvf1d": Run("CompassIvf1d", typical_ivf_rf_ranges, typical_compass_ivf_1d_builds, typical_compass_ivf_1d_searches, "*"),
@@ -268,6 +268,7 @@ COMPASS_BUILD_MARKER_MAPPING = {
   "M_16_efc_200_nlist_1000": "D",
   "M_16_efc_200_nlist_5000": "h",
   "M_16_efc_200_nlist_10000": "p",
+  "M_16_efc_200_nlist_20000": "p",
   "M_32_efc_200_nlist_1000": "8",
   "M_32_efc_200_nlist_5000": ">",
   "M_32_efc_200_nlist_10000": "P",

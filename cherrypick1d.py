@@ -47,16 +47,20 @@ def draw_1d_comp_wrt_recall_by_selectivity(selected_builds, selected_searches=No
               comp_recall = data_by_m_b_s[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
               comp_recall = comp_recall.to_numpy()
               axs[i // ncol, i % ncol].plot(comp_recall[:, 0], comp_recall[:, 1])
-              axs[i // ncol, i % ncol].scatter(comp_recall[:, 0], comp_recall[:, 1], label=f"{m}-{b}-{s}", marker=marker)
+              label = f"{m}-{b}-{s}"
+              # label = "Compass"
+              axs[i // ncol, i % ncol].scatter(comp_recall[:, 0], comp_recall[:, 1], label=label, marker=marker)
           else:
             comp_recall = data_by_m_b[["recall", "comp"]].sort_values(["recall", "comp"], ascending=[True, True])
             comp_recall = comp_recall.to_numpy()
             axs[i // ncol, i % ncol].plot(comp_recall[:, 0], comp_recall[:, 1])
-            axs[i // ncol, i % ncol].scatter(comp_recall[:, 0], comp_recall[:, 1], label=f"{m}-{b}", marker=marker)
+            label = f"{m}-{b}"
+            # label = m
+            axs[i // ncol, i % ncol].scatter(comp_recall[:, 0], comp_recall[:, 1], label=label, marker=marker)
 
           axs[i // ncol, i % ncol].set_xlabel('Recall')
           axs[i // ncol, i % ncol].set_ylabel('# Comp')
-          axs[i // ncol, i % ncol].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
+          axs[i // ncol, i % ncol].set_title("{}, Passrate-{:.1%}".format(dataset.capitalize(), selectivity))
 
     fig.set_size_inches(15, 10)
     handles, labels = axs[0, 0].get_legend_handles_labels()
@@ -110,7 +114,7 @@ def draw_1d_qps_wrt_recall_by_selectivity(selected_builds, selected_searches=Non
 
           axs[i // ncol, i % ncol].set_xlabel('Recall')
           axs[i // ncol, i % ncol].set_ylabel('QPS')
-          axs[i // ncol, i % ncol].set_title("{}, Selectivity-{:.1%}".format(dataset.capitalize(), selectivity))
+          axs[i // ncol, i % ncol].set_title("{}, Passrate-{:.1%}".format(dataset.capitalize(), selectivity))
 
     fig.set_size_inches(15, 10)
     handles, labels = axs[0, 0].get_legend_handles_labels()
@@ -119,7 +123,7 @@ def draw_1d_qps_wrt_recall_by_selectivity(selected_builds, selected_searches=Non
     plt.close()
 
 
-def draw_1d_comp_fixed_recall_by_selectivity(selected_datasets, compare_by):
+def draw_1d_comp_fixed_recall_by_selectivity(selected_datasets, compare_by, paper=False):
   types = {
     "path": str,
     "method": str,
@@ -135,7 +139,8 @@ def draw_1d_comp_fixed_recall_by_selectivity(selected_datasets, compare_by):
   df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
   cutoff_recalls = [0.8, 0.9, 0.95]
 
-  selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.6", "0.8", "1.0"]
+  # selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.6", "0.8", "1.0"]
+  selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.5", "1.0"]
 
   for recall in cutoff_recalls:
     nrow = 2 if len(selected_datasets) >= 4 else 1
@@ -147,7 +152,7 @@ def draw_1d_comp_fixed_recall_by_selectivity(selected_datasets, compare_by):
       axs[i].set_xticklabels(selectivities)
       axs[i].set_title(dataset.upper())
       axs[i].set_ylabel('# Comp')
-      axs[i].set_xlabel('Selectivity')
+      axs[i].set_xlabel('Passrate')
       data = df[df["dataset"] == dataset]
       for m in selected_datasets[dataset]:
         for b in [TEMPLATES[m].build.format(*b) for b in selected_datasets[dataset][m]["build"]]:
@@ -166,19 +171,21 @@ def draw_1d_comp_fixed_recall_by_selectivity(selected_datasets, compare_by):
               grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
               pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
               axs[i].plot(pos_s, grouped_comp["comp"])
-              axs[i].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}-{s}", marker=marker)
+              label = f"{m}-{b}-{recall}-{s}" if not paper else m
+              axs[i].scatter(pos_s, grouped_comp["comp"], label=label, marker=marker)
           else:
             rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
-
             grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["qps"].max()
             grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["comp"].min()
             grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selectivities)]
             grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
             pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
             axs[i].plot(pos_s, grouped_comp["comp"])
-            axs[i].scatter(pos_s, grouped_comp["comp"], label=f"{m}-{b}-{recall}", marker=marker)
+            label = f"{m}-{b}-{recall}" if not paper else m
+            axs[i].scatter(pos_s, grouped_comp["comp"], label=label, marker=marker)
 
-    fig.set_size_inches(21, 12)
+
+    fig.set_size_inches(12, 8)
     # handles, labels = axs[0][0].get_legend_handles_labels()
     unique_labels = {}
     for ax in axs:
@@ -190,6 +197,83 @@ def draw_1d_comp_fixed_recall_by_selectivity(selected_datasets, compare_by):
     # fig.legend(handles, labels, loc="outside right upper")
     fig.savefig(f"cherrypick_{K}/Recall-{recall:.2g}-{compare_by}-All-Comp.jpg", dpi=200)
     plt.close()
+
+
+def draw_1d_qps_fixed_recall_by_selectivity(selected_datasets, compare_by, paper=False):
+  types = {
+    "path": str,
+    "method": str,
+    "workload": str,
+    "build": str,
+    "dataset": str,
+    "selectivity": str,
+    "run": str,
+    "recall": float,
+    "qps": float,
+    "comp": float,
+  }
+  df = pd.read_csv(f"stats1d_{K}.csv", dtype=types)
+  cutoff_recalls = [0.8, 0.9, 0.95]
+
+  # selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.3", "0.4", "0.6", "0.8", "1.0"]
+  selectivities = ["0.01", "0.02", "0.05", "0.1", "0.2", "0.5", "1.0"]
+
+  for recall in cutoff_recalls:
+    nrow = 2 if len(selected_datasets) >= 4 else 1
+    ncol = (len(selected_datasets) + nrow - 1) // nrow
+    fig, axs = plt.subplots(nrow, ncol, layout='constrained')
+    axs = axs.flat
+    for i, dataset in enumerate(selected_datasets):
+      axs[i].set_xticks(np.arange(len(selectivities)))
+      axs[i].set_xticklabels(selectivities)
+      axs[i].set_title(dataset.upper())
+      axs[i].set_ylabel('QPS')
+      axs[i].set_xlabel('Passrate')
+      data = df[df["dataset"] == dataset]
+      for m in selected_datasets[dataset]:
+        for b in [TEMPLATES[m].build.format(*b) for b in selected_datasets[dataset][m]["build"]]:
+          marker = COMPASS_BUILD_MARKER_MAPPING.get(b, ONED_RUNS[m].marker)
+          data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+          if data_by_m_b.size == 0: continue
+          if "search" in selected_datasets[dataset][m]:
+            for s in selected_datasets[dataset][m]["search"]:
+              data_by_m_b_s = data_by_m_b[data_by_m_b["run"].str.contains(s)]
+              if data_by_m_b_s.size == 0: continue
+              rec_sel_qps_comp = data_by_m_b_s[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
+
+              grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["qps"].max()
+              grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["comp"].min()
+              grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selectivities)]
+              grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
+              pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
+              axs[i].plot(pos_s, grouped_qps["qps"])
+              label = f"{m}-{b}-{recall}-{s}" if not paper else m
+              axs[i].scatter(pos_s, grouped_qps["qps"], label=label, marker=marker)
+          else:
+            rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "comp"]].sort_values(["selectivity", "recall"])
+            grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["qps"].max()
+            grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(recall)].groupby("selectivity", as_index=False)["comp"].min()
+            grouped_qps = grouped_qps[grouped_qps["selectivity"].isin(selectivities)]
+            grouped_comp = grouped_comp[grouped_comp["selectivity"].isin(selectivities)]
+            pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
+            axs[i].plot(pos_s, grouped_qps["qps"])
+            label = f"{m}-{b}-{recall}" if not paper else m
+            axs[i].scatter(pos_s, grouped_qps["qps"], label=label, marker=marker)
+
+
+    fig.set_size_inches(12, 8)
+    # handles, labels = axs[0][0].get_legend_handles_labels()
+    unique_labels = {}
+    for ax in axs:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label not in unique_labels:
+          unique_labels[label] = handle
+    fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
+    # fig.legend(handles, labels, loc="outside right upper")
+    fig.savefig(f"cherrypick_{K}/Recall-{recall:.2g}-{compare_by}-All-QPS.jpg", dpi=200)
+    plt.close()
+
 
 
 def draw_1d_by_selected_dataset_adverse():
@@ -310,19 +394,34 @@ def compare_comp_with_baseline():
   build_search = {
     "CompassRR1dBikmeans": {
       "build": [CompassBuild(16, 200, 10000)],
-      "search": [f"nrel_{nrel}" for nrel in [100, 200]],
+      "search": [f"nrel_{nrel}" for nrel in [100,]],
     },
     "CompassIvf1d": {
-      "build": [CompassBuild(16, 200, 10000)],
+      "build": [CompassIvfBuild(10000)],
     },
     "CompassGraph1d": {
-      "build": [CompassBuild(16, 200, 10000)],
+      "build": [CompassGraphBuild(32, 200)],
     },
   }
   datasets = OrderedDict()
-  for d in DATASETS:
-    datasets[d] = build_search
+  datasets["sift"] = build_search
+  datasets["audio"] = build_search
+  large_builds = {
+    "CompassRR1dBikmeans": {
+      "build": [CompassBuild(16, 200, 20000)],
+      "search": [f"nrel_{nrel}" for nrel in [100,]],
+    },
+    "CompassIvf1d": {
+      "build": [CompassIvfBuild(10000)],
+    },
+    "CompassGraph1d": {
+      "build": [CompassGraphBuild(32, 200)],
+    },
+  }
+  datasets["crawl"] = large_builds
+  datasets["video"] = large_builds
   draw_1d_comp_fixed_recall_by_selectivity(datasets, "ToT")
+  draw_1d_qps_fixed_recall_by_selectivity(datasets, "ToT")
   base_builds = {
     "CompassRR1dBikmeans": [
       CompassBuild(16, 200, 10000),
@@ -333,6 +432,8 @@ def compare_comp_with_baseline():
   selected_searches = {"CompassRR1dBikmeans": [f"nrel_{nrel}" for nrel in [100, 200]]}
   draw_1d_comp_wrt_recall_by_selectivity(base_builds, selected_searches, "baseline/")
 
+
+compare_comp_with_baseline()
 
 # Compare the QPS between original and cluster-graph version
 def compare_qps_with_cluster_graph():
@@ -378,7 +479,7 @@ def compare_comp_with_sota_to_reach_recall():
   # },
     "CompassRR1dBikmeans": {
       "build": [CompassBuild(16, 200, 10000)],
-      "search": [f"nrel_{nrel}" for nrel in [100, 200]],
+      "search": [f"nrel_{nrel}" for nrel in [100]],
     },
   }
   selected_datasets = OrderedDict()
@@ -393,12 +494,13 @@ def compare_comp_with_sota_to_reach_recall():
     },
     "CompassRR1dBikmeans": {
       "build": [CompassBuild(16, 200, 20000)],
-      "search": [f"nrel_{nrel}" for nrel in [100, 200]],
+      "search": [f"nrel_{nrel}" for nrel in [100,]],
     },
   }
   selected_datasets["crawl"] = large_builds
   selected_datasets["video"] = large_builds
   draw_1d_comp_fixed_recall_by_selectivity(selected_datasets, "MoM")
+  draw_1d_qps_fixed_recall_by_selectivity(selected_datasets, "MoM")
 
 
 compare_comp_with_sota_to_reach_recall()
@@ -510,9 +612,11 @@ def compare_comp_with_sota():
     "Serf": [SerfBuild(32, 200, 500)],
     "CompassRR1dBikmeans": [
       CompassBuild(16, 200, 10000),
+      CompassBuild(16, 200, 20000),
     ],
     "CompassRRCg1dBikmeans": [
       CompassBuild(16, 200, 10000),
+      CompassBuild(16, 200, 20000),
     ],
   }
   searches = {

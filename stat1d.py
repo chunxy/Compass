@@ -39,10 +39,10 @@ def stat_top_k_in_cluster_by_selectivity():
               if cumu >= target:
                 break
               j_ += 1
-            axs[j][k].annotate(f"{target:.1%}, {j_}", xy=(j_, 0), xytext=(j_, ylim * 0.05), arrowprops=dict(facecolor='black', shrink=0.05))
+            axs[j][k].annotate(f"{target:.1%}, {j_}", xy=(j_, 0), xytext=(j_, ylim * 0.2), arrowprops=dict(facecolor='black', shrink=0.05))
             axs[j][k].set_ylim(0, ylim)
             axs[j][k].set_title(f"{dataset.upper()}-{(rg[1] - rg[0]) / 10000:.1%}-{prefix_name_map[method]}")
-      fig.set_size_inches(20, 15)
+      fig.set_size_inches(12, 9)
       fig.savefig(f"figures_10/clustering/Clustering-{dataset.upper()}-{nlist}-Quality.jpg", dpi=100)
       plt.close()
 
@@ -73,5 +73,12 @@ def stat_cluster_imbalance_factor():
     fig.set_size_inches(15, 20)
     fig.savefig(f"figures_10/clustering/Cluster-{nlist}-Imbalance.jpg", dpi=200)
 
-stat_cluster_imbalance_factor()
+plt.rcParams.update({
+  'font.size': 15,
+  'legend.fontsize': 15,
+  'axes.labelsize': 15,
+  'axes.titlesize': 15,
+})
+
+# stat_cluster_imbalance_factor()
 stat_top_k_in_cluster_by_selectivity()
