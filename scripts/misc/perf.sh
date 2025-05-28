@@ -1,2 +1,0 @@
-sudo perf stat /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_r_1d --datacard siftsmall_1_1000_float32 --l 100 --r 1000 --k 100 --M 32 --efc 200 --nlist 1000 --efs 100 --nrel 25 --nthread 4
-sudo perf stat /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_ivf_1d --datacard siftsmall_1_1000_float32 --l 100 --r 1000 --k 100 --nlist 1000 --nprobe 100 --nthread 4

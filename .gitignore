@@ -7,15 +7,15 @@ thirdparty/*
 *.csv
 *.bkp
 *.jpg
-test.py
-test_bisect.py
-generate.py
-transform.py
 /*.sh
 src/tests/test_rng/
 src/tests/test_hnsw/
 src/tests/test_reentrant_hnsw/
+scratches/
+# Symbolic links
 logs*
 data
 checkpoints
 runs
+figures*
+cherrypick*
