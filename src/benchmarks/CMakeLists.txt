@@ -75,7 +75,4 @@ target_link_libraries(bench_compass_rr_cg_bikmeans Boost::filesystem)
 target_link_libraries(bench_compass_ivf Boost::filesystem)
 target_link_libraries(bench_compass_graph Boost::filesystem)
 
-# add_executable(bench_balanced_ivf bench_balanced_ivf.cpp)
-add_executable(bench_acorn bench_acorn.cpp)
-target_link_libraries(bench_acorn Boost::filesystem)
 
