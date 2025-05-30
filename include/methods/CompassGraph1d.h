@@ -2,10 +2,7 @@
 
 #include <fmt/core.h>
 #include <algorithm>
-#include <boost/coroutine2/all.hpp>
 #include <boost/filesystem.hpp>
-#include <cassert>
-#include <cstddef>
 #include <limits>
 #include <queue>
 #include <utility>
@@ -13,25 +10,17 @@
 #include "../btree/btree_map.h"
 #include "../hnswlib/hnswlib.h"
 #include "../utils/predicate.h"
-// #include "faiss/MetricType.h"
 #include "methods/Pod.h"
 #include "methods/ReentrantHNSW.h"
 #include "space_l2.h"
 #include "visited_list_pool.h"
 
 namespace fs = boost::filesystem;
-using coroutine_t = boost::coroutines2::coroutine<int>;
 using std::pair;
 using std::vector;
 
 template <typename dist_t, typename attr_t>
 class CompassGraph1d {
-  // using Parent = HierarchicalNSW<dist_t>;
-  using candidate_queue = std::priority_queue<
-      pair<dist_t, tableint>,
-      vector<pair<dist_t, tableint>>,
-      typename HierarchicalNSW<dist_t>::CompareByFirst>;
-
  private:
   L2Space space_;
   ReentrantHNSW<dist_t> hnsw_;
@@ -86,7 +75,7 @@ class CompassGraph1d {
       vl_type *visited = vl->mass;
       vl_type visited_tag = vl->curV;
 
-      RangeQuery<float> pred(l_bound, u_bound, &attrs_);
+      RangeQuery<float> pred(&l_bound, &u_bound, attrs_.data(), hnsw_.max_elements_, 1);
 
       {
         tableint currObj = hnsw_.enterpoint_node_;

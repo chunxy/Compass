@@ -62,7 +62,7 @@ class CompassRProclus1d {
         nlist_(nlist) {}
   int AddPoint(const void *data_point, labeltype label, attr_t attr);
   int AddGraphPoint(const void *data_point, labeltype label);
-  int AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attrs);
+  int AddPointsToIvf(size_t n, const void *data, labeltype *labels, attr_t *attrs);
   void TrainIvf(size_t n, const void *data);
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
       const void *query,
@@ -223,7 +223,7 @@ int CompassRProclus1d<dist_t, attr_t>::AddGraphPoint(const void *data_point, lab
 }
 
 template <typename dist_t, typename attr_t>
-int CompassRProclus1d<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attr) {
+int CompassRProclus1d<dist_t, attr_t>::AddPointsToIvf(size_t n, const void *data, labeltype *labels, attr_t *attr) {
   // ivf_->add(n, (float *)data);  // add_sa_codes
   ranked_clusters_ = new faiss::idx_t[n];
   float *distances = new float[n];

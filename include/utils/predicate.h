@@ -11,41 +11,46 @@ using std::vector;
 template <typename attr_t>
 class RangeQuery : public hnswlib::BaseFilterFunctor {
  private:
-  attr_t l_bound_, r_bound_;
-  const vector<attr_t> *attrs_;  // index should be the labeltype
+  const attr_t *l_bound_, *r_bound_; // of dimension d
+  const attr_t *attrs_;  // index should be the labeltype
+  size_t n_, d_;
 
  public:
-  RangeQuery(attr_t l_bound, attr_t u_bound, const vector<attr_t> *attrs)
-      : l_bound_(l_bound), r_bound_(u_bound), attrs_(attrs) {}
+  RangeQuery(const attr_t *l_bound, const attr_t *u_bound, const attr_t *attrs, size_t n, size_t d)
+      : l_bound_(l_bound), r_bound_(u_bound), attrs_(attrs), n_(n), d_(d) {}
   bool operator()(hnswlib::labeltype label) {
-    if (label < attrs_->size()) {
-      return l_bound_ <= (*attrs_)[label] && (*attrs_)[label] <= r_bound_;
-    } else {
-      return false;
+    if (label < n_) {
+      for (int i = 0; i < d_; i++) {
+        if (l_bound_[i] >= attrs_[label * d_ + i] || attrs_[label * d_ + i] >= r_bound_[i]) {
+          return false;
+        }
+      }
+      return true;
     }
+    return false;
   }
 };
 
 template <typename attr_t>
 class WindowQuery : public hnswlib::BaseFilterFunctor {
  private:
-  vector<attr_t> l_bounds_, u_bounds_;
-  const vector<vector<attr_t>> *attrs_;  // index should be the labeltype
+  const attr_t *l_bound_, *r_bound_; // of dimension d
+  const attr_t *attrs_;  // index should be the labeltype
+  size_t n_, d_;
 
  public:
-  WindowQuery(vector<attr_t> l_bounds, vector<attr_t> u_bounds, const vector<vector<attr_t>> *attrs)
-      : l_bounds_(l_bounds), u_bounds_(u_bounds), attrs_(attrs) {}
+  WindowQuery(const attr_t *l_bound, const attr_t *u_bound, const attr_t *attrs, size_t n, size_t d)
+      : l_bound_(l_bound), r_bound_(u_bound), attrs_(attrs), n_(n), d_(d) {}
   bool operator()(hnswlib::labeltype label) {
-    if (label < attrs_->size()) {
-      for (int i = 0; i < l_bounds_.size(); i++) {
-        if (l_bounds_[i] >= (*attrs_)[label][i] || (*attrs_)[label][i] >= u_bounds_[i]) {
+    if (label < n_) {
+      for (int i = 0; i < d_; i++) {
+        if (l_bound_[i] >= attrs_[label * d_ + i] || attrs_[label * d_ + i] >= r_bound_[i]) {
           return false;
         }
       }
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 };
 

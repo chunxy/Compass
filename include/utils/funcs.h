@@ -11,9 +11,11 @@
 using hnswlib::labeltype;
 using std::vector;
 
-float* load_float32(const string &path, const int n, const int d);
+float *load_float32(const string &path, const int n, const int d);
 
 void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, vector<vector<float>> &attrs);
+
+void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, float *&attrs);
 
 void load_hybrid_query_gt(
     const DataCard &c,
@@ -38,6 +40,15 @@ void stat_selectivity(const vector<float> &attrs, const int l_bound, const int u
 
 void stat_selectivity(
     const vector<vector<float>> &attrs,
+    const vector<float> &l_bounds,
+    const vector<float> &u_bounds,
+    int &nsat
+);
+
+void stat_selectivity(
+    const float *attrs,
+    const int n,
+    const int d,
     const vector<float> &l_bounds,
     const vector<float> &u_bounds,
     int &nsat
@@ -95,5 +106,5 @@ nlohmann::json collate_stat(
     const int nq,
     const int search_time,
     const int nthread,
-    FILE* out
+    FILE *out
 );

@@ -57,7 +57,7 @@ int main() {
     memcpy(gt + i * nk, next.data(), nk * sizeof(uint32_t));
     i++;
   }
-  BinaryAttrReader<float> reader(attr_path);
+  AttrReaderToVector<float> reader(attr_path);
   auto attrs = reader.GetAttrs();
 
   int nlist = 100;                  // number of coarse clusters

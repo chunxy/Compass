@@ -29,8 +29,8 @@ int main(int argc, char **argv) {
   if (type == "float32") {
     std::string path = fmt::format(VALUE_PATH_TMPL, name, attr_d, attr_range);
     fmt::print("Saving to {}", path);
-    BinaryAttrReader<float>::GenerateRandomAttrs(path, n, attr_d, attr_range);
-    BinaryAttrReader<float> value_reader(path);
+    AttrReaderToVector<float>::GenerateRandomAttrs(path, n, attr_d, attr_range);
+    AttrReaderToVector<float> value_reader(path);
     auto values = value_reader.GetAttrs();
     for (auto value : values) {
       for (auto num : value) {
@@ -41,8 +41,8 @@ int main(int argc, char **argv) {
   } else if (type == "int32") {
     std::string blabel_path = fmt::format(BLABEL_PATH_TMPL, name, attr_range);
     fmt::print("Saving to {}", blabel_path);
-    BinaryAttrReader<int32_t>::GenerateRandomAttrs(blabel_path, n, attr_d, attr_range);
-    BinaryAttrReader<int32_t> blabel_reader(blabel_path);
+    AttrReaderToVector<int32_t>::GenerateRandomAttrs(blabel_path, n, attr_d, attr_range);
+    AttrReaderToVector<int32_t> blabel_reader(blabel_path);
     auto blabels = blabel_reader.GetAttrs();
     for (auto label : blabels) {
       for (auto num : label) {
@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
 
     std::string qlabel_path = fmt::format(QLABEL_PATH_TMPL, name, attr_range);
     fmt::print("Saving to {}", qlabel_path);
-    BinaryAttrReader<int32_t>::GenerateRandomAttrs(qlabel_path, n, attr_d, attr_range);
-    BinaryAttrReader<int32_t> qlabel_reader(blabel_path);
+    AttrReaderToVector<int32_t>::GenerateRandomAttrs(qlabel_path, n, attr_d, attr_range);
+    AttrReaderToVector<int32_t> qlabel_reader(blabel_path);
     auto qlabels = qlabel_reader.GetAttrs();
     for (auto label : qlabels) {
       for (auto num : label) {

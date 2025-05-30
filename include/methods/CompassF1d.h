@@ -50,7 +50,7 @@ class CompassF1d {
   CompassF1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist);
   int AddPoint(const void *data_point, labeltype label, attr_t attr);
   int AddGraphPoint(const void *data_point, labeltype label);
-  int AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attrs);
+  int AddPointsToIvf(size_t n, const void *data, labeltype *labels, attr_t *attrs);
   void TrainIvf(size_t n, const void *data);
 
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
@@ -107,7 +107,7 @@ int CompassF1d<dist_t, attr_t>::AddGraphPoint(const void *data_point, labeltype 
 }
 
 template <typename dist_t, typename attr_t>
-int CompassF1d<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data, labeltype *labels, attr_t *attr) {
+int CompassF1d<dist_t, attr_t>::AddPointsToIvf(size_t n, const void *data, labeltype *labels, attr_t *attr) {
   // ivf_->add(n, (float *)data);  // add_sa_codes
   assigned_clusters = new faiss::idx_t[n * 1];
   ivf_->quantizer->assign(n, (float *)data, assigned_clusters, 1);
@@ -121,10 +121,6 @@ int CompassF1d<dist_t, attr_t>::AddIvfPoints(size_t n, const void *data, labelty
 template <typename dist_t, typename attr_t>
 void CompassF1d<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
   ivf_->train(n, (float *)data);
-  // ivf_->add(n, (float *)data);
-  // ivfpq_.train(n, (float *)data);
-  // auto assigned_clusters = new faiss::idx_t[n * 1];
-  // ivf_->quantizer->assign(n, (float *)data, assigned_clusters, 1);
 }
 
 template <typename dist_t, typename attr_t>

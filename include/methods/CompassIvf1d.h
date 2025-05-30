@@ -40,8 +40,7 @@ class CompassIvf1D {
 
  public:
   CompassIvf1D(size_t d, size_t max_elements, size_t nlist, const float *xb);
-  int Add(const void *data_point, labeltype label, attr_t attr);
-  int AddIvfPoints(size_t n, const void *data, labeltype *labels, const vector<attr_t> &attrs);
+  int AddPointsToIvf(size_t n, const void *data, labeltype *labels, const vector<attr_t> &attrs);
   void TrainIvf(size_t n, const void *data);
 
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
@@ -124,17 +123,6 @@ CompassIvf1D<dist_t, attr_t>::CompassIvf1D(size_t d, size_t max_elements, size_t
 }
 
 template <typename dist_t, typename attr_t>
-int CompassIvf1D<dist_t, attr_t>::Add(const void *data_point, labeltype label, attr_t attr) {
-  attrs_[label] = attr;
-  ivf_->add(1, (float *)data_point);  // add_sa_codes
-  // search_and_return_codes
-  faiss::idx_t assigned_cluster;
-  quantizer_.assign(1, (float *)data_point, &assigned_cluster, 1);
-  btrees_[assigned_cluster].insert(std::make_pair(attr, label));
-  return 1;
-}
-
-template <typename dist_t, typename attr_t>
 void CompassIvf1D<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
   ivf_->train(n, (float *)data);
   // ivfpq_.train(n, (float *)data);
@@ -143,7 +131,7 @@ void CompassIvf1D<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
 }
 
 template <typename dist_t, typename attr_t>
-int CompassIvf1D<dist_t, attr_t>::AddIvfPoints(
+int CompassIvf1D<dist_t, attr_t>::AddPointsToIvf(
     size_t n,
     const void *data,
     labeltype *labels,

@@ -17,20 +17,14 @@
 
 using std::vector;
 
-float* load_float32(const string &path, const int n, const int d) {
+float *load_float32(const string &path, const int n, const int d) {
   auto storage = new float[n * d];
   std::ifstream in(path);
   in.read((char *)storage, sizeof(float) * n * d);
   return storage;
 }
 
-void load_hybrid_data(
-    const DataCard &c,
-    float *&xb,
-    float *&xq,
-    uint32_t *&gt,
-    vector<vector<float>> &attrs
-) {
+void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, vector<vector<float>> &attrs) {
   auto d = c.dim, nb = c.n_base, nq = c.n_queries, ng = c.n_groundtruth;
   xb = new float[d * nb];
   xq = new float[d * nq];
@@ -51,16 +45,36 @@ void load_hybrid_data(
     memcpy(xq + i * d, next.data(), d * sizeof(float));
     i++;
   }
-  // IVecItrReader groundtruth_it(c.groundtruth_path);
-  // i = 0;
-  // while (!groundtruth_it.HasEnded()) {
-  //   auto next = groundtruth_it.Next();
-  //   memcpy(gt + i * ng, next.data(), ng * sizeof(uint32_t));
-  //   i++;
-  // }
 
   std::string attr_path = fmt::format(VALUE_PATH_TMPL, c.name, c.attr_dim, c.attr_range);
-  BinaryAttrReader<float> reader(attr_path);
+  AttrReaderToVector<float> reader(attr_path);
+  attrs = reader.GetAttrs();
+}
+
+void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, float *&attrs) {
+  auto d = c.dim, nb = c.n_base, nq = c.n_queries, ng = c.n_groundtruth;
+  xb = new float[d * nb];
+  xq = new float[d * nq];
+  // gt = new uint32_t[ng * nq];
+  int i;
+
+  FVecItrReader base_it(c.base_path);
+  i = 0;
+  while (!base_it.HasEnded()) {
+    auto next = base_it.Next();
+    memcpy(xb + i * d, next.data(), d * sizeof(float));
+    i++;
+  }
+  FVecItrReader query_it(c.query_path);
+  i = 0;
+  while (!query_it.HasEnded()) {
+    auto next = query_it.Next();
+    memcpy(xq + i * d, next.data(), d * sizeof(float));
+    i++;
+  }
+
+  std::string attr_path = fmt::format(VALUE_PATH_TMPL, c.name, c.attr_dim, c.attr_range);
+  AttrReaderToRaw<float> reader(attr_path);
   attrs = reader.GetAttrs();
 }
 
@@ -125,13 +139,13 @@ void load_filter_data(
   }
 
   std::string blabel_path = fmt::format(BLABEL_PATH_TMPL, c.name, c.attr_range);
-  BinaryAttrReader<int32_t> blabel_reader(blabel_path);
+  AttrReaderToVector<int32_t> blabel_reader(blabel_path);
   auto _blabels = blabel_reader.GetAttrs();
   blabels.resize(_blabels.size());
   for (size_t i = 0; i < blabels.size(); i++) blabels[i] = _blabels[i][0];
 
   std::string qlabel_path = fmt::format(BLABEL_PATH_TMPL, c.name, c.attr_range);
-  BinaryAttrReader<int32_t> qlabel_reader(qlabel_path);
+  AttrReaderToVector<int32_t> qlabel_reader(qlabel_path);
   auto _qlabels = qlabel_reader.GetAttrs();
   qlabels.resize(_qlabels.size());
   for (size_t i = 0; i < qlabels.size(); i++) qlabels[i] = _qlabels[i][0];
@@ -178,6 +192,28 @@ void stat_selectivity(
   }
 }
 
+void stat_selectivity(
+    const float *attrs,
+    const int n,
+    const int d,
+    const vector<float> &l_bounds,
+    const vector<float> &u_bounds,
+    int &nsat
+) {
+  nsat = n;
+  if (l_bounds.size() != d || u_bounds.size() != d) {
+    throw std::invalid_argument("l_bounds and u_bounds must have the same dimension as d");
+  }
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < d; j++) {
+      if (l_bounds[j] > attrs[i * d + j] || attrs[i * d + j] > u_bounds[j]) {
+        nsat--;
+        break;
+      }
+    }
+  }
+}
+
 void collate_compass_stats(
     const long time_in_ms,
     const vector<float> &rec_at_ks,
@@ -197,10 +233,8 @@ void collate_compass_stats(
   auto sum_of_num = std::accumulate(ivf_ppsl_nums.begin(), ivf_ppsl_nums.end(), 0.);
   auto sum_of_qlty = std::accumulate(ivf_ppsl_qlty.begin(), ivf_ppsl_qlty.end(), 0.);
   auto sum_of_rate = std::accumulate(ivf_ppsl_rate.begin(), ivf_ppsl_rate.end(), 0.);
-  auto sum_of_percentage_in_tp =
-      std::accumulate(perc_of_ivf_ppsl_in_tp.begin(), perc_of_ivf_ppsl_in_tp.end(), 0.);
-  auto sum_of_percentage_in_rz =
-      std::accumulate(perc_of_ivf_ppsl_in_rz.begin(), perc_of_ivf_ppsl_in_rz.end(), 0.);
+  auto sum_of_percentage_in_tp = std::accumulate(perc_of_ivf_ppsl_in_tp.begin(), perc_of_ivf_ppsl_in_tp.end(), 0.);
+  auto sum_of_percentage_in_rz = std::accumulate(perc_of_ivf_ppsl_in_rz.begin(), perc_of_ivf_ppsl_in_rz.end(), 0.);
   auto sum_of_linear_scan_rate = std::accumulate(linear_scan_rate.begin(), linear_scan_rate.end(), 0.);
   auto sum_of_context_switch_time = std::accumulate(context_ts.begin(), context_ts.end(), 0);
   fmt::print("Average Recall    : {:5.2f}%\n", sum_of_rec / nq * 100);
@@ -305,10 +339,8 @@ nlohmann::json collate_stat(
   auto sum_of_graph_num = std::accumulate(s.graph_ppsl_nums.begin(), s.graph_ppsl_nums.end(), 0.);
   auto sum_of_graph_qlty = std::accumulate(s.graph_ppsl_qlty.begin(), s.graph_ppsl_qlty.end(), 0.);
   auto sum_of_graph_rate = std::accumulate(s.graph_ppsl_rate.begin(), s.graph_ppsl_rate.end(), 0.);
-  auto sum_of_perc_ivf_in_tp =
-      std::accumulate(s.perc_of_ivf_ppsl_in_tp.begin(), s.perc_of_ivf_ppsl_in_tp.end(), 0.);
-  auto sum_of_perc_ivf_in_rz =
-      std::accumulate(s.perc_of_ivf_ppsl_in_rz.begin(), s.perc_of_ivf_ppsl_in_rz.end(), 0.);
+  auto sum_of_perc_ivf_in_tp = std::accumulate(s.perc_of_ivf_ppsl_in_tp.begin(), s.perc_of_ivf_ppsl_in_tp.end(), 0.);
+  auto sum_of_perc_ivf_in_rz = std::accumulate(s.perc_of_ivf_ppsl_in_rz.begin(), s.perc_of_ivf_ppsl_in_rz.end(), 0.);
   auto sum_of_linear_scan_rate = std::accumulate(s.linear_scan_rate.begin(), s.linear_scan_rate.end(), 0.);
   auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0);
   auto sum_of_num_cluster = std::accumulate(s.num_clusters.begin(), s.num_clusters.end(), 0);
@@ -354,14 +386,14 @@ nlohmann::json collate_stat(
 }
 
 nlohmann::json collate_stat(
-  const Stat &s,
-  const int nb,
-  const int nsat,
-  const int k,
-  const int nq,
-  const int search_time,
-  const int nthread,
-  FILE* out
+    const Stat &s,
+    const int nb,
+    const int nsat,
+    const int k,
+    const int nq,
+    const int search_time,
+    const int nthread,
+    FILE *out
 ) {
   for (int j = 0; j < s.rec_at_ks.size(); j++) {
     fmt::print(out, "Query: {:d},\n", j);
@@ -393,10 +425,8 @@ nlohmann::json collate_stat(
   auto sum_of_graph_num = std::accumulate(s.graph_ppsl_nums.begin(), s.graph_ppsl_nums.end(), 0.);
   auto sum_of_graph_qlty = std::accumulate(s.graph_ppsl_qlty.begin(), s.graph_ppsl_qlty.end(), 0.);
   auto sum_of_graph_rate = std::accumulate(s.graph_ppsl_rate.begin(), s.graph_ppsl_rate.end(), 0.);
-  auto sum_of_perc_ivf_in_tp =
-      std::accumulate(s.perc_of_ivf_ppsl_in_tp.begin(), s.perc_of_ivf_ppsl_in_tp.end(), 0.);
-  auto sum_of_perc_ivf_in_rz =
-      std::accumulate(s.perc_of_ivf_ppsl_in_rz.begin(), s.perc_of_ivf_ppsl_in_rz.end(), 0.);
+  auto sum_of_perc_ivf_in_tp = std::accumulate(s.perc_of_ivf_ppsl_in_tp.begin(), s.perc_of_ivf_ppsl_in_tp.end(), 0.);
+  auto sum_of_perc_ivf_in_rz = std::accumulate(s.perc_of_ivf_ppsl_in_rz.begin(), s.perc_of_ivf_ppsl_in_rz.end(), 0.);
   auto sum_of_linear_scan_rate = std::accumulate(s.linear_scan_rate.begin(), s.linear_scan_rate.end(), 0.);
   auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0);
   auto sum_of_num_cluster = std::accumulate(s.num_clusters.begin(), s.num_clusters.end(), 0);

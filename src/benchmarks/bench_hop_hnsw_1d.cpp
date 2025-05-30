@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
   std::iota(labels.begin(), labels.end(), 0);
   fmt::print("Finished loading indices.\n");
 
-  RangeQuery<float> pred(args.l_bound, args.u_bound, &attrs);
+  RangeQuery<float> pred(&args.l_bound, &args.u_bound, attrs.data(), nb, 1);
   vector<Metric> metrics(args.batchsz, Metric(nb));
 
   for (auto efs : args.efs) {

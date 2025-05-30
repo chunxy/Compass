@@ -37,7 +37,7 @@ class IVecItrReader {
 class TextAttrReader {};
 
 template <typename T>
-class BinaryAttrReader {
+class AttrReaderToVector {
  private:
   // Let d be the number of the attributes (each being a float), n be the number of
   // entries. Each following content will be in the format of: | attribute 1 of 1st entry
@@ -48,46 +48,40 @@ class BinaryAttrReader {
 
  public:
   static void GenerateRandomAttrs(std::string to, uint32_t n, uint32_t d, size_t range, int seed = 0);
-  // static void GenerateRandomLabel(std::string to, uint32_t n, uint32_t d, size_t range, int seed = 0);
-  BinaryAttrReader(std::string from);
-  const std::vector<std::vector<T>> &GetAttrs();
+  AttrReaderToVector(std::string from) {
+    uint32_t n, d;
+    std::ifstream ifs(from, std::ios::binary);
+    assert(ifs.is_open());
+
+    ifs.read((char *)&d, sizeof(d));
+    ifs.seekg(0, std::ios::end);
+    size_t fsize = ifs.tellg();
+    n = fsize / ((d + 1) * 4);
+    ifs.seekg(0, std::ios::beg);
+
+    try {
+      attrs_.resize(n);
+      for (size_t i = 0; i < n; i++) {
+        attrs_[i].resize(d);
+        ifs.read((char *)&d, sizeof(d));
+        ifs.read((char *)attrs_[i].data(), d * sizeof(T));
+      }
+    } catch (const std::exception &e) {
+      std::cerr << e.what();
+    }
+    ready_ = true;
+  }
+
+  const std::vector<std::vector<T>> &GetAttrs() {
+    if (ready_)
+      return attrs_;
+    else
+      throw "Attribute data not ready yet.";
+  }
 };
 
 template <typename T>
-BinaryAttrReader<T>::BinaryAttrReader(std::string from) {
-  uint32_t n, d;
-  std::ifstream ifs(from, std::ios::binary);
-  assert(ifs.is_open());
-
-  ifs.read((char *)&d, sizeof(d));
-  ifs.seekg(0, std::ios::end);
-  size_t fsize = ifs.tellg();
-  n = fsize / ((d + 1) * 4);
-  ifs.seekg(0, std::ios::beg);
-
-  try {
-    attrs_.resize(n);
-    for (size_t i = 0; i < n; i++) {
-      attrs_[i].resize(d);
-      ifs.read((char *)&d, sizeof(d));
-      ifs.read((char *)attrs_[i].data(), d * sizeof(T));
-    }
-  } catch (const std::exception &e) {
-    std::cerr << e.what();
-  }
-  ready_ = true;
-}
-
-template <typename T>
-const std::vector<std::vector<T>> &BinaryAttrReader<T>::GetAttrs() {
-  if (ready_)
-    return attrs_;
-  else
-    throw "Attribute data not ready yet.";
-}
-
-template <typename T>
-void BinaryAttrReader<T>::GenerateRandomAttrs(std::string to, uint32_t n, uint32_t d, size_t range, int seed) {
+void AttrReaderToVector<T>::GenerateRandomAttrs(std::string to, uint32_t n, uint32_t d, size_t range, int seed) {
   std::ofstream ofs(to);
   std::mt19937 rng;
   rng.seed(seed);
@@ -100,3 +94,46 @@ void BinaryAttrReader<T>::GenerateRandomAttrs(std::string to, uint32_t n, uint32
     }
   }
 }
+
+template <typename T>
+class AttrReaderToRaw {
+ private:
+  // Let d be the number of the attributes (each being a float), n be the number of
+  // entries. Each following content will be in the format of: | attribute 1 of 1st entry
+  // | ... | attribute d of 1st entry | |           ...            | ... |           ... |
+  // | attribute 1 of nth entry | ... | attribute d of nth entry |
+  T *attrs_;
+  bool ready_{false};
+
+ public:
+  AttrReaderToRaw(std::string from) {
+    uint32_t n, d;
+    std::ifstream ifs(from, std::ios::binary);
+    assert(ifs.is_open());
+
+    ifs.read((char *)&d, sizeof(d));
+    ifs.seekg(0, std::ios::end);
+    size_t fsize = ifs.tellg();
+    n = fsize / ((d + 1) * 4);
+    ifs.seekg(0, std::ios::beg);
+
+    attrs_ = new T[n * d];
+
+    try {
+      for (size_t i = 0; i < n; i++) {
+        ifs.read((char *)&d, sizeof(d));
+        ifs.read((char *)attrs_ + i * d, d * sizeof(T));
+      }
+    } catch (const std::exception &e) {
+      std::cerr << e.what();
+    }
+    ready_ = true;
+  }
+
+  T *GetAttrs() {
+    if (ready_)
+      return attrs_;
+    else
+      throw "Attribute data not ready yet.";
+  }
+};

@@ -26,8 +26,7 @@ const std::string FILTER_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}.filter.gt";        
 // workload names
 const std::string HYBRID_WORKLOAD_TMPL = "{}_{}_{}_{}_{}";  // {method}_{range}_{l}_{r}_{k}
 const std::string FILTER_WORKLOAD_TMPL = "{}_{}_{}";        // {method}_{range}_{k}
-// index names
-// const std::string COMPASS_CHECKPOINT_TMPL = "{}";                // {name}
+// index-related names
 const std::string COMPASS_GRAPH_CHECKPOINT_TMPL = "{}_{}.hnsw";             // {M}_{efc}
 const std::string COMPASS_IVF_CHECKPOINT_TMPL = "{}.ivf";                   // {nlist}
 const std::string COMPASS_RANK_CHECKPOINT_TMPL = "{}_{}.rank";              // {nb}_{nlist}
@@ -37,4 +36,4 @@ const std::string COMPASS_X_IVF_CHECKPOINT_TMPL = "{}-{}.x.ivf";            // {
 const std::string COMPASS_X_RANK_CHECKPOINT_TMPL = "{}-{}-{}.x.rank";       // {nb}-{nlist}-{dx}
 const std::string COMPASS_CLUSTER_GRAPH_CHECKPOINT_TMPL = "{}_{}_{}.hnsw";  // {M}_{efc}_{nlist}
 const std::string COMPASS_IMI_CHECKPOINT_TMPL = "{}_{}.imi";                // {nsub}_{nbits}
-const std::string ACORN_CHECKPOINT_TMPL = "{}_{}_{}_{}.acorn";              // {M}_{M_beta}_{efc}_{gamma}
+const std::string COMPASS_IMI_RANK_CHECKPOINT_TMPL = "{}_{}_{}.rank";       // {nb}_{nsub}_{nbits}

@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
     auto add_points_start = high_resolution_clock::now();
     std::vector<labeltype> labels(nb);
     std::iota(labels.begin(), labels.end(), 0);
-    comp.AddIvfPoints(nb, xb, labels.data(), attrs.data());
+    comp.AddPointsToIvf(nb, xb, labels.data(), attrs.data());
     auto add_points_stop = high_resolution_clock::now();
     fmt::print(
         "Finished adding points, took {} microseconds.\n",

@@ -30,21 +30,17 @@ using std::vector;
 
 template <typename dist_t, typename attr_t>
 class CompassGraph {
-  // using Parent = HierarchicalNSW<dist_t>;
-  using candidate_queue = std::priority_queue<
-      pair<dist_t, tableint>,
-      vector<pair<dist_t, tableint>>,
-      typename HierarchicalNSW<dist_t>::CompareByFirst>;
 
  private:
   L2Space space_;
   ReentrantHNSW<dist_t> hnsw_;
-  vector<vector<attr_t>> attrs_;
+  // vector<vector<attr_t>> attrs_;
+  attr_t* attrs_;
   rtree rtree_;
 
  public:
   CompassGraph(size_t d, size_t M, size_t efc, size_t max_elements)
-      : space_(d), hnsw_(&space_, max_elements, M, efc), attrs_(max_elements, vector<attr_t>()), rtree_() {}
+      : space_(d), hnsw_(&space_, max_elements, M, efc), attrs_(new attr_t[max_elements * 2]), rtree_() {}
 
   int AddGraphPoint(const void *data_point, labeltype label) {
     hnsw_.addPoint(data_point, label, -1);
@@ -53,7 +49,8 @@ class CompassGraph {
 
   void AddAttrs(size_t n, const vector<vector<attr_t>> &attrs, labeltype *labels) {
     for (int i = 0; i < n; i++) {
-      attrs_[i] = attrs[i];
+      attrs_[i * 2] = attrs[i][0];
+      attrs_[i * 2 + 1] = attrs[i][1];
       point p(attrs[i][0], attrs[i][1]);
       rtree_.insert(std::make_pair(p, labels[i]));
     }
@@ -77,7 +74,7 @@ class CompassGraph {
 
     VisitedList *vl = hnsw_.visited_list_pool_->getFreeVisitedList();
 
-    WindowQuery<float> pred(l_bounds, u_bounds, &attrs_);
+    RangeQuery<float> pred(l_bounds.data(), u_bounds.data(), attrs_, hnsw_.max_elements_, 2);
     point min_corner(l_bounds[0], l_bounds[1]), max_corner(u_bounds[0], u_bounds[1]);
     box b(min_corner, max_corner);
 
