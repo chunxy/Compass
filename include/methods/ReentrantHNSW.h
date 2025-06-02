@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <cstddef>
 #include "../hnswlib/hnswlib.h"
-#include "visited_list_pool.h"
-// #include "faiss/MetricType.h"
 
 using namespace hnswlib;
 

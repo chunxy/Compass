@@ -13,9 +13,8 @@
 #include <vector>
 #include "../hnswlib/hnswlib.h"
 #include "../utils/predicate.h"
-#include "methods/Pod.h"
-#include "methods/ReentrantHNSW.h"
-#include "space_l2.h"
+#include "Pod.h"
+#include "ReentrantHNSW.h"
 
 namespace fs = boost::filesystem;
 namespace geo = boost::geometry;
@@ -30,12 +29,11 @@ using std::vector;
 
 template <typename dist_t, typename attr_t>
 class CompassGraph {
-
  private:
   L2Space space_;
   ReentrantHNSW<dist_t> hnsw_;
   // vector<vector<attr_t>> attrs_;
-  attr_t* attrs_;
+  attr_t *attrs_;
   rtree rtree_;
 
  public:

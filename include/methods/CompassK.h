@@ -7,10 +7,9 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include "Compass.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
-#include "faiss/MetricType.h"
-#include "methods/Compass.h"
 
 using std::pair;
 using std::priority_queue;

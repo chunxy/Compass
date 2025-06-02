@@ -8,16 +8,15 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include "../hnswlib/hnswlib.h"
+#include "../utils/predicate.h"
+#include "Compass1d.h"
+#include "HybridIndex.h"
 #include "Pod.h"
 #include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/index_io.h"
-#include "hnswalg.h"
-#include "hnswlib/hnswlib.h"
-#include "methods/Compass1d.h"
-#include "methods/HybridIndex.h"
-#include "utils/predicate.h"
 
 namespace fs = boost::filesystem;
 
@@ -29,7 +28,7 @@ template <typename dist_t, typename attr_t>
 class Compass1dKCg : public Compass1d<dist_t, attr_t> {
  protected:
   faiss::IndexIVFFlat *ivf_flat_;
-  HierarchicalNSW<dist_t> cgraph_;
+  hnswlib::HierarchicalNSW<dist_t> cgraph_;
 
  public:
   Compass1dKCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist)

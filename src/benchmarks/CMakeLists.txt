@@ -1,48 +1,48 @@
 link_libraries(Boost::filesystem)
 
 # Baseline
-add_executable(bench_compass_ivf_1d bench_compass_ivf_1d.cpp)
-add_executable(bench_compass_ivf_1d_imi bench_compass_ivf_1d_imi.cpp)
-add_executable(bench_compass_ivf_1d_kmeanspp bench_compass_ivf_1d_kmeans++.cpp)
-add_executable(bench_compass_ivf_1d_bikmeans bench_compass_ivf_1d_bikmeans.cpp)
-add_executable(bench_compass_graph_1d bench_compass_graph_1d.cpp)
-add_executable(bench_hop_hnsw_1d bench_hop_hnsw_1d.cpp)
-# add_executable(bench_compass_nsg bench_compass_nsg.cpp)
+add_executable(bench-compass-ivf-1d bench-compass-ivf-1d.cpp)
+add_executable(bench-compass-ivf-1d-imi bench-compass-ivf-1d-imi.cpp)
+add_executable(bench-compass-ivf-1d-kmeanspp bench-compass-ivf-1d-kmeans++.cpp)
+add_executable(bench-compass-ivf-1d-bikmeans bench-compass-ivf-1d-bikmeans.cpp)
+add_executable(bench-compass-graph-1d bench-compass-graph-1d.cpp)
+add_executable(bench-hop-hnsw-1d bench-hop-hnsw-1d.cpp)
+# add_executable(bench-compass-nsg bench-compass-nsg.cpp)
 
 # Legacy
-# add_executable(bench_compass_r_trick_1d bench_compass_r_trick_1d.cpp)
-add_executable(bench_compass_1d_k_gr bench_compass_1d_k_gr.cpp)
-add_executable(bench_compass_1d_k_or bench_compass_1d_k_or.cpp)
-add_executable(bench_compass_1d_k_or_cg bench_compass_1d_k_or_cg.cpp)
+# add_executable(bench-compass-r-trick-1d bench-compass-r-trick-1d.cpp)
+add_executable(bench-compass-1d-k-gr bench-compass-1d-k-gr.cpp)
+add_executable(bench-compass-1d-k-or bench-compass-1d-k-or.cpp)
+add_executable(bench-compass-1d-k-or-cg bench-compass-1d-k-or-cg.cpp)
 
 # KMeans and variants
-add_executable(bench_compass_1d_k bench_compass_1d_k.cpp)
-add_executable(bench_compass_1d_k_cg bench_compass_1d_k_cg.cpp)
-add_executable(bench_compass_1d_kmedoids bench_compass_1d_kmedoids.cpp)
-add_executable(bench_compass_1d_kmedoids_cg bench_compass_1d_kmedoids_cg.cpp)
+add_executable(bench-compass-1d-k bench-compass-1d-k.cpp)
+add_executable(bench-compass-1d-k-cg bench-compass-1d-k-cg.cpp)
+add_executable(bench-compass-1d-kmedoids bench-compass-1d-kmedoids.cpp)
+add_executable(bench-compass-1d-kmedoids-cg bench-compass-1d-kmedoids-cg.cpp)
 
 # Decent clustering
-add_executable(bench_compass_1d_bikmeans bench_compass_1d_bikmeans.cpp)
-add_executable(bench_compass_1d_bikmeans_cg bench_compass_1d_bikmeans_cg.cpp)
-add_executable(bench_compass_1d_bikmeans_or bench_compass_1d_bikmeans_or.cpp)
-add_executable(bench_compass_1d_pca bench_compass_1d_pca.cpp)
-add_executable(bench_compass_1d_pca_cg bench_compass_1d_pca_cg.cpp)
+add_executable(bench-compass-1d-bikmeans bench-compass-1d-bikmeans.cpp)
+add_executable(bench-compass-1d-bikmeans-cg bench-compass-1d-bikmeans-cg.cpp)
+add_executable(bench-compass-1d-bikmeans-or bench-compass-1d-bikmeans-or.cpp)
+add_executable(bench-compass-1d-pca bench-compass-1d-pca.cpp)
+add_executable(bench-compass-1d-pca-cg bench-compass-1d-pca-cg.cpp)
 
 # Novel clustering
-add_executable(bench_compass_1d_llem bench_compass_1d_llem.cpp)
-add_executable(bench_compass_1d_idec bench_compass_1d_idec.cpp)
+add_executable(bench-compass-1d-llem bench-compass-1d-llem.cpp)
+add_executable(bench-compass-1d-idec bench-compass-1d-idec.cpp)
 
 # Baseline
-add_executable(bench_compass_ivf bench_compass_ivf.cpp)
-add_executable(bench_compass_graph bench_compass_graph.cpp)
+add_executable(bench-compass-ivf bench-compass-ivf.cpp)
+add_executable(bench-compass-graph bench-compass-graph.cpp)
 
 # Legacy
-add_executable(bench_compass_k_or bench_compass_k_or.cpp)
-add_executable(bench_compass_k_or_cg bench_compass_k_or_cg.cpp)
+add_executable(bench-compass-k-or bench-compass-k-or.cpp)
+add_executable(bench-compass-k-or-cg bench-compass-k-or-cg.cpp)
 
 # KMeans and variants
-add_executable(bench_compass_k bench_compass_k.cpp)
-add_executable(bench_compass_k_cg bench_compass_k_cg.cpp)
-add_executable(bench_compass_bikmeans bench_compass_bikmeans.cpp)
-add_executable(bench_compass_bikmeans_cg bench_compass_bikmeans_cg.cpp)
+add_executable(bench-compass-k bench-compass-k.cpp)
+add_executable(bench-compass-k-cg bench-compass-k-cg.cpp)
+add_executable(bench-compass-bikmeans bench-compass-bikmeans.cpp)
+add_executable(bench-compass-bikmeans-cg bench-compass-bikmeans-cg.cpp)
 

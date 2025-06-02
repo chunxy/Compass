@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
+#include "../hnswlib/space_l1.h"
 #include "faiss/MetricType.h"
-#include "space_l1.h"
 
 struct Proclus {
   float *medoids;

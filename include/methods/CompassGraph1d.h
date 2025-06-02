@@ -7,13 +7,11 @@
 #include <queue>
 #include <utility>
 #include <vector>
-#include "../btree/btree_map.h"
+#include "../../thirdparty/btree/btree_map.h"
 #include "../hnswlib/hnswlib.h"
 #include "../utils/predicate.h"
-#include "methods/Pod.h"
-#include "methods/ReentrantHNSW.h"
-#include "space_l2.h"
-#include "visited_list_pool.h"
+#include "Pod.h"
+#include "ReentrantHNSW.h"
 
 namespace fs = boost::filesystem;
 using std::pair;

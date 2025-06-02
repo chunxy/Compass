@@ -17,7 +17,7 @@
 #include <vector>
 #include "config.h"
 #include "json.hpp"
-#include "methods/Compass1dKCg.h"
+#include "methods/Compass1dPca.h"
 #include "methods/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
-  std::string method = "Compass1dKmedoidsCg";
+  std::string method = "Compass1dPca";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
 
@@ -61,26 +61,31 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  Compass1dKCg<float, float> comp(nb, d, args.M, args.efc, args.nlist);
+  Compass1dPca<float, float> comp(nb, d, args.M, args.efc, args.nlist, args.dx);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
-  std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
-  std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
-  std::string cluster_graph_ckp = fmt::format(COMPASS_CLUSTER_GRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist);
+  std::string pca_ivf_ckp = fmt::format(COMPASS_PCA_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
+  std::string pca_rank_ckp = fmt::format(COMPASS_PCA_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dx);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
-  if (fs::exists(ckp_root / "KMedoids" / c.name / ivf_ckp)) {
-    comp.LoadIvf(ckp_root / "KMedoids" / c.name / ivf_ckp);
-    fmt::print("Finished loading IVF index.\n");
+  if (fs::exists(ckp_root / "PCA" / c.name / pca_ivf_ckp)) {
+    comp.LoadIvf(ckp_root / "PCA" / c.name / pca_ivf_ckp);
+    fmt::print("Finished loading PCA IVF index.\n");
   } else {
-    fmt::print("Cannot find transplanted centroids. Exitting now.\n");
-    return -1;
+    auto train_ivf_start = high_resolution_clock::now();
+    comp.TrainIvf(nb, xb);
+    auto train_ivf_stop = high_resolution_clock::now();
+    fmt::print(
+        "Finished training PCA IVF, took {} microseconds.\n",
+        duration_cast<microseconds>(train_ivf_stop - train_ivf_start).count()
+    );
+    comp.SaveIvf(ckp_root / "PCA" / c.name / pca_ivf_ckp);
   }
 
   std::vector<labeltype> labels(nb);
   std::iota(labels.begin(), labels.end(), 0);
-  if (fs::exists(ckp_root / "KMedoids" / c.name / rank_ckp)) {
-    comp.LoadRanking(ckp_root / "KMedoids" / c.name / rank_ckp, attrs.data());
-    fmt::print("Finished loading IVF ranking.\n");
+  if (fs::exists(ckp_root / "PCA" / c.name / pca_rank_ckp)) {
+    comp.LoadRanking(ckp_root / "PCA" / c.name / pca_rank_ckp, attrs.data());
+    fmt::print("Finished loading PCA IVF ranking.\n");
   } else {
     auto add_points_start = high_resolution_clock::now();
     comp.AddPointsToIvf(nb, xb, labels.data(), attrs.data());
@@ -89,21 +94,7 @@ int main(int argc, char **argv) {
         "Finished adding points, took {} microseconds.\n",
         duration_cast<microseconds>(add_points_stop - add_points_start).count()
     );
-    comp.SaveRanking(ckp_root / "KMedoids" / c.name / rank_ckp);
-  }
-
-  if (fs::exists(ckp_root / "KMedoids" / c.name / cluster_graph_ckp)) {
-    comp.LoadClusterGraph((ckp_root / "KMedoids" / c.name / cluster_graph_ckp).string());
-    fmt::print("Finished loading cluster graph index.\n");
-  } else {
-    auto build_index_start = high_resolution_clock::now();
-    comp.BuildClusterGraph();
-    auto build_index_stop = high_resolution_clock::now();
-    fmt::print(
-        "Finished building cluster graph, took {} microseconds.\n",
-        duration_cast<microseconds>(build_index_stop - build_index_start).count()
-    );
-    comp.SaveClusterGraph(ckp_root / "KMedoids" / c.name / cluster_graph_ckp);
+    comp.SaveRanking(ckp_root / "PCA" / c.name / pca_rank_ckp);
   }
 
   if (fs::exists(ckp_dir / graph_ckp)) {
@@ -127,10 +118,11 @@ int main(int argc, char **argv) {
     for (auto nrel : args.nrel) {
       time_t ts = time(nullptr);
       auto tm = localtime(&ts);
-      std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", efs, nrel, args.mincomp);
+      std::string search_param = fmt::format("efs_{}_nrel_{}", efs, nrel);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
       fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      // fs::path log_root(fmt::format(LOGS, args.k));
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
@@ -140,7 +132,6 @@ int main(int argc, char **argv) {
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
 #endif
-
       auto search_start = high_resolution_clock::system_clock::now();
 #ifndef COMPASS_DEBUG
 // #pragma omp parallel
@@ -155,7 +146,10 @@ int main(int argc, char **argv) {
             attrs.data(),
             &args.l_bound,
             &args.u_bound,
-            efs, nrel, args.nthread, metrics
+            efs,
+            nrel,
+            args.nthread,
+            metrics
         );
       }
       auto search_stop = high_resolution_clock::system_clock::now();
@@ -173,7 +167,10 @@ int main(int argc, char **argv) {
             attrs.data(),
             &args.l_bound,
             &args.u_bound,
-            efs, nrel, args.nthread, metrics
+            efs,
+            nrel,
+            args.nthread,
+            metrics
         );
         auto search_stop = high_resolution_clock::now();
 
@@ -191,7 +188,8 @@ int main(int argc, char **argv) {
               ivf_ppsl_in_rz++;
             else if (metric.is_graph_ppsl[i])
               graph_ppsl_in_rz++;
-            if (d <= gt_max + EPSILON) {
+            if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), i) != hybrid_topks[j].end() ||
+                d <= gt_max + EPSILON) {
               if (metric.is_ivf_ppsl[i])
                 ivf_ppsl_in_tp++;
               else if (metric.is_graph_ppsl[i])

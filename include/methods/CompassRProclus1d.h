@@ -16,14 +16,13 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include "../../thirdparty/btree/btree_map.h"
+#include "../hnswlib/hnswlib.h"
+#include "../utils/predicate.h"
 #include "Pod.h"
 #include "Proclus.h"
-#include "btree_map.h"
+#include "ReentrantHNSW.h"
 #include "faiss/MetricType.h"
-#include "hnswalg.h"
-#include "hnswlib/hnswlib.h"
-#include "methods/ReentrantHNSW.h"
-#include "utils/predicate.h"
 
 namespace fs = boost::filesystem;
 using coroutine_t = boost::coroutines2::coroutine<int>;
@@ -100,7 +99,6 @@ class CompassRProclus1d {
       auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);
       auto itr_end = btrees_[ranked_clusters[curr_ci]].upper_bound(u_bound);
 
-      int cnt = 0;
       while (true) {
         int crel = 0;
         // if (candidate_set.empty() || distances[curr_ci] < -candidate_set.top().first) {

@@ -14,9 +14,9 @@ while [ $i -lt ${#datasets[@]} ]; do
   for M in ${M_s[@]}; do
     for nlist in ${nlist_s[@]}; do
       for r in ${r_s[@]}; do
-        /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_1d_pca_cg --datacard ${dataset}_1_10000_float32 --l 100 --r ${r} --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dpca ${dpca}
+        /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_1d_pca_cg --datacard ${dataset}_1_10000_float32 --l 100 --r ${r} --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dx ${dpca}
       done
-      /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_1d_pca_cg --datacard ${dataset}_1_10000_float32 --l 0 --r 10000 --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dpca ${dpca}
+      /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_1d_pca_cg --datacard ${dataset}_1_10000_float32 --l 0 --r 10000 --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dx ${dpca}
     done
   done
 done
@@ -33,9 +33,9 @@ while [ $i -lt ${#datasets[@]} ]; do
   for M in ${M_s[@]}; do
     for nlist in ${nlist_s[@]}; do
       for r in ${r_s[@]}; do
-        /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_1d_pca_cg --datacard ${dataset}_1_10000_float32 --l 100 --r ${r} --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dpca ${dpca}
+        /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_1d_pca_cg --datacard ${dataset}_1_10000_float32 --l 100 --r ${r} --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dx ${dpca}
       done
-      /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_1d_pca_cg --datacard ${dataset}_1_10000_float32 --l 0 --r 10000 --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dpca ${dpca}
+      /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench_compass_1d_pca_cg --datacard ${dataset}_1_10000_float32 --l 0 --r 10000 --k 10 --M ${M} --efc 200 --nlist ${nlist} --efs ${efs_s[@]} --nrel ${nrel_s[@]} --dx ${dpca}
     done
   done
 done

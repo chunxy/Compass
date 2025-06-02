@@ -5,14 +5,13 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include "Compass1d.h"
 #include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/IndexPreTransform.h"
 #include "faiss/MetricType.h"
 #include "faiss/VectorTransform.h"
-#include "hnswalg.h"
-#include "methods/Compass1d.h"
 
 using std::pair;
 using std::priority_queue;

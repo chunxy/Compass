@@ -5,9 +5,9 @@
 #include <boost/filesystem.hpp>
 #include <utility>
 #include <vector>
-#include "hnswlib.h"
-#include "methods/Pod.h"
-#include "methods/ReentrantHNSW.h"
+#include "../hnswlib/hnswlib.h"
+#include "Pod.h"
+#include "ReentrantHNSW.h"
 
 namespace fs = boost::filesystem;
 using hnswlib::L2Space;

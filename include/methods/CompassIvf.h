@@ -5,14 +5,13 @@
 #include <boost/geometry.hpp>
 #include <cstddef>
 #include <cstdlib>
-#include <queue>
 #include <utility>
 #include <vector>
+#include "../hnswlib/hnswlib.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/index_io.h"
-#include "hnswlib/hnswlib.h"
-#include "methods/Pod.h"
+#include "Pod.h"
 
 using hnswlib::L2Space;
 using hnswlib::labeltype;

@@ -61,11 +61,11 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  Compass1dPcaCg<float, float> comp(d, args.M, args.efc, nb, args.nlist, args.dpca);
+  Compass1dPcaCg<float, float> comp(d, args.M, args.efc, nb, args.nlist, args.dx);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
-  std::string pca_ivf_ckp = fmt::format(COMPASS_PCA_IVF_CHECKPOINT_TMPL, args.nlist, args.dpca);
-  std::string pca_rank_ckp = fmt::format(COMPASS_PCA_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dpca);
+  std::string pca_ivf_ckp = fmt::format(COMPASS_PCA_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
+  std::string pca_rank_ckp = fmt::format(COMPASS_PCA_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dx);
   std::string cluster_graph_ckp = fmt::format(COMPASS_CLUSTER_GRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_root / "PCA" / c.name / pca_ivf_ckp)) {
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
     for (auto nrel : args.nrel) {
       time_t ts = time(nullptr);
       auto tm = localtime(&ts);
-      std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", efs, nrel, args.mincomp);
+      std::string search_param = fmt::format("efs_{}_nrel_{}", efs, nrel);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
       // fs::path log_root(fmt::format(LOGS, args.k) + "_special");

@@ -8,16 +8,14 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include "../utils/predicate.h"
+#include "Compass1d.h"
+#include "HybridIndex.h"
 #include "Pod.h"
 #include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/index_io.h"
-#include "hnswalg.h"
-#include "hnswlib/hnswlib.h"
-#include "methods/Compass1d.h"
-#include "methods/HybridIndex.h"
-#include "utils/predicate.h"
 
 namespace fs = boost::filesystem;
 

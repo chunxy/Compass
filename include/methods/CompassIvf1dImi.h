@@ -1,21 +1,21 @@
 #pragma once
 
-#include "btree_map.h"
-#include "faiss/IndexIVFFlat.h"
-#include "faiss/IndexPQ.h"
-#include "faiss/MetricType.h"
-#include "faiss/index_io.h"
-#include "hnswlib/hnswlib.h"
-#include "methods/Pod.h"
+#include <fmt/core.h>
 #include <boost/filesystem.hpp>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <fmt/core.h>
 #include <limits>
 #include <queue>
 #include <utility>
 #include <vector>
+#include "../../thirdparty/btree/btree_map.h"
+#include "../hnswlib/hnswlib.h"
+#include "Pod.h"
+#include "faiss/IndexIVFFlat.h"
+#include "faiss/IndexPQ.h"
+#include "faiss/MetricType.h"
+#include "faiss/index_io.h"
 
 using hnswlib::L2Space;
 using hnswlib::labeltype;
@@ -24,8 +24,9 @@ using std::vector;
 
 namespace fs = boost::filesystem;
 
-template <typename dist_t, typename attr_t> class CompassImi1d {
-private:
+template <typename dist_t, typename attr_t>
+class CompassImi1d {
+ private:
   L2Space space_;
   faiss::MultiIndexQuantizer quantizer_;
   faiss::IndexIVFFlat *ivf_;
@@ -35,10 +36,10 @@ private:
 
   const float *xb_;
 
-public:
-  CompassImi1d(size_t d, size_t max_elements, size_t nsub, size_t nbits,
-               const float *xb)
-      : space_(d), quantizer_(d, nsub, nbits),
+ public:
+  CompassImi1d(size_t d, size_t max_elements, size_t nsub, size_t nbits, const float *xb)
+      : space_(d),
+        quantizer_(d, nsub, nbits),
         ivf_(new faiss::IndexIVFFlat(&quantizer_, d, 1 << (nsub * nbits))),
         attrs_(max_elements, std::numeric_limits<attr_t>::max()),
         btrees_((1 << (nbits * nsub)), btree::btree_map<attr_t, labeltype>()),
@@ -46,19 +47,23 @@ public:
     ivf_->quantizer_trains_alone = true;
   }
   int Add(const void *data_point, labeltype label, attr_t attr);
-  int AddPointsToIvf(size_t n, const void *data, labeltype *labels,
-                   const vector<attr_t> &attrs);
+  int AddPointsToIvf(size_t n, const void *data, labeltype *labels, const vector<attr_t> &attrs);
   void TrainIvf(size_t n, const void *data);
 
-  vector<vector<pair<float, hnswlib::labeltype>>>
-  SearchKnn(const void *query, const int nq, const int k, const attr_t &l_bound,
-            const attr_t &u_bound, const int nprobe, vector<Metric> &metrics,
-            faiss::idx_t *ranked_clusters) {
+  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
+      const void *query,
+      const int nq,
+      const int k,
+      const attr_t &l_bound,
+      const attr_t &u_bound,
+      const int nprobe,
+      vector<Metric> &metrics,
+      faiss::idx_t *ranked_clusters
+  ) {
     ivf_->quantizer->assign(nq, (float *)query, ranked_clusters, nprobe);
     // auto &dm = ivf_->direct_map;
 
-    vector<vector<pair<float, labeltype>>> result(
-        nq, vector<pair<float, labeltype>>(k));
+    vector<vector<pair<float, labeltype>>> result(nq, vector<pair<float, labeltype>>(k));
     for (int q = 0; q < nq; q++) {
       metrics[q].ncomp = 0;
 
@@ -66,17 +71,14 @@ public:
       int i = 0;
       for (i = 0; i < nprobe; i++) {
         auto cluster = ranked_clusters[q * nprobe + i];
-        if (cluster == -1)
-          break;
+        if (cluster == -1) break;
         auto rel_beg = btrees_[cluster].lower_bound(l_bound);
         auto rel_end = btrees_[cluster].upper_bound(u_bound);
         while (rel_beg != rel_end) {
           auto j = (*rel_beg).second;
           metrics[q].is_ivf_ppsl[j] = true;
           const dist_t *vect = xb_ + j * quantizer_.d;
-          auto dist =
-              space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect,
-                                     space_.get_dist_func_param());
+          auto dist = space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect, space_.get_dist_func_param());
           metrics[q].ncomp++;
           top_candidates.emplace(dist, j);
           rel_beg++;
@@ -84,8 +86,7 @@ public:
       }
       metrics[q].ncluster = i;
 
-      while (top_candidates.size() > k)
-        top_candidates.pop();
+      while (top_candidates.size() > k) top_candidates.pop();
       int sz = top_candidates.size();
       result[q].resize((sz));
       while (!top_candidates.empty()) {
@@ -102,10 +103,9 @@ public:
 };
 
 template <typename dist_t, typename attr_t>
-int CompassImi1d<dist_t, attr_t>::Add(const void *data_point, labeltype label,
-                                      attr_t attr) {
+int CompassImi1d<dist_t, attr_t>::Add(const void *data_point, labeltype label, attr_t attr) {
   attrs_[label] = attr;
-  ivf_->add(1, (float *)data_point); // add_sa_codes
+  ivf_->add(1, (float *)data_point);  // add_sa_codes
   // search_and_return_codes
   faiss::idx_t assigned_cluster;
   quantizer_.assign(1, (float *)data_point, &assigned_cluster, 1);
@@ -122,10 +122,13 @@ void CompassImi1d<dist_t, attr_t>::TrainIvf(size_t n, const void *data) {
 }
 
 template <typename dist_t, typename attr_t>
-int CompassImi1d<dist_t, attr_t>::AddPointsToIvf(size_t n, const void *data,
-                                               labeltype *labels,
-                                               const vector<attr_t> &attrs) {
-  ivf_->add(n, (float *)data); // add_sa_codes
+int CompassImi1d<dist_t, attr_t>::AddPointsToIvf(
+    size_t n,
+    const void *data,
+    labeltype *labels,
+    const vector<attr_t> &attrs
+) {
+  ivf_->add(n, (float *)data);  // add_sa_codes
   auto assigned_clusters = new faiss::idx_t[n * 1];
   ivf_->quantizer->assign(n, (float *)data, assigned_clusters, 1);
   for (int i = 0; i < n; i++) {

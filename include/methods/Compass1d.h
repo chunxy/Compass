@@ -1,6 +1,6 @@
-#include "btree_map.h"
-#include "methods/HybridIndex.h"
-#include "utils/predicate.h"
+#include "../../thirdparty/btree/btree_map.h"
+#include "../utils/predicate.h"
+#include "HybridIndex.h"
 
 using hnswlib::labeltype;
 using std::pair;
@@ -22,8 +22,7 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
 
  public:
   Compass1d(size_t n, size_t d, size_t M, size_t efc, size_t nlist)
-      : HybridIndex<dist_t, attr_t>(n, d, M, efc, nlist),
-        btrees_(nlist, btree::btree_map<attr_t, labeltype>()) {}
+      : HybridIndex<dist_t, attr_t>(n, d, M, efc, nlist), btrees_(nlist, btree::btree_map<attr_t, labeltype>()) {}
 
   void AddPointsToIvf(const size_t n, const dist_t *data, const labeltype *labels, const attr_t *attrs) override {
     AssignPoints(n, data, 1, this->base_cluster_rank_);

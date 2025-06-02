@@ -8,13 +8,13 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include "../hnswlib/hnswlib.h"
+#include "../utils/predicate.h"
+#include "Compass1d.h"
 #include "Pod.h"
 #include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
-#include "hnswlib/hnswlib.h"
-#include "methods/Compass1d.h"
-#include "utils/predicate.h"
 
 using std::pair;
 using std::priority_queue;

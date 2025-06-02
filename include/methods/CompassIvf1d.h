@@ -9,13 +9,13 @@
 #include <queue>
 #include <utility>
 #include <vector>
-#include "btree_map.h"
+#include "../../thirdparty/btree/btree_map.h"
+#include "../hnswlib/hnswlib.h"
+#include "Pod.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/MetricType.h"
 #include "faiss/index_io.h"
-#include "hnswlib/hnswlib.h"
-#include "methods/Pod.h"
 
 using hnswlib::L2Space;
 using hnswlib::labeltype;

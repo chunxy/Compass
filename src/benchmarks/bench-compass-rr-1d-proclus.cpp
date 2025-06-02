@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     for (auto nrel : args.nrel) {
       time_t ts = time(nullptr);
       auto tm = localtime(&ts);
-      std::string search_param = fmt::format("efs_{}_nrel_{}_mincomp_{}", efs, nrel, args.mincomp);
+      std::string search_param = fmt::format("efs_{}_nrel_{}", efs, nrel);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
       fs::path log_root(fmt::format(LOGS, args.k) + "_special");

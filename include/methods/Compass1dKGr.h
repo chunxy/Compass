@@ -8,15 +8,14 @@
 #include <queue>
 #include <utility>
 #include <vector>
+#include "../utils/predicate.h"
+#include "Compass1d.h"
 #include "Pod.h"
 #include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/MetricType.h"
 #include "faiss/index_io.h"
-#include "hnswlib/hnswlib.h"
-#include "methods/Compass1d.h"
-#include "utils/predicate.h"
 
 using std::pair;
 using std::priority_queue;
@@ -121,7 +120,6 @@ class Compass1dKGr : public Compass1d<dist_t, attr_t> {
       auto itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]].lower_bound(*l_bound);
       auto itr_end = this->btrees_[this->query_cluster_rank_[curr_ci]].upper_bound(*u_bound);
 
-      int cnt = 0;
       while (true) {
         int crel = 0;
         // if (candidate_set.empty() || distances[curr_ci] <
