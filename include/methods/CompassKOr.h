@@ -1,47 +1,15 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <omp.h>
 #include <algorithm>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <queue>
-#include <utility>
-#include <vector>
 #include "../utils/predicate.h"
-#include "Compass.h"
-#include "Pod.h"
-#include "faiss/Index.h"
-#include "faiss/IndexFlat.h"
-#include "faiss/IndexIVFFlat.h"
-#include "faiss/MetricType.h"
-#include "faiss/index_io.h"
-
-using std::pair;
-using std::priority_queue;
-using std::vector;
+#include "CompassK.h"
 
 // Old racing version, not used.
 template <typename dist_t, typename attr_t>
-class CompassKOr : public Compass<dist_t, attr_t> {
- protected:
-  faiss::IndexIVFFlat *ivf_flat_;
-
+class CompassKOr : public CompassK<dist_t, attr_t> {
  public:
   CompassKOr(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist)
-      : Compass<dist_t, attr_t>(n, d, da, M, efc, nlist),
-        ivf_flat_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist)) {
-    this->ivf_ = dynamic_cast<faiss::Index *>(ivf_flat_);
-  }
-
-  void AssignPoints(const size_t n, const dist_t *data, const int k, faiss::idx_t *assigned_clusters, float *distances)
-      override {
-    if (distances == nullptr) {
-      ivf_flat_->quantizer->assign(n, (float *)data, assigned_clusters, k);
-    } else {
-      ivf_flat_->quantizer->search(n, (float *)data, k, distances, assigned_clusters);
-    }
-  }
+      : CompassK<dist_t, attr_t>(n, d, da, M, efc, nlist) {}
 
   // By default, we will not use the distances to centroids.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
@@ -59,7 +27,7 @@ class CompassKOr : public Compass<dist_t, attr_t> {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
-    AssignPoints(nq, query, nprobe, this->query_cluster_rank_, nullptr);
+    this->AssignPoints(nq, query, nprobe, this->query_cluster_rank_, nullptr);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);

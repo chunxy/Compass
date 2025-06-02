@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/core/no_exceptions_support.hpp>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <algorithm>

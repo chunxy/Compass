@@ -1,35 +1,21 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <omp.h>
 #include <algorithm>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <queue>
-#include <utility>
-#include <vector>
 #include "../hnswlib/hnswlib.h"
 #include "../utils/predicate.h"
 #include "Compass1d.h"
-#include "Pod.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 
-using std::pair;
-using std::priority_queue;
-using std::vector;
-
 template <typename dist_t, typename attr_t>
-class Compass1dX : public Compass1d<dist_t, attr_t> {
- protected:
-  faiss::IndexIVFFlat *xivf_;
+class Compass1dXCg : public Compass1d<dist_t, attr_t> {
   HierarchicalNSW<dist_t> cgraph_;
 
  public:
-  Compass1dX(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t dout)
-      : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist),
-        xivf_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dout), dout, nlist)),
-        HybridIndex<dist_t, attr_t>::ivf_(dynamic_cast<faiss::Index *>(xivf_)) {}
+  Compass1dXCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t dx)
+      : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist) {
+    this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
+  }
 
   // Dummy implementation.
   void AssignPoints(
@@ -164,9 +150,10 @@ class Compass1dX : public Compass1d<dist_t, attr_t> {
   }
 
   void BuildClusterGraph() {
-    auto centroids = ((faiss::IndexFlatL2 *)this->xivf_->quantizer)->get_xb();
-    for (int i = 0; i < xivf_->nlist; i++) {
-      this->cgraph_.addPoint(centroids + i * xivf_->d, i);
+    auto ivf_flat = dynamic_cast<faiss::IndexIVFFlat *>(this->ivf_);
+    auto centroids = ((faiss::IndexFlatL2 *)ivf_flat->quantizer)->get_xb();
+    for (int i = 0; i < ivf_flat->nlist; i++) {
+      this->cgraph_.addPoint(centroids + i * ivf_flat->d, i);
     }
   }
 

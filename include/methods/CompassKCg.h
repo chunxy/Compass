@@ -1,35 +1,20 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <omp.h>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <queue>
-#include <utility>
-#include <vector>
 #include "../hnswlib/hnswlib.h"
 #include "Compass.h"
-#include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/MetricType.h"
 
-using std::pair;
-using std::priority_queue;
-using std::vector;
-
 template <typename dist_t, typename attr_t>
 class CompassKCg : public Compass<dist_t, attr_t> {
  protected:
-  faiss::IndexIVFFlat *ivf_flat_;
   HierarchicalNSW<dist_t> cgraph_;
 
  public:
   CompassKCg(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist)
-      : Compass<dist_t, attr_t>(n, d, da, M, efc, nlist),
-        ivf_flat_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist)),
-        cgraph_(new L2Space(d), nlist, 8, 200) {
-    this->ivf_ = dynamic_cast<faiss::Index *>(ivf_flat_);
+      : Compass<dist_t, attr_t>(n, d, da, M, efc, nlist), cgraph_(new L2Space(d), nlist, 8, 200) {
+    this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist);
   }
 
   // Dummy implementation.
@@ -208,9 +193,10 @@ class CompassKCg : public Compass<dist_t, attr_t> {
   }
 
   void BuildClusterGraph() {
-    auto centroids = ((faiss::IndexFlatL2 *)this->ivf_flat_->quantizer)->get_xb();
-    for (int i = 0; i < ivf_flat_->nlist; i++) {
-      this->cgraph_.addPoint(centroids + i * ivf_flat_->d, i);
+    auto ivf_flat = dynamic_cast<faiss::IndexIVFFlat *>(this->ivf_);
+    auto centroids = ((faiss::IndexFlatL2 *)ivf_flat->quantizer)->get_xb();
+    for (int i = 0; i < ivf_flat->nlist; i++) {
+      this->cgraph_.addPoint(centroids + i * ivf_flat->d, i);
     }
   }
 

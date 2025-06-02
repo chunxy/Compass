@@ -12,8 +12,8 @@ endforeach(src ${srcs})
 
 
 target_link_libraries(test PRIVATE Boost::context)
-target_link_libraries(test_coroutine PRIVATE Boost::context)
+target_link_libraries(test-coroutine PRIVATE Boost::context)
 
-target_link_libraries(test_hnsw PRIVATE Boost::filesystem)
-target_link_libraries(test_rng PRIVATE Boost::filesystem)
-target_link_libraries(test_reentrant_hnsw PRIVATE Boost::filesystem)
+target_link_libraries(test-hnsw PRIVATE Boost::filesystem)
+target_link_libraries(test-rng PRIVATE Boost::filesystem)
+target_link_libraries(test-reentrant-hnsw PRIVATE Boost::filesystem)

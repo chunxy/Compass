@@ -1,5 +1,6 @@
 // https://gist.github.com/warrenrentlytics/c9a1836a40d4fcbba28a7e29357dad7d
 
+#include <boost/core/no_exceptions_support.hpp>
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <boost/foreach.hpp>

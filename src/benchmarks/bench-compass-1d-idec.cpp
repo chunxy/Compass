@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 
   std::string method = "Compass1dIdec";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
-  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
+  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}_dx_{}", args.M, args.efc, args.nlist, args.dx);
 
   // Load data.
   float *xb, *xq;
@@ -126,7 +126,8 @@ int main(int argc, char **argv) {
       std::string search_param = fmt::format("efs_{}_nrel_{}", efs, nrel);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-      fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      fs::path log_root(fmt::format(LOGS, args.k));
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());

@@ -1,47 +1,15 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <omp.h>
 #include <algorithm>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <queue>
-#include <utility>
-#include <vector>
 #include "../utils/predicate.h"
-#include "Compass1d.h"
-#include "Pod.h"
-#include "faiss/Index.h"
-#include "faiss/IndexFlat.h"
-#include "faiss/IndexIVFFlat.h"
-#include "faiss/MetricType.h"
-#include "faiss/index_io.h"
-
-using std::pair;
-using std::priority_queue;
-using std::vector;
+#include "Compass1dK.h"
 
 // Use graph to find entry points.
 template <typename dist_t, typename attr_t>
-class Compass1dKGr : public Compass1d<dist_t, attr_t> {
- protected:
-  faiss::IndexIVFFlat *ivf_flat_;
-
+class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
  public:
   Compass1dKGr(size_t n, size_t d, size_t M, size_t efc, size_t nlist)
-      : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist),
-        ivf_flat_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist)) {
-    this->ivf_ = dynamic_cast<faiss::Index *>(ivf_flat_);
-  }
-
-  void AssignPoints(const size_t n, const dist_t *data, const int k, faiss::idx_t *assigned_clusters, float *distances)
-      override {
-    if (distances == nullptr) {
-      ivf_flat_->quantizer->assign(n, (float *)data, assigned_clusters, k);
-    } else {
-      ivf_flat_->quantizer->search(n, (float *)data, k, distances, assigned_clusters);
-    }
-  }
+      : Compass1dK<dist_t, attr_t>(n, d, M, efc, nlist) {}
 
   // For ranking clusters using IVF.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
@@ -59,7 +27,7 @@ class Compass1dKGr : public Compass1d<dist_t, attr_t> {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
-    AssignPoints(nq, query, nprobe, this->query_cluster_rank_, this->distances_);
+    this->AssignPoints(nq, query, nprobe, this->query_cluster_rank_, this->distances_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 

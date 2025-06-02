@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
 
   std::string method = "Compass1dPcaCg";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
-  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
+  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}_dx_{}", args.M, args.efc, args.nlist, args.dx);
 
   // Load data.
   float *xb, *xq;
@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
       FILE *out = stdout;
-      // nq = 1000;
+      nq = 1000;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");

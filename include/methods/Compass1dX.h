@@ -1,35 +1,17 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <omp.h>
 #include <algorithm>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <queue>
-#include <utility>
-#include <vector>
 #include "../hnswlib/hnswlib.h"
 #include "../utils/predicate.h"
 #include "Compass1d.h"
-#include "Pod.h"
-#include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
-#include "faiss/IndexIVFFlat.h"
-
-using std::pair;
-using std::priority_queue;
-using std::vector;
 
 template <typename dist_t, typename attr_t>
 class Compass1dX : public Compass1d<dist_t, attr_t> {
- protected:
-  faiss::IndexIVFFlat *xivf_;
-
  public:
-  Compass1dX(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t dout)
-      : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist),
-        xivf_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dout), dout, nlist)) {
-    this->ivf_ = dynamic_cast<faiss::Index *>(xivf_);
+  Compass1dX(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t dx)
+      : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist) {
+    this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
   }
 
   void AssignPoints(
@@ -40,9 +22,10 @@ class Compass1dX : public Compass1d<dist_t, attr_t> {
       float *distances = nullptr
   ) override {
     if (distances == nullptr) {
-      xivf_->quantizer->assign(n, (float *)data, assigned_clusters, k);
+      dynamic_cast<faiss::IndexIVFFlat *>(this->ivf_)->quantizer->assign(n, (float *)data, assigned_clusters, k);
     } else {
-      xivf_->quantizer->search(n, (float *)data, k, distances, assigned_clusters);
+      dynamic_cast<faiss::IndexIVFFlat *>(this->ivf_)
+          ->quantizer->search(n, (float *)data, k, distances, assigned_clusters);
     }
   }
 
@@ -62,7 +45,7 @@ class Compass1dX : public Compass1d<dist_t, attr_t> {
   ) {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
-    int nprobe = xivf_->nlist / 20;
+    int nprobe = this->nlist_ / 20;
     this->AssignPoints(nq, xquery, nprobe, this->query_cluster_rank_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));

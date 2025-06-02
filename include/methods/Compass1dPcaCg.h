@@ -1,41 +1,27 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <omp.h>
-#include <queue>
-#include <utility>
-#include <vector>
 #include "Compass1d.h"
-#include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/IndexPreTransform.h"
 #include "faiss/MetricType.h"
 #include "faiss/VectorTransform.h"
 
-using std::pair;
-using std::priority_queue;
-using std::vector;
-
 template <typename dist_t, typename attr_t>
 class Compass1dPcaCg : public Compass1d<dist_t, attr_t> {
  protected:
-  faiss::IndexIVFFlat *xivf_;
-  faiss::PCAMatrix *pca_;
-  faiss::IndexPreTransform *pca_ivf_;
   HierarchicalNSW<dist_t> cgraph_;
 
  public:
-  Compass1dPcaCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t dout)
-      : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist),
-        xivf_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dout), dout, nlist)),
-        pca_(new faiss::PCAMatrix(d, dout)),
-        pca_ivf_(new faiss::IndexPreTransform(pca_, xivf_)),
-        cgraph_(new L2Space(dout), nlist, 8, 200) {
-    pca_ivf_->prepend_transform(new faiss::CenteringTransform(d));
-    pca_->eigen_power = -0.5;
-    pca_->max_points_per_d = 2000;
-    this->ivf_ = dynamic_cast<faiss::Index *>(pca_ivf_);
+  Compass1dPcaCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t dx)
+      : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist), cgraph_(new L2Space(dx), nlist, 8, 200) {
+    auto xivf = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
+    auto pca = new faiss::PCAMatrix(d, dx);
+    pca->eigen_power = -0.5;
+    pca->max_points_per_d = 2000;
+    auto pca_ivf = new faiss::IndexPreTransform(pca, xivf);
+    pca_ivf->prepend_transform(new faiss::CenteringTransform(d));
+    this->ivf_ = pca_ivf;
   }
 
   // Dummy implementation.
@@ -63,7 +49,7 @@ class Compass1dPcaCg : public Compass1d<dist_t, attr_t> {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
-    auto xquery = pca_ivf_->apply_chain(nq, (float *)query);
+    auto xquery = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_)->apply_chain(nq, (float *)query);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 
@@ -171,9 +157,11 @@ class Compass1dPcaCg : public Compass1d<dist_t, attr_t> {
   }
 
   void BuildClusterGraph() {
-    auto centroids = ((faiss::IndexFlatL2 *)xivf_->quantizer)->get_xb();
-    for (int i = 0; i < xivf_->nlist; i++) {
-      this->cgraph_.addPoint(centroids + i * xivf_->d, i);
+    auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
+    auto ivf = dynamic_cast<faiss::IndexIVFFlat *>(ivf_trans->index);
+    auto centroids = ((faiss::IndexFlatL2 *)ivf->quantizer)->get_xb();
+    for (int i = 0; i < ivf->nlist; i++) {
+      this->cgraph_.addPoint(centroids + i * ivf->d, i);
     }
   }
 

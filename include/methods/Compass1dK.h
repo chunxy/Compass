@@ -1,20 +1,8 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <omp.h>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <queue>
-#include <utility>
-#include <vector>
 #include "Compass1d.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
-#include "faiss/MetricType.h"
-
-using std::pair;
-using std::priority_queue;
-using std::vector;
 
 // For clustering transplanted to FAISS's KMeans implementation.
 template <typename dist_t, typename attr_t>

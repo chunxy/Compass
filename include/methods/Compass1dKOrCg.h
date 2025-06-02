@@ -1,50 +1,14 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <omp.h>
 #include <algorithm>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <queue>
-#include <utility>
-#include <vector>
 #include "../utils/predicate.h"
-#include "Compass1d.h"
-#include "HybridIndex.h"
-#include "Pod.h"
-#include "faiss/Index.h"
-#include "faiss/IndexFlat.h"
-#include "faiss/IndexIVFFlat.h"
-#include "faiss/index_io.h"
-
-namespace fs = boost::filesystem;
-
-using std::pair;
-using std::priority_queue;
-using std::vector;
+#include "Compass1dKCg.h"
 
 template <typename dist_t, typename attr_t>
-class Compass1dKOrCg : public Compass1d<dist_t, attr_t> {
- protected:
-  faiss::IndexIVFFlat *ivf_flat_;
-  HierarchicalNSW<dist_t> cgraph_;
-
+class Compass1dKOrCg : public Compass1dKCg<dist_t, attr_t> {
  public:
   Compass1dKOrCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist)
-      : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist),
-        ivf_flat_(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist)),
-        cgraph_(new L2Space(d), nlist, 8, 200) {
-    this->ivf_ = dynamic_cast<faiss::Index *>(ivf_flat_);
-  }
-
-  // Dummy implementation.
-  void AssignPoints(
-      const size_t n,
-      const dist_t *data,
-      const int k,
-      faiss::idx_t *assigned_clusters,
-      float *distances = nullptr
-  ) override {};
+      : Compass1dKCg<dist_t, attr_t>(n, d, M, efc, nlist) {}
 
   // For ranking clusters using graph.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
@@ -167,18 +131,4 @@ class Compass1dKOrCg : public Compass1d<dist_t, attr_t> {
 
     return results;
   }
-
-  void BuildClusterGraph() {
-    auto centroids = ((faiss::IndexFlatL2 *)this->ivf_flat_->quantizer)->get_xb();
-    for (int i = 0; i < ivf_flat_->nlist; i++) {
-      this->cgraph_.addPoint(centroids + i * ivf_flat_->d, i);
-    }
-  }
-
-  void SaveClusterGraph(fs::path path) {
-    fs::create_directories(path.parent_path());
-    this->cgraph_.saveIndex(path.string());
-  }
-
-  void LoadClusterGraph(fs::path path) { this->cgraph_.loadIndex(path.string(), new L2Space(this->d_)); }
 };
