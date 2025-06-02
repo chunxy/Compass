@@ -20,10 +20,10 @@ struct IvfGraph1dArgs {
   int nbits = 4;
   vector<int> nrel = {100};  // the number of candidates proposed by IVF per round
   vector<int> efs = {100};
-  int mincomp = 1000;
   vector<int> nprobe = {100};
   int nthread = 1;
   int batchsz = 100;
+  bool fast = true;
 
   IvfGraph1dArgs(int argc, char **argv) {
     po::options_description configs;
@@ -45,11 +45,10 @@ struct IvfGraph1dArgs {
     optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs)->multitoken());
     optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe)->multitoken());
     optional_configs.add_options()("nrel", po::value<decltype(nrel)>(&nrel)->multitoken());
-    optional_configs.add_options()("mincomp", po::value<decltype(mincomp)>(&mincomp));
     // system parameters
     optional_configs.add_options()("nthread", po::value<decltype(nthread)>(&nthread));
     optional_configs.add_options()("batchsz", po::value<decltype(batchsz)>(&batchsz));
-
+    optional_configs.add_options()("fast", po::value<decltype(fast)>(&fast));
     // Merge required and optional configs.
     configs.add(required_configs).add(optional_configs);
     // Parse arguments.
@@ -69,10 +68,9 @@ struct IvfGraph2dArgs {
   vector<int> efs = {100};
   vector<int> nprobe = {10};
   vector<int> nrel = {200};  // the number of candidates proposed by IVF per round
-  int mincomp = 1000;
   int nthread = 1;
   int batchsz = 100;
-
+  bool fast = true;
   IvfGraph2dArgs(int argc, char **argv) {
     po::options_description configs;
     po::options_description required_configs("Required"), optional_configs("Optional");
@@ -90,11 +88,10 @@ struct IvfGraph2dArgs {
     optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs)->multitoken());
     optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe)->multitoken());
     optional_configs.add_options()("nrel", po::value<decltype(nrel)>(&nrel)->multitoken());
-    optional_configs.add_options()("mincomp", po::value<decltype(mincomp)>(&mincomp));
     // system parameters
     optional_configs.add_options()("nthread", po::value<decltype(nthread)>(&nthread));
     optional_configs.add_options()("batchsz", po::value<decltype(batchsz)>(&batchsz));
-
+    optional_configs.add_options()("fast", po::value<decltype(fast)>(&fast));
     // Merge required and optional configs.
     configs.add(required_configs).add(optional_configs);
     // Parse arguments.

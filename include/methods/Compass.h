@@ -84,9 +84,9 @@ class Compass : public HybridIndex<dist_t, attr_t> {
       std::vector<std::unordered_set<labeltype>> candidates_per_dim(da_);
       for (int j = 0; j < da_; ++j) {
         auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
-        auto itr_beg = btree.lower_bound(l_bound[j]);
-        auto itr_end = btree.upper_bound(u_bound[j]);
-        for (auto itr = itr_beg; itr != itr_end; ++itr) {
+        auto beg = btree.lower_bound(l_bound[j]);
+        auto end = btree.upper_bound(u_bound[j]);
+        for (auto itr = beg; itr != end; ++itr) {
           candidates_per_dim[j].insert(itr->second);
         }
       }
@@ -118,26 +118,25 @@ class Compass : public HybridIndex<dist_t, attr_t> {
                 std::vector<std::unordered_set<labeltype>> _candidates_per_dim(da_);
                 for (int j = 0; j < da_; ++j) {
                   auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
-                  auto _itr_beg = btree.lower_bound(l_bound[j]);
-                  auto _itr_end = btree.upper_bound(u_bound[j]);
-                  for (auto itr = _itr_beg; itr != _itr_end; ++itr) {
+                  auto beg = btree.lower_bound(l_bound[j]);
+                  auto end = btree.upper_bound(u_bound[j]);
+                  for (auto itr = beg; itr != end; ++itr) {
                     _candidates_per_dim[j].insert(itr->second);
                   }
                 }
                 // Intersect all sets in candidates_per_dim
-                std::unordered_set<labeltype> _intersection;
-                if (da_ > 0) _intersection = _candidates_per_dim[0];
+                if (da_ > 0) intersection = _candidates_per_dim[0];
                 for (int j = 1; j < da_; ++j) {
                   std::unordered_set<labeltype> temp;
-                  for (const auto &id : _intersection) {
+                  for (const auto &id : intersection) {
                     if (_candidates_per_dim[j].count(id)) {
                       temp.insert(id);
                     }
                   }
-                  _intersection = std::move(temp);
+                  intersection = std::move(temp);
                 }
-                itr_beg = _intersection.begin();
-                itr_end = _intersection.end();
+                itr_beg = intersection.begin();
+                itr_end = intersection.end();
                 continue;
               }
             }
@@ -145,7 +144,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
             auto tableid = *itr_beg;
             itr_beg++;
 #ifdef USE_SSE
-            _mm_prefetch(this->hnsw_.getDataByInternalId(*itr_beg), _MM_HINT_T0);
+            if (itr_beg != itr_end) _mm_prefetch(this->hnsw_.getDataByInternalId(*itr_beg), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
 

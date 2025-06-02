@@ -11,7 +11,7 @@ using std::vector;
 template <typename attr_t>
 class RangeQuery : public hnswlib::BaseFilterFunctor {
  private:
-  const attr_t *l_bound_, *r_bound_; // of dimension d
+  const attr_t *l_bound_, *r_bound_; // of dimension d_
   const attr_t *attrs_;  // index should be the labeltype
   size_t n_, d_;
 

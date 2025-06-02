@@ -122,7 +122,7 @@ class AttrReaderToRaw {
     try {
       for (size_t i = 0; i < n; i++) {
         ifs.read((char *)&d, sizeof(d));
-        ifs.read((char *)attrs_ + i * d, d * sizeof(T));
+        ifs.read((char *)(attrs_ + i * d), d * sizeof(T));
       }
     } catch (const std::exception &e) {
       std::cerr << e.what();
