@@ -226,6 +226,34 @@ DataCard sift_2_10000_float32{
     "float32",
 };
 
+DataCard sift_3_10000_float32{
+    "sift",
+    sift_bpath,
+    sift_qpath,
+    sift_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard sift_4_10000_float32{
+    "sift",
+    sift_bpath,
+    sift_qpath,
+    sift_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    4,
+    10000,
+    "float32",
+};
+
 DataCard gist_1_2_int32{
     "gist",
     gist_bpath,
@@ -348,6 +376,34 @@ DataCard gist_2_10000_float32{
     1'000,
     100,
     2,
+    10000,
+    "float32",
+};
+
+DataCard gist_3_10000_float32{
+    "gist",
+    gist_bpath,
+    gist_qpath,
+    gist_gpath,
+    960,
+    1'000'000,
+    1'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard gist_4_10000_float32{
+    "gist",
+    gist_bpath,
+    gist_qpath,
+    gist_gpath,
+    960,
+    1'000'000,
+    1'000,
+    100,
+    4,
     10000,
     "float32",
 };
@@ -478,6 +534,34 @@ DataCard crawl_2_10000_float32{
     "float32",
 };
 
+DataCard crawl_3_10000_float32{
+    "crawl",
+    crawl_bpath,
+    crawl_qpath,
+    crawl_gpath,
+    300,
+    1'989'995,
+    10'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard crawl_4_10000_float32{
+    "crawl",
+    crawl_bpath,
+    crawl_qpath,
+    crawl_gpath,
+    300,
+    1'989'995,
+    10'000,
+    100,
+    4,
+    10000,
+    "float32",
+};
+
 DataCard glove100_1_2_int32{
     "glove100",
     glove100_bpath,
@@ -562,7 +646,6 @@ DataCard glove100_1_500_int32{
     "int32",
 };
 
-
 DataCard glove100_1_1000_int32{
     "glove100",
     glove100_bpath,
@@ -633,6 +716,34 @@ DataCard audio_2_10000_float32{
     "float32",
 };
 
+DataCard audio_3_10000_float32{
+    "audio",
+    audio_bpath,
+    audio_qpath,
+    audio_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard audio_4_10000_float32{
+    "audio",
+    audio_bpath,
+    audio_qpath,
+    audio_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    4,
+    10000,
+    "float32",
+};
+
 DataCard video_1_10000_float32{
     "video",
     video_bpath,
@@ -657,6 +768,34 @@ DataCard video_2_10000_float32{
     10'000,
     100,
     2,
+    10000,
+    "float32",
+};
+
+DataCard video_3_10000_float32{
+    "video",
+    video_bpath,
+    video_qpath,
+    video_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard video_4_10000_float32{
+    "video",
+    video_bpath,
+    video_qpath,
+    video_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    4,
     10000,
     "float32",
 };
@@ -690,6 +829,8 @@ std::map<std::string, DataCard> name_to_card{
     {"sift_1_1000_int32", sift_1_1000_int32},
     {"sift_1_10000_float32", sift_1_10000_float32},
     {"sift_2_10000_float32", sift_2_10000_float32},
+    {"sift_3_10000_float32", sift_3_10000_float32},
+    {"sift_4_10000_float32", sift_4_10000_float32},
     {"gist_1_2_int32", gist_1_2_int32},
     {"gist_1_5_int32", gist_1_5_int32},
     {"gist_1_10_int32", gist_1_10_int32},
@@ -699,6 +840,8 @@ std::map<std::string, DataCard> name_to_card{
     {"gist_1_1000_int32", gist_1_1000_int32},
     {"gist_1_10000_float32", gist_1_10000_float32},
     {"gist_2_10000_float32", gist_2_10000_float32},
+    {"gist_3_10000_float32", gist_3_10000_float32},
+    {"gist_4_10000_float32", gist_4_10000_float32},
     {"crawl_1_2_int32", crawl_1_2_int32},
     {"crawl_1_5_int32", crawl_1_5_int32},
     {"crawl_1_10_int32", crawl_1_10_int32},
@@ -708,6 +851,8 @@ std::map<std::string, DataCard> name_to_card{
     {"crawl_1_1000_int32", crawl_1_1000_int32},
     {"crawl_1_10000_float32", crawl_1_10000_float32},
     {"crawl_2_10000_float32", crawl_2_10000_float32},
+    {"crawl_3_10000_float32", crawl_3_10000_float32},
+    {"crawl_4_10000_float32", crawl_4_10000_float32},
     {"glove100_1_2_int32", glove100_1_2_int32},
     {"glove100_1_5_int32", glove100_1_5_int32},
     {"glove100_1_10_int32", glove100_1_10_int32},
@@ -719,6 +864,10 @@ std::map<std::string, DataCard> name_to_card{
     {"glove100_2_10000_float32", glove100_2_10000_float32},
     {"audio_1_10000_float32", audio_1_10000_float32},
     {"audio_2_10000_float32", audio_2_10000_float32},
+    {"audio_3_10000_float32", audio_3_10000_float32},
+    {"audio_4_10000_float32", audio_4_10000_float32},
     {"video_1_10000_float32", video_1_10000_float32},
     {"video_2_10000_float32", video_2_10000_float32},
+    {"video_3_10000_float32", video_3_10000_float32},
+    {"video_4_10000_float32", video_4_10000_float32},
 };
