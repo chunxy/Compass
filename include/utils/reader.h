@@ -40,8 +40,9 @@ template <typename T>
 class AttrReaderToVector {
  private:
   // Let d be the number of the attributes (each being a float), n be the number of
-  // entries. Each following content will be in the format of: | attribute 1 of 1st entry
-  // | ... | attribute d of 1st entry | |           ...            | ... |           ... |
+  // entries. Each following content will be in the format of:
+  // | attribute 1 of 1st entry | ... | attribute d of 1st entry |
+  // |           ...            | ... |           ...            |
   // | attribute 1 of nth entry | ... | attribute d of nth entry |
   std::vector<std::vector<T>> attrs_;
   bool ready_{false};
@@ -99,8 +100,9 @@ template <typename T>
 class AttrReaderToRaw {
  private:
   // Let d be the number of the attributes (each being a float), n be the number of
-  // entries. Each following content will be in the format of: | attribute 1 of 1st entry
-  // | ... | attribute d of 1st entry | |           ...            | ... |           ... |
+  // entries. Each following content will be in the format of:
+  // | attribute 1 of 1st entry | ... | attribute d of 1st entry |
+  // |           ...            | ... |           ...            |
   // | attribute 1 of nth entry | ... | attribute d of nth entry |
   T *attrs_;
   bool ready_{false};
