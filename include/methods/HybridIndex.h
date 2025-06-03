@@ -1,13 +1,14 @@
 #pragma once
 
-#include <faiss/IndexIVFFlat.h>
-#include <faiss/index_io.h>
 #include <boost/filesystem.hpp>
 #include <utility>
 #include <vector>
-#include "../hnswlib/hnswlib.h"
 #include "Pod.h"
 #include "ReentrantHNSW.h"
+#include "faiss/Index.h"
+#include "faiss/MetricType.h"
+#include "faiss/index_io.h"
+#include "hnswlib/hnswlib.h"
 
 namespace fs = boost::filesystem;
 using hnswlib::L2Space;
@@ -23,7 +24,7 @@ class HybridIndex {
   faiss::Index *ivf_;
   faiss::idx_t *base_cluster_rank_;   //  to speed up index loading
   faiss::idx_t *query_cluster_rank_;  // pre-allocated for query
-  dist_t *distances_;                  // pre-allocated for query
+  dist_t *distances_;                 // pre-allocated for query
   int n_, d_, M_, efc_, nlist_;
 
   // _GetClusters(const dist_t* query, const int nq, const int nprobe);

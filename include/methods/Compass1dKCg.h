@@ -1,11 +1,11 @@
 #pragma once
 
 #include <algorithm>
-#include "../hnswlib/hnswlib.h"
-#include "../utils/predicate.h"
 #include "Compass1d.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
+#include "hnswlib/hnswlib.h"
+#include "utils/predicate.h"
 
 template <typename dist_t, typename attr_t>
 class Compass1dKCg : public Compass1d<dist_t, attr_t> {

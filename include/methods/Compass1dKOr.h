@@ -1,9 +1,9 @@
 #pragma once
 
 #include <algorithm>
-#include "../hnswlib/hnswlib.h"
-#include "../utils/predicate.h"
 #include "Compass1dK.h"
+#include "hnswlib/hnswlib.h"
+#include "utils/predicate.h"
 
 // Old racing version, not used.
 template <typename dist_t, typename attr_t>

@@ -11,14 +11,14 @@ using std::vector;
 template <typename attr_t>
 class RangeQuery : public hnswlib::BaseFilterFunctor {
  private:
-  const attr_t *l_bound_, *r_bound_; // of dimension d_
-  const attr_t *attrs_;  // index should be the labeltype
+  const attr_t *l_bound_, *r_bound_;  // of dimension d_
+  const attr_t *attrs_;               // index should be the labeltype
   size_t n_, d_;
 
  public:
   RangeQuery(const attr_t *l_bound, const attr_t *u_bound, const attr_t *attrs, size_t n, size_t d)
       : l_bound_(l_bound), r_bound_(u_bound), attrs_(attrs), n_(n), d_(d) {}
-  bool operator()(hnswlib::labeltype label) {
+  bool operator()(hnswlib::labeltype label) override {
     if (label < n_) {
       for (int i = 0; i < d_; i++) {
         if (l_bound_[i] >= attrs_[label * d_ + i] || attrs_[label * d_ + i] >= r_bound_[i]) {
@@ -34,8 +34,8 @@ class RangeQuery : public hnswlib::BaseFilterFunctor {
 template <typename attr_t>
 class WindowQuery : public hnswlib::BaseFilterFunctor {
  private:
-  const attr_t *l_bound_, *r_bound_; // of dimension d
-  const attr_t *attrs_;  // index should be the labeltype
+  const attr_t *l_bound_, *r_bound_;  // of dimension d
+  const attr_t *attrs_;               // index should be the labeltype
   size_t n_, d_;
 
  public:

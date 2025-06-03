@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include "../utils/predicate.h"
 #include "CompassK.h"
+#include "utils/predicate.h"
 
 // Old racing version, not used.
 template <typename dist_t, typename attr_t>

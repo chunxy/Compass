@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include "../utils/predicate.h"
+#include "utils/predicate.h"
 #include "Compass1dK.h"
 
 // Use graph to find entry points.

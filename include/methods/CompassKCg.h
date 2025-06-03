@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../hnswlib/hnswlib.h"
 #include "Compass.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/MetricType.h"
+#include "hnswlib/hnswlib.h"
 
 template <typename dist_t, typename attr_t>
 class CompassKCg : public Compass<dist_t, attr_t> {

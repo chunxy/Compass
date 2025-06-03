@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../hnswlib/hnswlib.h"
 #include "CompassKCg.h"
+#include "hnswlib/hnswlib.h"
+#include "utils/predicate.h"
 
 template <typename dist_t, typename attr_t>
 class CompassKOrCg : public CompassKCg<dist_t, attr_t> {

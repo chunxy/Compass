@@ -1,0 +1,12 @@
+CompileFlags:
+  Add:
+    [
+      "-I/home/chunxy/repos/Compass/include",
+      "-I/home/chunxy/repos/Compass/thirdparty/faiss",
+      "-I/home/chunxy/repos/Compass/thirdparty/btree",
+    ]
+Diagnostics:
+  Suppress:
+    - old-style-cast
+    - unused-parameter
+    - sign-conversion

@@ -8,9 +8,9 @@
 #include <utility>
 #include <vector>
 #include "Compass1d.h"
+#include "faiss/Index.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/IndexPQ.h"
-#include "faiss/MetricType.h"
 
 using std::pair;
 using std::priority_queue;

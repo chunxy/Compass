@@ -1,6 +1,6 @@
-#include "../../thirdparty/btree/btree_map.h"
-#include "../utils/predicate.h"
 #include "HybridIndex.h"
+#include "btree_map.h"
+#include "utils/predicate.h"
 
 using hnswlib::labeltype;
 using std::pair;

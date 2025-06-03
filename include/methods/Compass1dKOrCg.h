@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include "../utils/predicate.h"
 #include "Compass1dKCg.h"
+#include "utils/predicate.h"
 
 template <typename dist_t, typename attr_t>
 class Compass1dKOrCg : public Compass1dKCg<dist_t, attr_t> {
