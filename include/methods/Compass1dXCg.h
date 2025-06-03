@@ -51,7 +51,7 @@ class Compass1dXCg : public Compass1d<dist_t, attr_t> {
       priority_queue<pair<float, int64_t>> top_candidates;
       priority_queue<pair<float, int64_t>> candidate_set;
       priority_queue<pair<float, int64_t>> recycle_set;
-      auto clusters = this->cgraph_.searchKnnCloserFirst((float *)(query) + q * this->d_, nprobe);
+      auto clusters = this->cgraph_.searchKnnCloserFirst((float *)(xquery) + q * this->d_, nprobe);
 
       vector<bool> visited(this->n_, false);
 
@@ -132,6 +132,7 @@ class Compass1dXCg : public Compass1d<dist_t, attr_t> {
           break;
         else {
           top_candidates.emplace(-top.first, top.second);
+          metrics[q].is_ivf_ppsl[top.second] = true;
           if (top_candidates.size() > k) top_candidates.pop();
           nrecycled++;
         }

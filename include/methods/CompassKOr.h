@@ -160,6 +160,7 @@ class CompassKOr : public CompassK<dist_t, attr_t> {
           break;
         else {
           top_candidates.emplace(-top.first, top.second);
+          metrics[q].is_ivf_ppsl[top.second] = true;
           if (top_candidates.size() > k) top_candidates.pop();
           nrecycled++;
         }
