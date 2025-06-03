@@ -85,7 +85,12 @@ void load_hybrid_query_gt(
     const int k,
     vector<vector<labeltype>> &hybrid_topks
 ) {
-  std::string gt_path = fmt::format(HYBRID_GT_PATH_TMPL, c.name, c.attr_range, l_bounds, u_bounds, 100);
+  std::string gt_path;
+  if (l_bounds.size() == 1 || l_bounds.size() == 2) {  // Because the groundtruth was computed with k=100 for 1D and 2D.
+    gt_path = fmt::format(HYBRID_GT_PATH_TMPL, c.name, c.attr_range, l_bounds, u_bounds, 100);
+  } else {
+    gt_path = fmt::format(HYBRID_GT_PATH_TMPL, c.name, c.attr_range, l_bounds, u_bounds, k);
+  }
 
   assert(std::ifstream(gt_path).good());
   hybrid_topks.resize(c.n_queries);
