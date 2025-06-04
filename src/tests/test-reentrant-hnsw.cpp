@@ -17,16 +17,16 @@
 #include <utility>
 #include <vector>
 #include "json.hpp"
-#include "methods/Pod.h"
-#include "methods/ReentrantHNSW.h"
+#include "methods/basis/ReentrantHNSW.h"
+#include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 
 namespace fs = boost::filesystem;
 using namespace std::chrono;
+using std::pair;
 using std::priority_queue;
 using std::vector;
-using std::pair;
 
 auto dist_func = hnswlib::L2Sqr;
 
@@ -110,8 +110,7 @@ int main(int argc, char **argv) {
               tableint cand = datal[i];
 
               if (cand < 0 || cand > comp->max_elements_) throw std::runtime_error("cand error");
-              float dist =
-                  comp->fstdistfunc_(xq + j * d, comp->getDataByInternalId(cand), comp->dist_func_param_);
+              float dist = comp->fstdistfunc_(xq + j * d, comp->getDataByInternalId(cand), comp->dist_func_param_);
 
               if (dist < curdist) {
                 curdist = dist;

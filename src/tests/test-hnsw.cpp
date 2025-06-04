@@ -15,7 +15,7 @@
 #include <vector>
 #include "hnswalg.h"
 #include "json.hpp"
-#include "methods/Pod.h"
+#include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 
@@ -74,7 +74,6 @@ int main(int argc, char **argv) {
   }
   fmt::print("Finished loading/building index\n");
 
-
   nlohmann::json json;
   for (auto efs : {100, 200, 500}) {
     int initial_ncomp = comp->metric_distance_computations.load();
@@ -104,7 +103,8 @@ int main(int argc, char **argv) {
     }
     json[fmt::to_string(efs)]["recall"] = (double)tp / nq * k;
     json[fmt::to_string(efs)]["qps"] = nq * 1000000. / search_time;
-    json[fmt::to_string(efs)]["num_computations"] = (comp->metric_distance_computations.load() - initial_ncomp) / 2. / nq;
+    json[fmt::to_string(efs)]["num_computations"] =
+        (comp->metric_distance_computations.load() - initial_ncomp) / 2. / nq;
     json[fmt::to_string(efs)]["nhops"] = (comp->metric_hops.load() - initial_nhops) / 2. / nq;
   }
 

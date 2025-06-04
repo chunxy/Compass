@@ -16,7 +16,7 @@
 #include "config.h"
 #include "json.hpp"
 #include "methods/Compass1dKOrCg.h"
-#include "methods/Pod.h"
+#include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 

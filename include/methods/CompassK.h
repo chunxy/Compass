@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Compass.h"
+#include "basis/Compass.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 
@@ -13,8 +13,13 @@ class CompassK : public Compass<dist_t, attr_t> {
     this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist);
   }
 
-  void AssignPoints(const size_t n, const dist_t *data, const int k, faiss::idx_t *assigned_clusters, float *distances)
-      override {
+  void AssignPoints(
+      const size_t n,
+      const dist_t *data,
+      const int k,
+      faiss::idx_t *assigned_clusters,
+      float *distances = nullptr
+  ) override {
     if (distances == nullptr) {
       dynamic_cast<faiss::IndexIVFFlat *>(this->ivf_)->quantizer->assign(n, (float *)data, assigned_clusters, k);
     } else {

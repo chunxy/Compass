@@ -1,3 +1,4 @@
+#include <variant>
 #include "HybridIndex.h"
 #include "btree_map.h"
 #include "utils/predicate.h"
@@ -20,6 +21,16 @@ class Compass : public HybridIndex<dist_t, attr_t> {
       faiss::idx_t *assigned_clusters,
       float *distances = nullptr
   ) = 0;
+
+  virtual void SearchClusters(
+      const size_t n,
+      const dist_t *data,
+      const int k,
+      faiss::idx_t *assigned_clusters,
+      float *distances = nullptr
+  ) {
+    AssignPoints(n, data, k, assigned_clusters, distances);
+  }
 
  public:
   Compass(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist)
@@ -49,7 +60,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
 
   // By default, we will not use the distances to centroids.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
-      const dist_t *query,
+      const std::variant<const dist_t *, pair<const dist_t *, const dist_t *>> &var,
       const int nq,
       const int k,
       const attr_t *attrs,
@@ -63,7 +74,16 @@ class Compass : public HybridIndex<dist_t, attr_t> {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
-    AssignPoints(nq, query, nprobe, this->query_cluster_rank_);
+
+    const dist_t *query, *xquery;
+    if (std::holds_alternative<const dist_t *>(var)) {
+      query = std::get<const dist_t *>(var);
+      xquery = query;
+    } else {
+      query = std::get<pair<const dist_t *, const dist_t *>>(var).first;
+      xquery = std::get<pair<const dist_t *, const dist_t *>>(var).second;
+    }
+    SearchClusters(nq, query, nprobe, this->query_cluster_rank_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);

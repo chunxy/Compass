@@ -13,12 +13,11 @@
 #include <map>
 #include <numeric>
 #include <string>
-#include <utility>
 #include <vector>
 #include "config.h"
 #include "json.hpp"
-#include "methods/Compass1dX.h"
-#include "methods/Pod.h"
+#include "methods/Compass1dXK.h"
+#include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 
@@ -62,7 +61,7 @@ int main(int argc, char **argv) {
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
   int dx = args.dx;
-  Compass1dX<float, float> comp(nb, d, args.M, args.efc, args.nlist, dx);
+  Compass1dXK<float, float> comp(nb, d, dx, args.M, args.efc, args.nlist);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_X_IVF_CHECKPOINT_TMPL, args.nlist, dx);
@@ -131,7 +130,8 @@ int main(int argc, char **argv) {
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
       FILE *out = stdout;
-      nq = args.fast ? 1000 : nq;;
+      nq = args.fast ? 1000 : nq;
+      ;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
@@ -145,8 +145,7 @@ int main(int argc, char **argv) {
 #endif
       for (int j = 0; j < nq; j += args.batchsz) {
         comp.SearchKnn(
-            xq + j * d,
-            xqx + j * dx,
+            std::make_pair(xq + j * d, xqx + j * dx),
             args.batchsz,
             args.k,
             attrs.data(),
@@ -167,8 +166,7 @@ int main(int argc, char **argv) {
         vector<Metric> metrics(args.batchsz, Metric(nb));
         auto search_start = high_resolution_clock::now();
         auto results = comp.SearchKnn(
-            xq + j * d,
-            xqx + j * dx,
+            std::make_pair(xq + j * d, xqx + j * dx),
             args.batchsz,
             args.k,
             attrs.data(),
@@ -195,7 +193,8 @@ int main(int argc, char **argv) {
               ivf_ppsl_in_rz++;
             else if (metric.is_graph_ppsl[i])
               graph_ppsl_in_rz++;
-            if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), i) != hybrid_topks[j].end() || d <= gt_max + EPSILON) {
+            if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), i) != hybrid_topks[j].end() ||
+                d <= gt_max + EPSILON) {
               if (metric.is_ivf_ppsl[i])
                 ivf_ppsl_in_tp++;
               else if (metric.is_graph_ppsl[i])

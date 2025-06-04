@@ -7,11 +7,11 @@
 #include <cstdlib>
 #include <utility>
 #include <vector>
-#include "../hnswlib/hnswlib.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/index_io.h"
-#include "Pod.h"
+#include "hnswlib/hnswlib.h"
+#include "utils/Pod.h"
 
 using hnswlib::L2Space;
 using hnswlib::labeltype;

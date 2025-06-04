@@ -21,7 +21,7 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
       const int nrel,
       const int nthread,
       vector<Metric> &metrics
-  ) override {
+  ) {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
@@ -34,7 +34,7 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
       priority_queue<pair<float, int64_t>> top_candidates;
       priority_queue<pair<float, int64_t>> candidate_set;
       priority_queue<pair<float, int64_t>> recycle_set;
-      auto clusters = this->cgraph_.searchKnnCloserFirst(query + q * this->d_, nprobe);
+      auto clusters = this->cgraph_->searchKnnCloserFirst(query + q * this->d_, nprobe);
 
       vector<bool> visited(this->n_, false);
 

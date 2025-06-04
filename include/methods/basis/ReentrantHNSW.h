@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
-#include "../hnswlib/hnswlib.h"
+#include "hnswlib/hnswlib.h"
 
 using namespace hnswlib;
 

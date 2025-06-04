@@ -1,6 +1,6 @@
 #pragma once
 
-#include "basis/Compass1dX.h"
+#include "basis/CompassX.h"
 #include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
@@ -9,10 +9,10 @@
 #include "faiss/VectorTransform.h"
 
 template <typename dist_t, typename attr_t>
-class Compass1dPca : public Compass1dX<dist_t, attr_t> {
+class CompassPca : public CompassX<dist_t, attr_t> {
  public:
-  Compass1dPca(size_t n, size_t d, size_t dx, size_t M, size_t efc, size_t nlist)
-      : Compass1dX<dist_t, attr_t>(n, d, dx, M, efc, nlist) {
+  CompassPca(size_t n, size_t d, size_t dx, size_t da, size_t M, size_t efc, size_t nlist)
+      : CompassX<dist_t, attr_t>(n, d, dx, da, M, efc, nlist) {
     auto xivf = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
     auto pca = new faiss::PCAMatrix(d, dx);
     // pca->eigen_power = -0.5;

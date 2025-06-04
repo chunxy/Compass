@@ -1,9 +1,9 @@
 #pragma once
 
-#include <boost/core/no_exceptions_support.hpp>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <algorithm>
+#include <boost/core/no_exceptions_support.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/predicates.hpp>
@@ -12,10 +12,10 @@
 #include <queue>
 #include <utility>
 #include <vector>
-#include "../hnswlib/hnswlib.h"
-#include "../utils/predicate.h"
-#include "Pod.h"
-#include "ReentrantHNSW.h"
+#include "basis/ReentrantHNSW.h"
+#include "hnswlib/hnswlib.h"
+#include "utils/Pod.h"
+#include "utils/predicate.h"
 
 namespace fs = boost::filesystem;
 namespace geo = boost::geometry;

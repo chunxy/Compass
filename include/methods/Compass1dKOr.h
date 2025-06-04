@@ -24,11 +24,11 @@ class Compass1dKOr : public Compass1dK<dist_t, attr_t> {
       const int nrel,
       const int nthread,
       vector<Metric> &metrics
-  ) override {
+  ) {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
-    this->AssignPoints(nq, query, nprobe, this->query_cluster_rank_, this->distances_);
+    this->SearchClusters(nq, query, nprobe, this->query_cluster_rank_, this->distances_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
 

@@ -2,13 +2,14 @@
 
 #include <boost/filesystem.hpp>
 #include <utility>
+#include <variant>
 #include <vector>
-#include "Pod.h"
 #include "ReentrantHNSW.h"
 #include "faiss/Index.h"
 #include "faiss/MetricType.h"
 #include "faiss/index_io.h"
 #include "hnswlib/hnswlib.h"
+#include "utils/Pod.h"
 
 namespace fs = boost::filesystem;
 using hnswlib::L2Space;
@@ -75,7 +76,7 @@ class HybridIndex {
   virtual void LoadRanking(fs::path path, attr_t *attrs) = 0;
 
   virtual vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
-      const dist_t *query,
+      const std::variant<const dist_t *, pair<const dist_t *, const dist_t *>> &var,
       const int nq,
       const int k,
       const attr_t *attrs,

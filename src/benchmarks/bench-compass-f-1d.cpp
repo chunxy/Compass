@@ -16,8 +16,8 @@
 #include <vector>
 #include "config.h"
 #include "json.hpp"
-#include "methods/CompassF1d.h"
-#include "methods/Pod.h"
+#include "methods/basis/CompassF1d.h"
+#include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 

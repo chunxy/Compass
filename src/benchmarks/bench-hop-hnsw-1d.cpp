@@ -12,9 +12,7 @@
 #include <string>
 #include <vector>
 #include "config.h"
-// #include "hnswlib.h"
 #include "json.hpp"
-#include "methods/CompassGraph1d.h"
 #include "methods/HopHnsw.h"
 #include "space_l2.h"
 #include "utils/card.h"

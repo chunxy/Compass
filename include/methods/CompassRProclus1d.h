@@ -19,9 +19,9 @@
 #include "../../thirdparty/btree/btree_map.h"
 #include "../hnswlib/hnswlib.h"
 #include "../utils/predicate.h"
-#include "Pod.h"
+#include "utils/Pod.h"
 #include "Proclus.h"
-#include "ReentrantHNSW.h"
+#include "methods/basis/ReentrantHNSW.h"
 #include "faiss/MetricType.h"
 
 namespace fs = boost::filesystem;
@@ -176,7 +176,7 @@ class CompassRProclus1d {
 
   void LoadGraph(fs::path path) { this->hnsw_.loadIndex(path.string(), &this->space_); }
 
-  void LoadClusterGraph(fs::path path) { this->cgraph_.loadIndex(path.string(), &this->space_); }
+  void LoadClusterGraph(fs::path path) { this->cgraph_->loadIndex(path.string(), &this->space_); }
 
   void LoadRanking(fs::path path, attr_t *attrs) {
     std::ifstream in(path.string());
@@ -192,7 +192,7 @@ class CompassRProclus1d {
   void BuildClusterGraph() {
     auto centroids = proclus_->medoids;
     for (int i = 0; i < nlist_; i++) {
-      this->cgraph_.addPoint(centroids + i * dim_, i);
+      this->cgraph_->addPoint(centroids + i * dim_, i);
     }
   }
 
@@ -203,7 +203,7 @@ class CompassRProclus1d {
 
   void SaveClusterGraph(fs::path path) {
     fs::create_directories(path.parent_path());
-    this->cgraph_.saveIndex(path.string());
+    this->cgraph_->saveIndex(path.string());
   }
 
   void SaveRanking(fs::path path) {

@@ -18,7 +18,7 @@
 #include "config.h"
 #include "json.hpp"
 #include "methods/Compass1dPca.h"
-#include "methods/Pod.h"
+#include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  Compass1dPca<float, float> comp(nb, d, args.M, args.efc, args.nlist, args.dx);
+  Compass1dPca<float, float> comp(nb, d, args.dx, args.M, args.efc, args.nlist);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string pca_ivf_ckp = fmt::format(COMPASS_PCA_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);

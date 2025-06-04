@@ -23,7 +23,7 @@ class CompassKOr : public CompassK<dist_t, attr_t> {
       const int nrel,
       const int nthread,
       vector<Metric> &metrics
-  ) override {
+  ) {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;

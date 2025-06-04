@@ -14,9 +14,9 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "rng.h"
 #include "json.hpp"
-#include "methods/Pod.h"
+#include "rng.h"
+#include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 
@@ -77,7 +77,6 @@ int main(int argc, char **argv) {
     comp->saveIndex(ckp_path.string());
   }
   fmt::print("Finished loading/building index\n");
-
 
   nlohmann::json json;
   for (auto efs : {10, 20, 60, 100, 200}) {

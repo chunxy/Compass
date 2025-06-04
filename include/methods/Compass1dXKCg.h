@@ -1,15 +1,23 @@
 #pragma once
 
-#include "basis/Compass1dCg.h"
+#include <algorithm>
+#include "basis/Compass1dXCg.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
+#include "faiss/MetricType.h"
+#include "hnswlib/hnswlib.h"
+#include "utils/predicate.h"
 
 template <typename dist_t, typename attr_t>
-class Compass1dKCg : public Compass1dCg<dist_t, attr_t> {
+class Compass1dXKCg : public Compass1dXCg<dist_t, attr_t> {
+ protected:
+  HierarchicalNSW<dist_t> cgraph_;
+  size_t dx_;
+
  public:
-  Compass1dKCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist)
-      : Compass1dCg<dist_t, attr_t>(n, d, M, efc, nlist) {
-    this->ivf_ = dynamic_cast<faiss::Index *>(new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist));
+  Compass1dXKCg(size_t n, size_t d, size_t dx, size_t M, size_t efc, size_t nlist)
+      : Compass1dXCg<dist_t, attr_t>(n, d, dx, M, efc, nlist) {
+    this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
   }
 
   void AssignPoints(

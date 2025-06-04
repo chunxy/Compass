@@ -1,39 +1,58 @@
-#pragma once
-
-#include <algorithm>
-#include "Compass1d.h"
-#include "faiss/IndexFlat.h"
-#include "faiss/IndexIVFFlat.h"
-#include "hnswlib/hnswlib.h"
+#include "HybridIndex.h"
+#include "btree_map.h"
 #include "utils/predicate.h"
 
-template <typename dist_t, typename attr_t>
-class Compass1dX : public Compass1d<dist_t, attr_t> {
- public:
-  Compass1dX(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t dx)
-      : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist) {
-    this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
-  }
+using hnswlib::labeltype;
+using std::pair;
+using std::priority_queue;
+using std::vector;
 
-  void AssignPoints(
+template <typename dist_t, typename attr_t>
+class Compass1d : public HybridIndex<dist_t, attr_t> {
+ protected:
+  vector<btree::btree_map<attr_t, labeltype>> btrees_;
+
+  virtual void AssignPoints(
       const size_t n,
       const dist_t *data,
       const int k,
       faiss::idx_t *assigned_clusters,
       float *distances = nullptr
-  ) override {
-    if (distances == nullptr) {
-      dynamic_cast<faiss::IndexIVFFlat *>(this->ivf_)->quantizer->assign(n, (float *)data, assigned_clusters, k);
-    } else {
-      dynamic_cast<faiss::IndexIVFFlat *>(this->ivf_)
-          ->quantizer->search(n, (float *)data, k, distances, assigned_clusters);
+  ) = 0;
+
+  virtual void SearchClusters(
+      const size_t n,
+      const dist_t *data,
+      const int k,
+      faiss::idx_t *assigned_clusters,
+      float *distances = nullptr
+  ) {
+    AssignPoints(n, data, k, assigned_clusters, distances);
+  }
+
+ public:
+  Compass1d(size_t n, size_t d, size_t M, size_t efc, size_t nlist)
+      : HybridIndex<dist_t, attr_t>(n, d, M, efc, nlist), btrees_(nlist, btree::btree_map<attr_t, labeltype>()) {}
+
+  void AddPointsToIvf(const size_t n, const dist_t *data, const labeltype *labels, const attr_t *attrs) override {
+    AssignPoints(n, data, 1, this->base_cluster_rank_);
+    for (int i = 0; i < n; i++) {
+      btrees_[this->base_cluster_rank_[i]].insert(std::make_pair(attrs[i], labels[i]));
     }
   }
 
-  // For ranking clusters using IVF.
+  void LoadRanking(fs::path path, attr_t *attrs) override {
+    std::ifstream in(path.string());
+    faiss::idx_t assigned_cluster;
+    for (int i = 0; i < this->n_; i++) {
+      in.read((char *)(&assigned_cluster), sizeof(faiss::idx_t));
+      btrees_[assigned_cluster].insert(std::make_pair(attrs[i], (labeltype)i));
+    }
+  }
+
+  // By default, we will not use the distances to centroids.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
-      const dist_t *query,
-      const dist_t *xquery,
+      const std::variant<const dist_t *, pair<const dist_t *, const dist_t *>> &var,
       const int nq,
       const int k,
       const attr_t *attrs,
@@ -43,14 +62,23 @@ class Compass1dX : public Compass1d<dist_t, attr_t> {
       const int nrel,
       const int nthread,
       vector<Metric> &metrics
-  ) {
+  ) override {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
-    this->AssignPoints(nq, xquery, nprobe, this->query_cluster_rank_);
+
+    const dist_t *query, *xquery;
+    if (std::holds_alternative<const dist_t *>(var)) {
+      query = std::get<const dist_t *>(var);
+      xquery = query;
+    } else {
+      query = std::get<pair<const dist_t *, const dist_t *>>(var).first;
+      xquery = std::get<pair<const dist_t *, const dist_t *>>(var).second;
+    }
+    SearchClusters(nq, query, nprobe, this->query_cluster_rank_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
-    RangeQuery<float> pred(l_bound, u_bound, attrs, this->n_, 1);
+    RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {

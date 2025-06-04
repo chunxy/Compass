@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 #include "../hnswlib/hnswlib.h"
-#include "methods/Pod.h"
+#include "utils/Pod.h"
 #include "visited_list_pool.h"
 
 using namespace hnswlib;
