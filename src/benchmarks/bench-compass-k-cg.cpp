@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 
   // Compute selectivity.
   int nsat;
-  stat_selectivity(attrs, nb, d, args.l_bounds, args.u_bounds, nsat);
+  stat_selectivity(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
 
   CompassKCg<float, float> comp(nb, d, c.attr_dim, args.M, args.efc, args.nlist);
   fs::path ckp_root(CKPS);
