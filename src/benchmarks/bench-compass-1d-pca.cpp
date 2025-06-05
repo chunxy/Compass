@@ -1,10 +1,10 @@
 #include <fmt/chrono.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <omp.h>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
@@ -13,11 +13,10 @@
 #include <map>
 #include <numeric>
 #include <string>
-#include <utility>
 #include <vector>
 #include "config.h"
 #include "json.hpp"
-#include "methods/Compass1dPca.h"
+#include "methods/CompassPca.h"
 #include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
@@ -29,7 +28,7 @@ using std::vector;
 auto dist_func = hnswlib::L2Sqr;
 
 int main(int argc, char **argv) {
-  IvfGraph1dArgs args(argc, argv);
+  IvfGraph2dArgs args(argc, argv);
 
   extern std::map<std::string, DataCard> name_to_card;
   DataCard c = name_to_card[args.datacard];
@@ -39,29 +38,27 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
-  std::string method = "Compass1dPca";
-  std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
+  std::string method = "CompassPca";
+  std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bounds, args.u_bounds, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}_dx_{}", args.M, args.efc, args.nlist, args.dx);
 
   // Load data.
   float *xb, *xq;
   uint32_t *gt;
-  vector<vector<float>> _attrs;
-  load_hybrid_data(c, xb, xq, gt, _attrs);
-  vector<float> attrs(_attrs.size());
-  for (size_t i = 0; i < attrs.size(); i++) attrs[i] = _attrs[i][0];
+  float *attrs;
+  load_hybrid_data(c, xb, xq, gt, attrs);
   fmt::print("Finished loading data.\n");
 
   // Load groundtruth for hybrid search.
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, {args.l_bound}, vector<float>{args.u_bound}, args.k, hybrid_topks);
+  load_hybrid_query_gt(c, {args.l_bounds}, vector<float>{args.u_bounds}, args.k, hybrid_topks);
   fmt::print("Finished loading groundtruth.\n");
 
   // Compute selectivity.
   int nsat;
-  stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
+  stat_selectivity(attrs, nb, d, args.l_bounds, args.u_bounds, nsat);
 
-  Compass1dPca<float, float> comp(nb, d, args.dx, args.M, args.efc, args.nlist);
+  CompassPca<float, float> comp(nb, d, args.dx, c.attr_dim, args.M, args.efc, args.nlist);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string pca_ivf_ckp = fmt::format(COMPASS_PCA_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
@@ -69,13 +66,13 @@ int main(int argc, char **argv) {
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_root / "PCA" / c.name / pca_ivf_ckp)) {
     comp.LoadIvf(ckp_root / "PCA" / c.name / pca_ivf_ckp);
-    fmt::print("Finished loading PCA IVF index.\n");
+    fmt::print("Finished loading IVF index.\n");
   } else {
     auto train_ivf_start = high_resolution_clock::now();
     comp.TrainIvf(nb, xb);
     auto train_ivf_stop = high_resolution_clock::now();
     fmt::print(
-        "Finished training PCA IVF, took {} microseconds.\n",
+        "Finished training IVF, took {} microseconds.\n",
         duration_cast<microseconds>(train_ivf_stop - train_ivf_start).count()
     );
     comp.SaveIvf(ckp_root / "PCA" / c.name / pca_ivf_ckp);
@@ -84,11 +81,11 @@ int main(int argc, char **argv) {
   std::vector<labeltype> labels(nb);
   std::iota(labels.begin(), labels.end(), 0);
   if (fs::exists(ckp_root / "PCA" / c.name / pca_rank_ckp)) {
-    comp.LoadRanking(ckp_root / "PCA" / c.name / pca_rank_ckp, attrs.data());
-    fmt::print("Finished loading PCA IVF ranking.\n");
+    comp.LoadRanking(ckp_root / "PCA" / c.name / pca_rank_ckp, attrs);
+    fmt::print("Finished loading IVF ranking.\n");
   } else {
     auto add_points_start = high_resolution_clock::now();
-    comp.AddPointsToIvf(nb, xb, labels.data(), attrs.data());
+    comp.AddPointsToIvf(nb, xb, labels.data(), attrs);
     auto add_points_stop = high_resolution_clock::now();
     fmt::print(
         "Finished adding points, took {} microseconds.\n",
@@ -112,8 +109,6 @@ int main(int argc, char **argv) {
   }
   fmt::print("Finished loading indices.\n");
 
-  vector<Metric> metrics(args.batchsz, Metric(nb));
-
   for (auto efs : args.efs) {
     for (auto nrel : args.nrel) {
       time_t ts = time(nullptr);
@@ -132,6 +127,8 @@ int main(int argc, char **argv) {
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
 #endif
+      vector<Metric> metrics(args.batchsz, Metric(nb));
+
       auto search_start = high_resolution_clock::system_clock::now();
 #ifndef COMPASS_DEBUG
 // #pragma omp parallel
@@ -143,9 +140,9 @@ int main(int argc, char **argv) {
             xq + j * d,
             args.batchsz,
             args.k,
-            attrs.data(),
-            &args.l_bound,
-            &args.u_bound,
+            attrs,
+            args.l_bounds.data(),
+            args.u_bounds.data(),
             efs,
             nrel,
             args.nthread,
@@ -164,9 +161,9 @@ int main(int argc, char **argv) {
             xq + j * d,
             args.batchsz,
             args.k,
-            attrs.data(),
-            &args.l_bound,
-            &args.u_bound,
+            attrs,
+            args.l_bounds.data(),
+            args.u_bounds.data(),
             efs,
             nrel,
             args.nthread,
@@ -225,7 +222,6 @@ int main(int argc, char **argv) {
           stat.num_computations[j] = metric.ncomp;
           stat.num_rounds[j] = metric.nround;
           stat.num_clusters[j] = metric.ncluster;
-          stat.num_recycled[j] = metric.nrecycled;
           stat.latencies[j] = duration_cast<microseconds>(search_stop - search_start).count();
           j++;
         }

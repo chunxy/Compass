@@ -117,13 +117,13 @@ int main(int argc, char **argv) {
       std::string search_param = fmt::format("efs_{}_nrel_{}", efs, nrel);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-      fs::path log_root(fmt::format(LOGS, args.k) + "_special");
-      // fs::path log_root(fmt::format(LOGS, args.k));
+      // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      fs::path log_root(fmt::format(LOGS, args.k));
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
       FILE *out = stdout;
-      nq = args.fast ? 1000 : nq;;
+      nq = args.fast ? 1000 : nq;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
@@ -223,6 +223,7 @@ int main(int argc, char **argv) {
           stat.num_computations[j] = metric.ncomp;
           stat.num_rounds[j] = metric.nround;
           stat.num_clusters[j] = metric.ncluster;
+          stat.num_recycled[j] = metric.nrecycled;
           stat.latencies[j] = duration_cast<microseconds>(search_stop - search_start).count();
           j++;
         }

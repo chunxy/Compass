@@ -7,8 +7,7 @@
 #include <queue>
 #include <utility>
 #include <vector>
-#include "Compass1d.h"
-#include "faiss/Index.h"
+#include "basis/Compass1d.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/IndexPQ.h"
 
