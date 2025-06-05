@@ -62,6 +62,7 @@ struct IvfGraph2dArgs {
   std::string datacard;
   vector<float> l_bounds, u_bounds;
   int k = 10;
+  int dx = 64;
   int M = 32;
   int efc = 200;
   int nlist = 1000;  // the number of coarse clusters
@@ -81,6 +82,7 @@ struct IvfGraph2dArgs {
     required_configs.add_options()("r", po::value<decltype(u_bounds)>(&u_bounds)->required()->multitoken());
     required_configs.add_options()("k", po::value<decltype(k)>(&k)->required());
     // index constrcution parameters
+    optional_configs.add_options()("dx", po::value<decltype(dx)>(&dx));
     optional_configs.add_options()("M", po::value<decltype(M)>(&M));
     optional_configs.add_options()("efc", po::value<decltype(efc)>(&efc));
     optional_configs.add_options()("nlist", po::value<decltype(nlist)>(&nlist));

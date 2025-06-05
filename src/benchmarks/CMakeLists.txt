@@ -20,11 +20,11 @@ add_executable(bench-compass-1d-k bench-compass-1d-k.cpp)
 add_executable(bench-compass-1d-k-cg bench-compass-1d-k-cg.cpp)
 add_executable(bench-compass-1d-kmedoids bench-compass-1d-kmedoids.cpp)
 add_executable(bench-compass-1d-kmedoids-cg bench-compass-1d-kmedoids-cg.cpp)
-
-# Decent clustering
 add_executable(bench-compass-1d-bikmeans bench-compass-1d-bikmeans.cpp)
 add_executable(bench-compass-1d-bikmeans-cg bench-compass-1d-bikmeans-cg.cpp)
 add_executable(bench-compass-1d-bikmeans-or bench-compass-1d-bikmeans-or.cpp)
+
+# Decent clustering
 add_executable(bench-compass-1d-pca bench-compass-1d-pca.cpp)
 add_executable(bench-compass-1d-pca-cg bench-compass-1d-pca-cg.cpp)
 
@@ -45,4 +45,8 @@ add_executable(bench-compass-k bench-compass-k.cpp)
 add_executable(bench-compass-k-cg bench-compass-k-cg.cpp)
 add_executable(bench-compass-bikmeans bench-compass-bikmeans.cpp)
 add_executable(bench-compass-bikmeans-cg bench-compass-bikmeans-cg.cpp)
+
+# Decent clustering
+add_executable(bench-compass-pca bench-compass-pca.cpp)
+add_executable(bench-compass-pca-cg bench-compass-pca-cg.cpp)
 
