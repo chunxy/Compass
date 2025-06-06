@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % batch_sz == 0);
 
-  std::string method = "Compass1dImi";
+  std::string method = "CompassImi";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nsub_{}_nbits_{}", args.M, args.efc, args.nsub, args.nbits);
 
