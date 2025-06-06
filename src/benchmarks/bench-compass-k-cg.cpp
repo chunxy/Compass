@@ -39,7 +39,9 @@ int main(int argc, char **argv) {
   assert(nq % args.batchsz == 0);
 
   std::string method = "CompassKOrCg";
-  std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bounds, args.u_bounds, args.k);
+  std::string workload = fmt::format(
+      HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, fmt::join(args.l_bounds, "-"), fmt::join(args.u_bounds, "-"), args.k
+  );
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
 
   // Load data.
