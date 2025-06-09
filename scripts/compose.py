@@ -2,13 +2,13 @@ import re
 from pathlib import Path
 
 from config import (
-  METHODS,
+  COMPASS_METHODS,
   compass_args,
   da_interval,
-  da_s,
+  DA_S,
   dataset_args,
-  group_dataset,
-  m_param,
+  GROUP_DATASET,
+  M_PARAM,
 )
 
 EXP_ROOT = Path("/home/chunxy/repos/Compass/exp/top10/compass")
@@ -22,20 +22,20 @@ done'''
 
 
 def compose():
-  for da in da_s:
-    for group, datasets in group_dataset.items():
-      for m in METHODS:
+  for da in DA_S:
+    for group, datasets in GROUP_DATASET.items():
+      for m in COMPASS_METHODS:
         parts = [p.lower() for p in re.findall(r'[A-Z][a-z]*', m)]
         filename = f"{da}d-" + "-".join(parts[1:]) + f"-exp-{group}.sh"
         with open(EXP_ROOT / filename, "w") as f:
           f.write(f'datasets=({" ".join(datasets)})\n')
-          for bp in m_param[m]["build"]:
+          for bp in M_PARAM[m]["build"]:
             f.write(f'{bp}_s=({" ".join(map(str, dataset_args[datasets[0]].get(bp, compass_args[bp])))})\n')
-          for sp in m_param[m]["search"]:
+          for sp in M_PARAM[m]["search"]:
             f.write(f'{sp}_s=({" ".join(map(str,compass_args[sp]))})\n')
 
-          build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", m_param[m]["build"]))
-          search_string = " ".join(map(lambda x: f"--{x} ${{{x}_s[@]}}", m_param[m]["search"]))
+          build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["build"]))
+          search_string = " ".join(map(lambda x: f"--{x} ${{{x}_s[@]}}", M_PARAM[m]["search"]))
           intervals = da_interval[da]
           inner_tmpl = \
 '''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-{} \
@@ -52,7 +52,7 @@ def compose():
             ) for itvl in intervals
           ])
 
-          for bp in m_param[m]["build"][::-1]:
+          for bp in M_PARAM[m]["build"][::-1]:
             inner = __enclose_for(bp, f"{bp}_s", inner)
           inner = __enclose_for("dataset", "datasets", inner)
           f.write(inner)

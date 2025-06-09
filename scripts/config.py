@@ -8,15 +8,15 @@ DATASETS = [
   "audio",
   "video",
 ]
-group_dataset = {
+GROUP_DATASET = {
   "1": ["crawl"],
   "2": ["video", "glove100"],
   "3": ["sift", "gist", "audio"],
 }
 
-da_s = [1, 2, 3, 4]
+DA_S = [1, 2, 3, 4]
 
-# attribute dimension - interval, for reading JSON files
+# attribute dimension - interval, for reading JSON files of Compass result
 da_interval = {
   1: [
     *[((100,), (r,)) for r in (200, 300, 600)], ((0,), (10000,)),
@@ -42,8 +42,9 @@ da_interval = {
   ],
 }
 
-# attribute dimension - range, for plotting
+# attribute dimension - range, for plotting, shared across methods
 da_range = {da: ["-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)]) for itvl in intervals] for da, intervals in da_interval.items()}  # noqa: E741
+# attribute dimension - selectivity, for plotting, shared across methods
 da_sel = {
   da:
   list(
@@ -63,7 +64,7 @@ da_sel = {
   for da, intervals in da_interval.items()
 }
 
-METHODS = [
+COMPASS_METHODS = [
   "CompassK",
   "CompassPca",
   "CompassBikmeans",
@@ -71,7 +72,17 @@ METHODS = [
   "CompassPcaCg",
   "CompassBikmeansCg",
 ]
+SOTA_METHODS = ["iRangeGraph", "SeRF"]
+METHODS = COMPASS_METHODS + SOTA_METHODS
 
+irangegraph_parameters = {
+  "build": ["M", "efc"],
+  "search": ["efs"],
+}
+serf_parameters = {
+  "build": ["M", "efc", "efmax"],
+  "search": ["efs"],
+}
 compass_parameters = {
   "build": ["M", "efc", "nlist"],
   "search": ["efs", "nrel"],
@@ -114,32 +125,40 @@ dataset_args = {
 m_workload = {
   **{
     m: "{}_10000_{}_{}_10"
-    for m in METHODS
+    for m in COMPASS_METHODS
+  },
+  **{
+    m: "{}_{}_10"
+    for m in SOTA_METHODS
   },
 }
 
 # method - parameter
-m_param = {
+M_PARAM = {
   "CompassK": compass_parameters,
   "CompassPca": compass_x_parameters,
   "CompassBikmeans": compass_parameters,
   "CompassKCg": compass_parameters,
   "CompassPcaCg": compass_x_parameters,
   "CompassBikmeansCg": compass_parameters,
+  "iRangeGraph": irangegraph_parameters,
+  "SeRF": serf_parameters,
 }
 
-m_marker = {
-  "CompassK": "o",
-  "CompassBikmeans": "s",
-  "CompassKCg": "x",
-  "CompassBikmeansCg": "d",
-  "CompassPca": "o",
-  "CompassPcaCg": "s",
+M_MARKER = {
+  "CompassK": {"marker": "o"},
+  "CompassPca": {"marker": "d"},
+  "CompassBikmeans": {"marker": "s"},
+  "CompassKCg": {"marker": "o", "edgecolor": "black"},
+  "CompassPcaCg": {"marker": "d", "edgecolor": "black"},
+  "CompassBikmeansCg": {"marker": "s", "edgecolor": "black"},
+  "iRangeGraph": {"marker": "^"},
+  "SeRF": {"marker": "p"}
 }
 
-b_marker = {
-  "M_16_efc_200_nlist_10000": "o",
-  "M_16_efc_200_nlist_20000": "s",
-  "M_32_efc_200_nlist_10000": "x",
-  "M_32_efc_200_nlist_20000": "d",
-}
+# b_marker = {
+#   "M_16_efc_200_nlist_10000": "o",
+#   "M_16_efc_200_nlist_20000": "s",
+#   "M_32_efc_200_nlist_10000": "x",
+#   "M_32_efc_200_nlist_20000": "d",
+# }
