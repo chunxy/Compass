@@ -176,7 +176,7 @@ def run_remote_job(args):
 # ==============================================================================
 
 
-def post_processing():
+def post_process():
   """
     This function is called after all remote jobs are complete.
     Replace this with your actual post-processing logic, like generating plots.
@@ -189,18 +189,18 @@ def post_processing():
   # It calls a local Python script, passing the results directory to it.
   # You would create 'draw_figures.py' to handle the plotting logic.
   try:
-    os.chdir(os.path.expanduser("~/repos/Compass"))
+    os.chdir(os.path.expanduser("~/repos/Compass/scripts"))
 
     # Example: calling a plotting script
-    plot_script_path = "scratches/summarize.py"
-    if os.path.exists(plot_script_path):
-      subprocess.run(["python", plot_script_path], check=True)
+    plot_script = "summarize.py"
+    if os.path.exists(plot_script):
+      subprocess.run(["python", plot_script], check=True)
       print("\n✅ Post-processing script executed successfully.")
     else:
-      print(f"NOTE: Post-processing script '{plot_script_path}' not found. Skipping.")
+      print(f"NOTE: Post-processing script '{plot_script}' not found. Skipping.")
 
   except FileNotFoundError:
-    print(f"ERROR: Could not find the local post-processing script: {plot_script_path}")
+    print(f"ERROR: Could not find the local post-processing script: {plot_script}")
   except subprocess.CalledProcessError as e:
     print(f"ERROR: The post-processing script failed with exit code {e.returncode}.")
 
@@ -250,7 +250,7 @@ if __name__ == '__main__':
   print(f"\nTotal Jobs: {len(tasks_to_run)}, Successful: {successful_jobs}, Failed: {len(tasks_to_run) - successful_jobs}", file=run_log)
   # --- Conditionally run post-processing ---
   if successful_jobs == len(tasks_to_run):
-    post_processing()
+    post_process()
   else:
     print("\nSkipping post-processing due to failed jobs.", file=run_log)
   run_log.close()
