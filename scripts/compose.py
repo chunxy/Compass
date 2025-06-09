@@ -1,0 +1,62 @@
+import re
+from pathlib import Path
+
+from config import (
+  METHODS,
+  compass_args,
+  da_interval,
+  da_s,
+  dataset_args,
+  group_dataset,
+  m_param,
+)
+
+EXP_ROOT = Path("/home/chunxy/repos/Compass/exp/top10/compass")
+
+
+def __enclose_for(ele_name, collection_name, body):
+  return \
+f'''for {ele_name} in ${{{collection_name}[@]}}; do
+{body}
+done'''
+
+
+def compose():
+  for da in da_s:
+    for group, datasets in group_dataset.items():
+      for m in METHODS:
+        parts = [p.lower() for p in re.findall(r'[A-Z][a-z]*', m)]
+        filename = f"{da}d-" + "-".join(parts[1:]) + f"-exp-{group}.sh"
+        with open(EXP_ROOT / filename, "w") as f:
+          f.write(f'datasets=({" ".join(datasets)})\n')
+          for bp in m_param[m]["build"]:
+            f.write(f'{bp}_s=({" ".join(map(str, dataset_args[datasets[0]].get(bp, compass_args[bp])))})\n')
+          for sp in m_param[m]["search"]:
+            f.write(f'{sp}_s=({" ".join(map(str,compass_args[sp]))})\n')
+
+          build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", m_param[m]["build"]))
+          search_string = " ".join(map(lambda x: f"--{x} ${{{x}_s[@]}}", m_param[m]["search"]))
+          intervals = da_interval[da]
+          inner_tmpl = \
+'''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-{} \
+--datacard ${{dataset}}_{}_10000_float32 \
+--l {} --r {} --k 10 {} {}'''
+          inner = '\n'.join([
+            inner_tmpl.format(
+              ("1d-" if da == 1 else "") + "-".join(parts[1:]),
+              da,
+              " ".join(map(str, itvl[0])),
+              " ".join(map(str, itvl[1])),
+              build_string,
+              search_string,
+            ) for itvl in intervals
+          ])
+
+          for bp in m_param[m]["build"][::-1]:
+            inner = __enclose_for(bp, f"{bp}_s", inner)
+          inner = __enclose_for("dataset", "datasets", inner)
+          f.write(inner)
+
+
+if __name__ == "__main__":
+  compose()
