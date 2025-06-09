@@ -18,5 +18,5 @@ logs*
 data
 checkpoints
 runs
-figures*
-cherrypick*
+figures*/
+cherrypick*/
