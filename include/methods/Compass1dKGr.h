@@ -30,6 +30,7 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
     this->SearchClusters(nq, query, nprobe, this->query_cluster_rank_, this->distances_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
+    RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
@@ -37,10 +38,6 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
       priority_queue<pair<float, int64_t>> candidate_set;
 
       vector<bool> visited(this->hnsw_.cur_element_count, false);
-
-      RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
-      metrics[q].nround = 0;
-      metrics[q].ncomp = 0;
 
       {
         tableint currObj = this->hnsw_.enterpoint_node_;

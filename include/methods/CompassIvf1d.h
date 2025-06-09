@@ -58,7 +58,6 @@ class CompassIvf1D {
 
     vector<vector<pair<float, labeltype>>> result(nq, vector<pair<float, labeltype>>(k));
     for (int q = 0; q < nq; q++) {
-      metrics[q].ncomp = 0;
 
       std::priority_queue<pair<float, labeltype>> top_candidates;
       int i = 0;

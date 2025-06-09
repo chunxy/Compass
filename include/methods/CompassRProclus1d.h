@@ -82,6 +82,7 @@ class CompassRProclus1d {
     proclus_->search_l1_rerank_l2(nq, (float *)query, ranked_clusters, distances, nprobe);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
+    RangeQuery<attr_t> pred(l_bound, u_bound, &attrs_, nlist_, 1);
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
@@ -90,10 +91,6 @@ class CompassRProclus1d {
       priority_queue<pair<float, int64_t>> recycle_set;
 
       vector<bool> visited(hnsw_.cur_element_count, false);
-
-      RangeQuery<float> pred(l_bound, u_bound, &attrs_);
-      metrics[q].nround = 0;
-      metrics[q].ncomp = 0;
 
       int curr_ci = q * nprobe;
       auto itr_beg = btrees_[ranked_clusters[curr_ci]].lower_bound(l_bound);

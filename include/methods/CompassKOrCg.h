@@ -38,9 +38,6 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
 
       vector<bool> visited(this->n_, false);
 
-      metrics[q].nround = 0;
-      metrics[q].ncomp = 0;
-
       int curr_ci = 0;
 
       std::vector<std::unordered_set<labeltype>> candidates_per_dim(this->da_);

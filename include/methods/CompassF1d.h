@@ -15,7 +15,7 @@
 #include <queue>
 #include <utility>
 #include <vector>
-#include "utils/Pod.h"
+#include "basis/ReentrantHNSW.h"
 #include "btree_map.h"
 #include "faiss/Index.h"
 #include "faiss/IndexFlat.h"
@@ -23,7 +23,7 @@
 #include "faiss/MetricType.h"
 #include "faiss/index_io.h"
 #include "hnswlib/hnswlib.h"
-#include "methods/ReentrantHNSW.h"
+#include "utils/Pod.h"
 #include "utils/predicate.h"
 
 namespace fs = boost::filesystem;
@@ -72,13 +72,7 @@ class CompassF1d {
 };
 
 template <typename dist_t, typename attr_t>
-CompassF1d<dist_t, attr_t>::CompassF1d(
-    size_t d,
-    size_t M,
-    size_t efc,
-    size_t max_elements,
-    size_t nlist
-)
+CompassF1d<dist_t, attr_t>::CompassF1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist)
     : space_(d),
       hnsw_(&space_, max_elements, M, efc),
       quantizer_(d),
@@ -139,6 +133,8 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassF1d<dist_t, attr_t>::Sear
   hnsw_.setEf(efs_);
 
   vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
+  RangeQuery<attr_t> pred(l_bound, u_bound, &attrs_, ivf_->nlist, 1);
+
   vector<decltype(btrees_[0].lower_bound(0))> itr_begs(ivf_->nlist);
   vector<decltype(btrees_[0].upper_bound(0))> itr_ends(ivf_->nlist);
 
@@ -153,11 +149,6 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassF1d<dist_t, attr_t>::Sear
       itr_begs[i] = btrees_[i].lower_bound(l_bound);
       itr_ends[i] = btrees_[i].upper_bound(u_bound);
     }
-
-    RangeQuery<float> pred(l_bound, u_bound, &attrs_);
-    size_t total_proposed = 0;
-    size_t max_dist_comp = 10;
-    metrics[q].nround = 0;
 
     hnsw_.ReentrantSearchKnnV2(
         (float *)query + q * ivf_->d,

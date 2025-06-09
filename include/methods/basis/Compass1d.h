@@ -88,9 +88,6 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
 
       vector<bool> visited(this->n_, false);
 
-      metrics[q].nround = 0;
-      metrics[q].ncomp = 0;
-
       int curr_ci = q * nprobe;
       auto itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]].lower_bound(*l_bound);
       auto itr_end = this->btrees_[this->query_cluster_rank_[curr_ci]].upper_bound(*u_bound);

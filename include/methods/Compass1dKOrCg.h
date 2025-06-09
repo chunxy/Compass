@@ -39,8 +39,6 @@ class Compass1dKOrCg : public Compass1dKCg<dist_t, attr_t> {
       vector<bool> visited(this->n_, false);
 
       RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
-      metrics[q].nround = 0;
-      metrics[q].ncomp = 0;
 
       int curr_ci = 0;
       auto itr_beg = this->btrees_[clusters[curr_ci].second].lower_bound(*l_bound);
