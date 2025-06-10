@@ -1,4 +1,4 @@
-from config import COMPASS_METHODS, DATASETS, METHODS
+from config import COMPASS_METHODS, DA_S, DATASETS, METHODS
 from summarize import (
   draw_qps_comp_fixed_recall_by_dataset_selectivity,
   draw_qps_comp_fixed_recall_by_selectivity,
@@ -7,22 +7,24 @@ from summarize import (
 )
 
 if __name__ == "__main__":
-  nlist_10000 = {m: ["M_16_efc_200_nlist_10000"] for m in COMPASS_METHODS}
-  nlist_20000 = {m: ["M_16_efc_200_nlist_20000"] for m in COMPASS_METHODS}
+  compass_nlist_10000 = {m: ["M_16_efc_200_nlist_10000"] for m in COMPASS_METHODS}
+  compass_nlist_20000 = {m: ["M_16_efc_200_nlist_20000"] for m in COMPASS_METHODS}
   d_m_b = {
     **{
-      d: nlist_10000
+      d: compass_nlist_10000
       for d in ("sift", "audio")
     },
     **{
-      d: nlist_20000
+      d: compass_nlist_20000
       for d in ("gist", "video", "crawl", "glove100")
     },
   }
-  nrel_s = [
-    100,
-  ]
-  for da in (1, 2, 3, 4):
+  for d in DATASETS:
+    d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
+    d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
+
+  nrel_s = [100]
+  for da in DA_S:
     draw_qps_comp_wrt_recall_by_dataset_selectivity(
       da=da,
       datasets=DATASETS,
