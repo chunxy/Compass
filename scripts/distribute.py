@@ -96,7 +96,6 @@ THREED_EXPS = [
   "3d-pca-cg-exp",
 ]
 
-
 FOURD_EXPS = [
   "4d-k-exp",
   "4d-k-cg-exp",
@@ -105,7 +104,6 @@ FOURD_EXPS = [
   "4d-pca-exp",
   "4d-pca-cg-exp",
 ]
-
 
 # ==============================================================================
 # 2. REMOTE EXECUTION FUNCTION - This function runs on each remote machine
@@ -215,6 +213,7 @@ def post_process():
 # 4. MAIN ORCHESTRATOR
 # ==============================================================================
 
+
 def run_grouped_exp(exp_set):
   # Create a list of (host, job) tuples for distribution.
   # This simple round-robin logic assigns jobs to hosts cyclically.
@@ -259,7 +258,12 @@ def run_grouped_exp(exp_set):
 
 
 if __name__ == '__main__':
-  run_grouped_exp(ONED_EXPS)
-  run_grouped_exp(TWOD_EXPS)
+  # run_grouped_exp(ONED_EXPS)
+  # run_grouped_exp(TWOD_EXPS)
   run_grouped_exp(THREED_EXPS)
   run_grouped_exp(FOURD_EXPS)
+
+  MISC_EXPS = [
+    "1d-pca-cg-exp",
+    "2d-pca-cg-exp",
+  ]
