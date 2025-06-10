@@ -193,15 +193,20 @@ def post_process():
     os.chdir(os.path.expanduser("~/repos/Compass/scripts"))
 
     # Example: calling a plotting script
-    plot_script = "summarize.py"
-    if os.path.exists(plot_script):
-      subprocess.run(["python", plot_script], check=True)
+    summarize = "summarize.py"
+    if os.path.exists(summarize):
+      subprocess.run(["python", summarize], check=True)
       print("\n✅ Post-processing script executed successfully.")
     else:
-      print(f"NOTE: Post-processing script '{plot_script}' not found. Skipping.")
+      print(f"NOTE: Post-processing script '{summarize}' not found. Skipping.")
 
-  except FileNotFoundError:
-    print(f"ERROR: Could not find the local post-processing script: {plot_script}")
+    cherrypick = "cherrypick.py"
+    if os.path.exists(cherrypick):
+      subprocess.run(["python", cherrypick], check=True)
+      print("\n✅ Post-processing script executed successfully.")
+    else:
+      print(f"NOTE: Post-processing script '{cherrypick}' not found. Skipping.")
+
   except subprocess.CalledProcessError as e:
     print(f"ERROR: The post-processing script failed with exit code {e.returncode}.")
 
