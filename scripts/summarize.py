@@ -58,10 +58,10 @@ def summarize():
               s = st.format(*sa)
               if m in COMPASS_METHODS:
                 nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
-                sel = f"{reduce(lambda a, b: a * b, [(r - l) / 100 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
+                sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
               else:
                 nrg = "-".join(map(str, itvl))
-                sel = f"{reduce(lambda a,b: a * b, itvl, 1.):.3g}"
+                sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.3g}"
               path = LOG_ROOT / m / w / b / s
               if path.exists():
                 entries.append((path, m, w, d, nrg, sel, b, s))
@@ -328,8 +328,8 @@ def draw_qps_comp_fixed_recall_by_selectivity(da, datasets, methods, anno, *, d_
 
 if __name__ == "__main__":
   summarize()
-  for dim in DA_S:
-    draw_qps_comp_wrt_recall_by_dataset_selectivity(dim, DATASETS, METHODS)
-    draw_qps_comp_wrt_recall_by_selectivity(dim, DATASETS, METHODS)
-    draw_qps_comp_fixed_recall_by_dataset_selectivity(dim, DATASETS, METHODS, "MoM")
-    draw_qps_comp_fixed_recall_by_selectivity(dim, DATASETS, METHODS, "MoM")
+  for da in DA_S:
+    draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS)
+    draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS)
+    draw_qps_comp_fixed_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
+    draw_qps_comp_fixed_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
