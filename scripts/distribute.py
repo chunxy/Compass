@@ -210,14 +210,14 @@ def post_process():
 # ==============================================================================
 
 if __name__ == '__main__':
-  # Create a list of (host, job) tuples for distribution.
-  # This simple round-robin logic assigns jobs to hosts cyclically.
-  tasks_to_run = []
-
   # Specify your SSH key file path here
   ssh_key_file = os.path.expanduser("~/.ssh/id_rsa")
 
-  for group, exp in zip(GROUPS.keys(), FOURD_EXPS):
+  chosen_set = ONED_EXPS
+  # Create a list of (host, job) tuples for distribution.
+  # This simple round-robin logic assigns jobs to hosts cyclically.
+  tasks_to_run = []
+  for group, exp in zip(GROUPS.keys(), chosen_set):
     for i, host in enumerate(GROUPS[group]):
       exp_script = f"bash exp/top10/compass/{exp}-{i + 1}.sh"
       task = PRE_EXP_SCRIPT + exp_script + POST_EXP_SCRIPT
@@ -225,7 +225,7 @@ if __name__ == '__main__':
       tasks_to_run.append((host, task, ssh_key_file))
 
   all_results = []
-  print(f"Starting experiments. Distributing {len(FOURD_EXPS)} jobs to {len(GROUPS)} groups.")
+  print(f"Starting experiments. Distributing {len(chosen_set)} jobs to {len(GROUPS)} groups.")
 
   # Use ThreadPoolExecutor to run jobs on all hosts in parallel.
   # The number of workers determines how many SSH connections are active at once.

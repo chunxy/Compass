@@ -17,7 +17,7 @@ GROUP_DATASET = {
 DA_S = [1, 2, 3, 4]
 
 # attribute dimension - interval, for reading JSON files of Compass result
-da_interval = {
+compass_da_run = {
   1: [
     *[((100,), (r,)) for r in (200, 300, 600)], ((0,), (10000,)),
     *[((100,), (r,)) for r in range(1100, 10000, 1000)],
@@ -41,11 +41,22 @@ da_interval = {
           [3400, 5900, 8400, 9400])],
   ],
 }
+sota_da_run = {
+  1: [*[(1, ), (2, ), (3, ), (5, )], *[(i, ) for i in range(10, 100, 10)]],
+  2: [(pcnt, pcnt) for pcnt in (10, 30, 50, 80, 90)],
+}
 
-# attribute dimension - range, for plotting, shared across methods
-da_range = {da: ["-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)]) for itvl in intervals] for da, intervals in da_interval.items()}  # noqa: E741
-# attribute dimension - selectivity, for plotting, shared across methods
-da_sel = {
+# attribute dimension - range, for plotting, shared across methods, using Compass's interval as base
+DA_RANGE = {
+  da: [
+    "-".join([f"{(r - l) // 100}"
+              for l, r in zip(*itvl)])  # noqa: E741
+    for itvl in intervals
+  ]
+  for da, intervals in compass_da_run.items()
+}
+# attribute dimension - selectivity, for plotting, shared across methods, using Compass's interval as base
+DA_SEL = {
   da:
   list(
     map(
@@ -56,12 +67,12 @@ da_sel = {
           map(
             lambda rg: (rg[1] - rg[0]) / 10000,
             zip(*itvl), ),
-          1, ),
+          1., ),
         intervals,
       ),
     )
   )
-  for da, intervals in da_interval.items()
+  for da, intervals in compass_da_run.items()
 }
 
 COMPASS_METHODS = [
@@ -100,6 +111,17 @@ compass_args = {
   "nrel": [100, 200],
   "dx": [64, 128, 256, 512],
 }
+irangegraph_args = {
+  "M": [8, 16, 32],
+  "efc": [200],
+  "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500],
+}
+serf_args = {
+  "M": [16, 32],
+  "efc": [200],
+  "efmax": [500],
+  "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200],
+}
 dataset_args = {
   "sift": {
     "dx": [64],
@@ -121,14 +143,25 @@ dataset_args = {
   }
 }
 
-# method - workload template
-m_workload = {
+# method - workload template, accompanied with M_DA_INTERVAL
+M_WORKLOAD = {
   **{
     m: "{}_10000_{}_{}_10"
     for m in COMPASS_METHODS
   },
   **{
     m: "{}_{}_10"
+    for m in SOTA_METHODS
+  },
+}
+
+M_DA_RUN = {
+  **{
+    m: compass_da_run
+    for m in COMPASS_METHODS
+  },
+  **{
+    m: sota_da_run
     for m in SOTA_METHODS
   },
 }
@@ -145,15 +178,40 @@ M_PARAM = {
   "SeRF": serf_parameters,
 }
 
+M_ARGS = {
+  **{
+    m: compass_args
+    for m in COMPASS_METHODS
+  },
+  "iRangeGraph": irangegraph_args,
+  "SeRF": serf_args,
+}
+
 M_MARKER = {
-  "CompassK": {"marker": "o"},
-  "CompassPca": {"marker": "d"},
-  "CompassBikmeans": {"marker": "s"},
-  "CompassKCg": {"marker": "o", "edgecolor": "black"},
-  "CompassPcaCg": {"marker": "d", "edgecolor": "black"},
-  "CompassBikmeansCg": {"marker": "s", "edgecolor": "black"},
-  "iRangeGraph": {"marker": "^"},
-  "SeRF": {"marker": "p"}
+  "CompassK": {
+    "marker": "o"
+  },
+  "CompassPca": {
+    "marker": "d"
+  },
+  "CompassBikmeans": {
+    "marker": "s"
+  },
+  "CompassKCg": {
+    "marker": "o", "edgecolor": "black"
+  },
+  "CompassPcaCg": {
+    "marker": "d", "edgecolor": "black"
+  },
+  "CompassBikmeansCg": {
+    "marker": "s", "edgecolor": "black"
+  },
+  "iRangeGraph": {
+    "marker": "^"
+  },
+  "SeRF": {
+    "marker": "p"
+  }
 }
 
 # b_marker = {

@@ -3,12 +3,12 @@ from pathlib import Path
 
 from config import (
   COMPASS_METHODS,
-  compass_args,
-  da_interval,
   DA_S,
-  dataset_args,
   GROUP_DATASET,
+  M_DA_RUN,
   M_PARAM,
+  compass_args,
+  dataset_args,
 )
 
 EXP_ROOT = Path("/home/chunxy/repos/Compass/exp/top10/compass")
@@ -36,7 +36,7 @@ def compose():
 
           build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["build"]))
           search_string = " ".join(map(lambda x: f"--{x} ${{{x}_s[@]}}", M_PARAM[m]["search"]))
-          intervals = da_interval[da]
+          intervals = M_DA_RUN[m][da]
           inner_tmpl = \
 '''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-{} \
 --datacard ${{dataset}}_{}_10000_float32 \

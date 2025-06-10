@@ -1,22 +1,25 @@
 import bisect
 import json
+from functools import reduce
 from itertools import product
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 from config import (
-  compass_args,
-  da_interval,
-  da_range,
-  da_sel,
+  COMPASS_METHODS,
+  DA_RANGE,
+  DA_S,
+  DA_SEL,
   DATASETS,
+  M_ARGS,
+  M_DA_RUN,
   M_MARKER,
   M_PARAM,
-  m_workload,
-  COMPASS_METHODS,
+  M_WORKLOAD,
+  METHODS,
+  compass_args,
 )
 
 LOG_ROOT = Path("/home/chunxy/repos/Compass/logs_10")
@@ -37,33 +40,45 @@ types = {
 
 
 def summarize():
-  for da, intervals in da_interval.items():
+  for da in DA_S:
     entries = []
-    for m in COMPASS_METHODS:
+    for m in METHODS:
+      if da not in M_DA_RUN[m]: continue  # noqa: E701
       for d in DATASETS:
-        for itvl in intervals:
-          w = m_workload[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
+        for itvl in M_DA_RUN[m][da]:
+          if m in COMPASS_METHODS:
+            w = M_WORKLOAD[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
+          else:
+            w = M_WORKLOAD[m].format(d, "-".join(map(str, itvl)))
           bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
           st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
-          for ba in product(*[compass_args[bp] for bp in M_PARAM[m]["build"]]):
+          for ba in product(*[M_ARGS[m][bp] for bp in M_PARAM[m]["build"]]):
             b = bt.format(*ba)
-            for sa in product(*[compass_args[sp] for sp in M_PARAM[m]["search"]]):
+            for sa in product(*[M_ARGS[m][sp] for sp in M_PARAM[m]["search"]]):
               s = st.format(*sa)
-              nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
+              if m in COMPASS_METHODS:
+                nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
+                sel = f"{reduce(lambda a, b: a * b, [(r - l) / 100 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
+              else:
+                nrg = "-".join(map(str, itvl))
+                sel = f"{reduce(lambda a,b: a * b, itvl, 1.):.3g}"
               path = LOG_ROOT / m / w / b / s
               if path.exists():
-                entries.append((path, m, w, d, nrg, b, s))
-    df = pd.DataFrame.from_records(entries, columns=[
-      "path",
-      "method",
-      "workload",
-      "dataset",
-      "range",
-      "build",
-      "search",
-    ], index="path")
+                entries.append((path, m, w, d, nrg, sel, b, s))
+    df = pd.DataFrame.from_records(
+      entries, columns=[
+        "path",
+        "method",
+        "workload",
+        "dataset",
+        "range",
+        "selectivity",
+        "build",
+        "search",
+      ], index="path"
+    )
 
-    sel, rec, qps, ncomp = [], [], [], []
+    rec, qps, ncomp = [], [], []
     for e in entries:
       jsons = list(e[0].glob("*.json"))
       if len(jsons) == 0:
@@ -72,11 +87,11 @@ def summarize():
       jsons.sort()
       with open(jsons[-1]) as f:
         stat = json.load(f)
-        sel.append(f'{stat["aggregated"]["selectivity"]:.2f}')
+        # sel.append(f'{stat["aggregated"]["selectivity"]:.2f}')
         rec.append(stat["aggregated"]["recall"])
         qps.append(stat["aggregated"]["qps"])
         ncomp.append(stat["aggregated"]["num_computations"])
-    df["selectivity"] = sel
+    # df["selectivity"] = sel
     df["recall"] = rec
     df["qps"] = qps
     df["ncomp"] = ncomp
@@ -88,7 +103,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, *, d_
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
 
   for d in datasets:
-    for rg in da_range[da]:
+    for rg in DA_RANGE[da]:
       selector = ((df["dataset"] == d) & (df["range"] == rg))
       if not selector.any():
         continue
@@ -145,7 +160,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, *, d_
 def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, *, d_m_b={}, nrel_s=[], prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
 
-  for rg in da_range[da]:
+  for rg in DA_RANGE[da]:
     fig, axs = plt.subplots(2, len(datasets), layout='constrained')
     for i, d in enumerate(datasets):
       selector = ((df["dataset"] == d) & (df["range"] == rg))
@@ -203,7 +218,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, *, d_m_b={}, 
 def draw_qps_comp_fixed_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   recall_thresholds = [0.8, 0.9, 0.95]
-  selectivities = da_sel[da]
+  selectivities = DA_SEL[da]
 
   for d in datasets:
     for rec in recall_thresholds:
@@ -256,7 +271,7 @@ def draw_qps_comp_fixed_recall_by_dataset_selectivity(da, datasets, methods, ann
 def draw_qps_comp_fixed_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   recall_thresholds = [0.8, 0.9, 0.95]
-  selectivities = da_sel[da]
+  selectivities = DA_SEL[da]
 
   for rec in recall_thresholds:
     fig, axs = plt.subplots(2, len(datasets), layout='constrained')
@@ -313,8 +328,8 @@ def draw_qps_comp_fixed_recall_by_selectivity(da, datasets, methods, anno, *, d_
 
 if __name__ == "__main__":
   summarize()
-  for dim in [4]:
-    draw_qps_comp_wrt_recall_by_dataset_selectivity(dim, DATASETS, COMPASS_METHODS)
-    draw_qps_comp_wrt_recall_by_selectivity(dim, DATASETS, COMPASS_METHODS)
-    draw_qps_comp_fixed_recall_by_dataset_selectivity(dim, DATASETS, COMPASS_METHODS, "MoM")
-    draw_qps_comp_fixed_recall_by_selectivity(dim, DATASETS, COMPASS_METHODS, "MoM")
+  for dim in DA_S:
+    draw_qps_comp_wrt_recall_by_dataset_selectivity(dim, DATASETS, METHODS)
+    draw_qps_comp_wrt_recall_by_selectivity(dim, DATASETS, METHODS)
+    draw_qps_comp_fixed_recall_by_dataset_selectivity(dim, DATASETS, METHODS, "MoM")
+    draw_qps_comp_fixed_recall_by_selectivity(dim, DATASETS, METHODS, "MoM")
