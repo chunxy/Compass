@@ -24,11 +24,14 @@ if __name__ == "__main__":
     d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
 
   nrel_s = [100]
+
+  # Compare with iRangeGraph and SeRF.
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_dataset_selectivity(
       da=da,
       datasets=DATASETS,
       methods=METHODS,
+      anno="MoM",
       d_m_b=d_m_b,
       nrel_s=nrel_s,
       prefix="cherrypick",
@@ -37,6 +40,7 @@ if __name__ == "__main__":
       da=da,
       datasets=DATASETS,
       methods=METHODS,
+      anno="MoM",
       d_m_b=d_m_b,
       nrel_s=nrel_s,
       prefix="cherrypick",
@@ -55,6 +59,28 @@ if __name__ == "__main__":
       datasets=DATASETS,
       methods=METHODS,
       anno="MoM",
+      d_m_b=d_m_b,
+      nrel_s=nrel_s,
+      prefix="cherrypick",
+    )
+
+  # Compare clustering methods.
+  clus_methods = ["CompassK", "CompassBikmeans", "CompassPca"]
+  for da in DA_S:
+    draw_qps_comp_wrt_recall_by_selectivity(
+      da=da,
+      datasets=DATASETS,
+      methods=clus_methods,
+      anno="CoC",
+      d_m_b=d_m_b,
+      nrel_s=nrel_s,
+      prefix="cherrypick",
+    )
+    draw_qps_comp_fixed_recall_by_selectivity(
+      da=da,
+      datasets=DATASETS,
+      methods=clus_methods,
+      anno="CoC",
       d_m_b=d_m_b,
       nrel_s=nrel_s,
       prefix="cherrypick",

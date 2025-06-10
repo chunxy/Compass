@@ -99,7 +99,7 @@ def summarize():
     df.to_csv(f"stats-{da}d.csv")
 
 
-def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, *, d_m_b={}, nrel_s=[], prefix="figures"):
+def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
 
   for d in datasets:
@@ -157,7 +157,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, *, d_
       plt.close()
 
 
-def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, *, d_m_b={}, nrel_s=[], prefix="figures"):
+def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
 
   for rg in DA_RANGE[da]:
@@ -329,7 +329,7 @@ def draw_qps_comp_fixed_recall_by_selectivity(da, datasets, methods, anno, *, d_
 if __name__ == "__main__":
   summarize()
   for da in DA_S:
-    draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS)
-    draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS)
+    draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
+    draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
     draw_qps_comp_fixed_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
     draw_qps_comp_fixed_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
