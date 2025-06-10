@@ -16,7 +16,7 @@
 #include <vector>
 #include "config.h"
 #include "json.hpp"
-#include "methods/CompassPca.h"
+#include "methods/Compass1dPca.h"
 #include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
@@ -28,7 +28,7 @@ using std::vector;
 auto dist_func = hnswlib::L2Sqr;
 
 int main(int argc, char **argv) {
-  IvfGraph2dArgs args(argc, argv);
+  IvfGraph1dArgs args(argc, argv);
 
   extern std::map<std::string, DataCard> name_to_card;
   DataCard c = name_to_card[args.datacard];
@@ -39,26 +39,28 @@ int main(int argc, char **argv) {
   assert(nq % args.batchsz == 0);
 
   std::string method = "CompassPca";
-  std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bounds, args.u_bounds, args.k);
+  std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}_dx_{}", args.M, args.efc, args.nlist, args.dx);
 
   // Load data.
   float *xb, *xq;
   uint32_t *gt;
-  float *attrs;
-  load_hybrid_data(c, xb, xq, gt, attrs);
+  vector<vector<float>> _attrs;
+  load_hybrid_data(c, xb, xq, gt, _attrs);
+  vector<float> attrs(_attrs.size());
+  for (size_t i = 0; i < attrs.size(); i++) attrs[i] = _attrs[i][0];
   fmt::print("Finished loading data.\n");
 
   // Load groundtruth for hybrid search.
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, {args.l_bounds}, vector<float>{args.u_bounds}, args.k, hybrid_topks);
+  load_hybrid_query_gt(c, {args.l_bound}, vector<float>{args.u_bound}, args.k, hybrid_topks);
   fmt::print("Finished loading groundtruth.\n");
 
   // Compute selectivity.
   int nsat;
-  stat_selectivity(attrs, nb, d, args.l_bounds, args.u_bounds, nsat);
+  stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  CompassPca<float, float> comp(nb, d, args.dx, c.attr_dim, args.M, args.efc, args.nlist);
+  Compass1dPca<float, float> comp(nb, d, args.dx, args.M, args.efc, args.nlist);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string pca_ivf_ckp = fmt::format(COMPASS_PCA_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
@@ -81,11 +83,11 @@ int main(int argc, char **argv) {
   std::vector<labeltype> labels(nb);
   std::iota(labels.begin(), labels.end(), 0);
   if (fs::exists(ckp_root / "PCA" / c.name / pca_rank_ckp)) {
-    comp.LoadRanking(ckp_root / "PCA" / c.name / pca_rank_ckp, attrs);
+    comp.LoadRanking(ckp_root / "PCA" / c.name / pca_rank_ckp, attrs.data());
     fmt::print("Finished loading IVF ranking.\n");
   } else {
     auto add_points_start = high_resolution_clock::now();
-    comp.AddPointsToIvf(nb, xb, labels.data(), attrs);
+    comp.AddPointsToIvf(nb, xb, labels.data(), attrs.data());
     auto add_points_stop = high_resolution_clock::now();
     fmt::print(
         "Finished adding points, took {} microseconds.\n",
@@ -140,9 +142,9 @@ int main(int argc, char **argv) {
             xq + j * d,
             args.batchsz,
             args.k,
-            attrs,
-            args.l_bounds.data(),
-            args.u_bounds.data(),
+            attrs.data(),
+            &args.l_bound,
+            &args.u_bound,
             efs,
             nrel,
             args.nthread,
@@ -161,9 +163,9 @@ int main(int argc, char **argv) {
             xq + j * d,
             args.batchsz,
             args.k,
-            attrs,
-            args.l_bounds.data(),
-            args.u_bounds.data(),
+            attrs.data(),
+            &args.l_bound,
+            &args.u_bound,
             efs,
             nrel,
             args.nthread,
