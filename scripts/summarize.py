@@ -153,7 +153,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
           if label not in unique_labels:
             unique_labels[label] = handle
       fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
-      fig.savefig(f"{prefix}{da}d-10/{d.upper()}/{d.upper()}-{rg}-QPS-Comp-Recall.jpg", dpi=200)
+      fig.savefig(f"{prefix}{da}d-10/{d.upper()}/{d.upper()}-{anno}-{rg}-QPS-Comp-Recall.jpg", dpi=200)
       plt.close()
 
 
@@ -211,7 +211,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
           if label not in unique_labels:
             unique_labels[label] = handle
       fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
-      fig.savefig(f"{prefix}{da}d-10/All-{rg}-QPS-Comp-Recall.jpg", dpi=200)
+      fig.savefig(f"{prefix}{da}d-10/All-{anno}-{rg}-QPS-Comp-Recall.jpg", dpi=200)
       plt.close()
 
 

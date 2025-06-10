@@ -25,6 +25,52 @@ if __name__ == "__main__":
 
   nrel_s = [100]
 
+  # Compare clustering methods.
+  # Choose one clustering method according to these figures,
+  # potentially one for each dataset.
+  clus_methods = ["CompassK", "CompassBikmeans", "CompassPca"]
+  for da in DA_S:
+    draw_qps_comp_wrt_recall_by_selectivity(
+      da=da,
+      datasets=DATASETS,
+      methods=clus_methods,
+      anno="CoC",
+      d_m_b=d_m_b,
+      nrel_s=nrel_s,
+      prefix="cherrypick",
+    )
+    draw_qps_comp_fixed_recall_by_selectivity(
+      da=da,
+      datasets=DATASETS,
+      methods=clus_methods,
+      anno="CoC",
+      d_m_b=d_m_b,
+      nrel_s=nrel_s,
+      prefix="cherrypick",
+    )
+
+  # Compare clustering search methods.
+  clus_search_methods = ["CompassBikmeans", "CompassBikmeansCg"]
+  for da in DA_S:
+    draw_qps_comp_wrt_recall_by_selectivity(
+      da=da,
+      datasets=DATASETS,
+      methods=clus_search_methods,
+      anno="SoS",
+      d_m_b=d_m_b,
+      nrel_s=nrel_s,
+      prefix="cherrypick",
+    )
+    draw_qps_comp_fixed_recall_by_selectivity(
+      da=da,
+      datasets=DATASETS,
+      methods=clus_search_methods,
+      anno="SoS",
+      d_m_b=d_m_b,
+      nrel_s=nrel_s,
+      prefix="cherrypick",
+    )
+
   # Compare with iRangeGraph and SeRF.
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_dataset_selectivity(
@@ -64,24 +110,3 @@ if __name__ == "__main__":
       prefix="cherrypick",
     )
 
-  # Compare clustering methods.
-  clus_methods = ["CompassK", "CompassBikmeans", "CompassPca"]
-  for da in DA_S:
-    draw_qps_comp_wrt_recall_by_selectivity(
-      da=da,
-      datasets=DATASETS,
-      methods=clus_methods,
-      anno="CoC",
-      d_m_b=d_m_b,
-      nrel_s=nrel_s,
-      prefix="cherrypick",
-    )
-    draw_qps_comp_fixed_recall_by_selectivity(
-      da=da,
-      datasets=DATASETS,
-      methods=clus_methods,
-      anno="CoC",
-      d_m_b=d_m_b,
-      nrel_s=nrel_s,
-      prefix="cherrypick",
-    )
