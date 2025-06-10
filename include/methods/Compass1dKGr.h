@@ -27,7 +27,7 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
-    this->SearchClusters(nq, query, nprobe, this->query_cluster_rank_, this->distances_);
+    this->SearchClusters(nq, query, nprobe, this->query_cluster_rank_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
