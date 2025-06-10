@@ -688,6 +688,34 @@ DataCard glove100_2_10000_float32{
     "float32",
 };
 
+DataCard glove100_3_10000_float32{
+    "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    glove100_gpath,
+    100,
+    1'183'514,
+    10'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard glove100_4_10000_float32{
+    "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    glove100_gpath,
+    100,
+    1'183'514,
+    10'000,
+    100,
+    4,
+    10000,
+    "float32",
+};
+
 DataCard audio_1_10000_float32{
     "audio",
     audio_bpath,
@@ -862,6 +890,8 @@ std::map<std::string, DataCard> name_to_card{
     {"glove100_1_1000_int32", glove100_1_1000_int32},
     {"glove100_1_10000_float32", glove100_1_10000_float32},
     {"glove100_2_10000_float32", glove100_2_10000_float32},
+    {"glove100_3_10000_float32", glove100_3_10000_float32},
+    {"glove100_4_10000_float32", glove100_4_10000_float32},
     {"audio_1_10000_float32", audio_1_10000_float32},
     {"audio_2_10000_float32", audio_2_10000_float32},
     {"audio_3_10000_float32", audio_3_10000_float32},
