@@ -1,8 +1,8 @@
-#include <boost/core/no_exceptions_support.hpp>
 #include <fmt/core.h>
-#include <fmt/ranges.h>
 #include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <omp.h>
+#include <boost/core/no_exceptions_support.hpp>
 #include <boost/geometry.hpp>
 #include <boost/program_options.hpp>
 #include <chrono>
@@ -46,16 +46,16 @@ void compute_groundtruth(
   for (int i = 0; i < attrs.size(); i++) {
     btree.insert(pair<float, uint32_t>{attrs[i], i});
   }
-
-  auto beg = btree.lower_bound(l_bound);
-  auto end = btree.upper_bound(u_bound);
-  auto targets = vector<pair<float, uint32_t>>(beg, end);
   auto btree_stop = high_resolution_clock::now();
 
   fmt::print(
       "B-tree construction and search took {} microseconds\n",
       duration_cast<microseconds>(btree_stop - btree_start).count()
   );
+
+  auto beg = btree.lower_bound(l_bound);
+  auto end = btree.upper_bound(u_bound);
+  auto targets = vector<pair<float, uint32_t>>(beg, end);
 
   hnswlib::L2Space space(d);
   auto compute_start = high_resolution_clock::now();
@@ -77,9 +77,7 @@ void compute_groundtruth(
     }
   }
   auto compute_end = high_resolution_clock::now();
-  fmt::print(
-      "Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count()
-  );
+  fmt::print("Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count());
 }
 
 void compute_groundtruth(
@@ -102,22 +100,21 @@ void compute_groundtruth(
   using box = geo::model::box<point>;
   using value = std::pair<point, unsigned>;
   using rtree = geo::index::rtree<value, geo::index::quadratic<16>>;
-  rtree rt;
 
+  rtree rt;
   auto rtree_start = high_resolution_clock::now();
   for (int i = 0; i < attrs.size(); i++) {
     rt.insert(value({point(attrs[i][0], attrs[i][1]), i}));
   }
+  auto rtree_stop = high_resolution_clock::now();
+  fmt::print(
+      "R-tree construction took {} microseconds\n", duration_cast<microseconds>(rtree_stop - rtree_start).count()
+  );
 
   box b(point(l_bounds[0], l_bounds[1]), point(u_bounds[0], u_bounds[1]));
   auto beg = rt.qbegin(geo::index::covered_by(b));
   auto end = rt.qend();
   auto targets = vector<value>(beg, end);
-  auto rtree_stop = high_resolution_clock::now();
-  fmt::print(
-      "R-tree construction took {} microseconds\n",
-      duration_cast<microseconds>(rtree_stop - rtree_start).count()
-  );
 
   hnswlib::L2Space space(d);
   auto compute_start = high_resolution_clock::now();
@@ -144,9 +141,88 @@ void compute_groundtruth(
     }
   }
   auto compute_end = high_resolution_clock::now();
+  fmt::print("Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count());
+}
+
+void compute_groundtruth(
+    const float *xb,
+    const int nb,
+    const float *xq,
+    const int nq,
+    const size_t d,
+    const size_t da,
+    const vector<float> &l_bounds,
+    const vector<float> &u_bounds,
+    const vector<vector<float>> &attrs,
+    const int k,
+    int &nsat,
+    vector<vector<pair<float, uint32_t>>> &hybrid_topks
+) {
+  vector<priority_queue<pair<float, uint32_t>>> pq_topks(nq);
+  hybrid_topks.resize(nq);
+
+  vector<btree::btree_map<float, uint32_t>> btrees(da);
+  auto btrees_start = high_resolution_clock::now();
+  for (int i = 0; i < nb; i++) {
+    for (int j = 0; j < da; j++) {
+      btrees[j].insert(pair<float, uint32_t>{attrs[i][j], i});
+    }
+  }
+  auto btrees_stop = high_resolution_clock::now();
   fmt::print(
-      "Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count()
+      "B-trees construction took {} microseconds\n", duration_cast<microseconds>(btrees_stop - btrees_start).count()
   );
+
+  std::vector<std::unordered_set<uint32_t>> candidates_per_dim(da);
+  for (int j = 0; j < da; ++j) {
+    auto beg = btrees[j].lower_bound(l_bounds[j]);
+    auto end = btrees[j].upper_bound(u_bounds[j]);
+    for (auto itr = beg; itr != end; ++itr) {
+      candidates_per_dim[j].insert(itr->second);
+    }
+  }
+  // Intersect all sets in candidates_per_dim
+  std::unordered_set<uint32_t> intersection;
+  for (auto c : candidates_per_dim[0]) {
+    intersection.insert(c);
+  }
+  for (int j = 1; j < da; ++j) {
+    std::unordered_set<uint32_t> temp;
+    for (const auto &id : intersection) {
+      if (candidates_per_dim[j].count(id)) {
+        temp.insert(id);
+      }
+    }
+    intersection = std::move(temp);
+  }
+  vector<uint32_t> targets(intersection.begin(), intersection.end());
+
+  hnswlib::L2Space space(d);
+  auto compute_start = high_resolution_clock::now();
+#pragma omp for schedule(static)
+  for (int i = 0; i < nq; i++) {
+    const float *query = xq + i * d;
+
+    for (int j = 0; j < k; j++) {
+      auto idx = targets[j];
+      auto dist = space.get_dist_func()(query, xb + idx * d, &d);
+      pq_topks[i].emplace(dist, idx);
+    }
+    for (int j = k; j < targets.size(); j++) {
+      auto idx = targets[j];
+      auto dist = space.get_dist_func()(query, xb + idx * d, &d);
+      pq_topks[i].emplace(dist, idx);
+      pq_topks[i].pop();
+    }
+    hybrid_topks[i].resize(pq_topks[i].size());
+    int sz = pq_topks[i].size();
+    while (pq_topks[i].size() != 0) {
+      hybrid_topks[i][--sz] = pq_topks[i].top();
+      pq_topks[i].pop();
+    }
+  }
+  auto compute_end = high_resolution_clock::now();
+  fmt::print("Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count());
 }
 
 int main(int argc, char **argv) {
@@ -180,8 +256,10 @@ int main(int argc, char **argv) {
     for (int i = 0; i < _attrs.size(); i++) _attrs[i] = attrs[i][0];
     float l_bound = l_bounds[0], u_bound = u_bounds[0];
     compute_groundtruth(xb, nb, xq, nq, d, l_bound, u_bound, _attrs, k, nsat, hybrid_topks);
-  } else {
+  } else if (c.attr_dim == 2) {
     compute_groundtruth(xb, nb, xq, nq, d, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks);
+  } else {
+    compute_groundtruth(xb, nb, xq, nq, d, c.attr_dim, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks);
   }
 
   std::string path = fmt::format(HYBRID_GT_PATH_TMPL, c.name, c.attr_range, l_bounds, u_bounds, k);
