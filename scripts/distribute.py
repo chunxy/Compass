@@ -8,6 +8,12 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from fabric import Connection
 
+# Directory on remote machines where experiments will run and produce output.
+REMOTE_EXPERIMENT_DIR = "~/repos/Compass"
+
+# Specify your SSH key file path here
+SSH_KEY_FILE = os.path.expanduser("~/.ssh/id_rsa")
+
 # Keep track of active connections to clean up on exit
 active_connections = []
 
@@ -100,11 +106,6 @@ FOURD_EXPS = [
   "4d-pca-cg-exp",
 ]
 
-# Directory on remote machines where experiments will run and produce output.
-REMOTE_EXPERIMENT_DIR = "~/repos/Compass"
-
-# Local directory to download results into.
-LOCAL_RESULTS_DIR = "results"
 
 # ==============================================================================
 # 2. REMOTE EXECUTION FUNCTION - This function runs on each remote machine
@@ -209,23 +210,19 @@ def post_process():
 # 4. MAIN ORCHESTRATOR
 # ==============================================================================
 
-if __name__ == '__main__':
-  # Specify your SSH key file path here
-  ssh_key_file = os.path.expanduser("~/.ssh/id_rsa")
-
-  chosen_set = ONED_EXPS
+def run_grouped_exp(exp_set):
   # Create a list of (host, job) tuples for distribution.
   # This simple round-robin logic assigns jobs to hosts cyclically.
   tasks_to_run = []
-  for group, exp in zip(GROUPS.keys(), chosen_set):
+  for group, exp in zip(GROUPS.keys(), exp_set):
     for i, host in enumerate(GROUPS[group]):
       exp_script = f"bash exp/top10/compass/{exp}-{i + 1}.sh"
       task = PRE_EXP_SCRIPT + exp_script + POST_EXP_SCRIPT
       # Add the SSH key file as the third argument
-      tasks_to_run.append((host, task, ssh_key_file))
+      tasks_to_run.append((host, task, SSH_KEY_FILE))
 
   all_results = []
-  print(f"Starting experiments. Distributing {len(chosen_set)} jobs to {len(GROUPS)} groups.")
+  print(f"Starting experiments. Distributing {len(exp_set)} jobs to {len(GROUPS)} groups.")
 
   # Use ThreadPoolExecutor to run jobs on all hosts in parallel.
   # The number of workers determines how many SSH connections are active at once.
@@ -254,3 +251,10 @@ if __name__ == '__main__':
   else:
     print("\nSkipping post-processing due to failed jobs.", file=run_log)
   run_log.close()
+
+
+if __name__ == '__main__':
+  run_grouped_exp(ONED_EXPS)
+  run_grouped_exp(TWOD_EXPS)
+  run_grouped_exp(THREED_EXPS)
+  run_grouped_exp(FOURD_EXPS)
