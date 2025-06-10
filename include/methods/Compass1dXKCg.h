@@ -1,12 +1,8 @@
 #pragma once
 
-#include <algorithm>
 #include "basis/Compass1dXCg.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
-#include "faiss/MetricType.h"
-#include "hnswlib/hnswlib.h"
-#include "utils/predicate.h"
 
 template <typename dist_t, typename attr_t>
 class Compass1dXKCg : public Compass1dXCg<dist_t, attr_t> {
