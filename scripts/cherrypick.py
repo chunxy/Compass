@@ -1,4 +1,11 @@
-from config import COMPASS_METHODS, DA_S, DATASETS, METHODS
+from config import (
+  COMPASS_METHODS,
+  COMPASSX_METHODS,
+  DA_S,
+  DATASETS,
+  METHODS,
+  dataset_args,
+)
 from summarize import (
   draw_qps_comp_fixed_recall_by_dataset_selectivity,
   draw_qps_comp_fixed_recall_by_selectivity,
@@ -7,18 +14,17 @@ from summarize import (
 )
 
 if __name__ == "__main__":
-  compass_nlist_10000 = {m: ["M_16_efc_200_nlist_10000"] for m in COMPASS_METHODS}
-  compass_nlist_20000 = {m: ["M_16_efc_200_nlist_20000"] for m in COMPASS_METHODS}
-  d_m_b = {
-    **{
-      d: compass_nlist_10000
-      for d in ("sift", "audio")
-    },
-    **{
-      d: compass_nlist_20000
-      for d in ("gist", "video", "crawl", "glove100")
-    },
-  }
+  d_m_b = {d: {} for d in DATASETS}
+  for d in ("sift", "audio"):
+    for m in COMPASS_METHODS:
+      d_m_b[d][m] = ["M_16_efc_200_nlist_10000"]
+    for m in COMPASSX_METHODS:
+      d_m_b[d][m] = [f"M_16_efc_200_nlist_10000_dx_{dx}" for dx in dataset_args[d]["dx"]]
+  for d in ("gist", "video", "crawl", "glove100"):
+    for m in COMPASS_METHODS:
+      d_m_b[d][m] = ["M_16_efc_200_nlist_20000"]
+    for m in COMPASSX_METHODS:
+      d_m_b[d][m] = [f"M_16_efc_200_nlist_20000_dx_{dx}" for dx in dataset_args[d]["dx"]]
   for d in DATASETS:
     d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
     d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
@@ -109,4 +115,3 @@ if __name__ == "__main__":
       nrel_s=nrel_s,
       prefix="cherrypick",
     )
-
