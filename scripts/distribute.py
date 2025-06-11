@@ -1,15 +1,16 @@
-#!/usr/bin/env python3
-
 import os
-import subprocess
 import signal
+import subprocess
 import sys
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+
 from fabric import Connection
 
 # Directory on remote machines where experiments will run and produce output.
-REMOTE_EXPERIMENT_DIR = "~/repos/Compass"
+REMOTE_WORKSPACE = "~/repos/Compass"
+PID_FILE = "/tmp/run.pid"
 
 # Specify your SSH key file path here
 SSH_KEY_FILE = os.path.expanduser("~/.ssh/id_rsa")
@@ -23,8 +24,7 @@ def cleanup_connections(signum=None, frame=None):
   print("\nCleaning up remote processes...")
   for conn in active_connections:
     try:
-      # Kill any running processes in the remote directory
-      conn.run(f"pkill -f '{REMOTE_EXPERIMENT_DIR}'", warn=True, hide=True)
+      conn.run(f"cat {PID_FILE} | xargs kill -9", warn=True, hide=True)
       print(f"Cleaned up processes on {conn.host}")
     except Exception as e:
       print(f"Error cleaning up {conn.host}: {e}")
@@ -43,14 +43,14 @@ signal.signal(signal.SIGTERM, cleanup_connections)
 # Fabric will use your ~/.ssh/config for usernames and keys if they exist.
 # Otherwise, specify them directly, e.g., 'user@hostname'
 # or using connect_kwargs: Connection(host="...", connect_kwargs={"key_filename": "..."})
-GROUPS = {
-  "group0": ["ssd30", "ssd31", "ssd33"],
-  "group1": ["ssd27", "ssd28", "ssd29"],
-  "group2": ["ssd24", "ssd25", "ssd26"],
-  "group3": ["ssd18", "ssd19", "ssd20"],
-  "group4": ["ssd15", "ssd16", "ssd17"],
-  "group5": ["ssd12", "ssd13", "ssd14"],
-}
+GROUPS = OrderedDict([
+  ("group0", ["ssd30", "ssd31", "ssd33"]),
+  ("group1", ["ssd27", "ssd28", "ssd29"]),
+  ("group2", ["ssd24", "ssd25", "ssd26"]),
+  ("group3", ["ssd18", "ssd19", "ssd20"]),
+  ("group4", ["ssd15", "ssd16", "ssd17"]),
+  ("group5", ["ssd12", "ssd13", "ssd14"]),
+])
 
 HOSTS = [host for group in GROUPS.values() for host in group]
 
@@ -59,7 +59,6 @@ HOSTS = [host for group in GROUPS.values() for host in group]
 # The script will distribute these jobs across the available hosts.
 PRE_EXP_SCRIPT = \
 """
-cd ~/repos/Compass
 bash pull_and_build.sh || exit 1
 rm -rf logs_10/*
 """
@@ -140,16 +139,14 @@ def run_remote_job(args):
       # Add connection to active connections list
       active_connections.append(conn)
 
-      # Example of how to handle environments like Conda or virtualenv:
-      # Wrap your command with the necessary activation logic.
-      # cmd_to_run = f"source ~/.bashrc && conda activate my_env && {command}"
+      # Set working directory
+      conn.cd(REMOTE_WORKSPACE)
 
       print(f"RUNNING on {host}: {command}")
 
-      # Use 'warn=True' to prevent the script from crashing on a failed command.
-      # Use 'hide=False' to see the command's output in real-time.
-      result = conn.run(command, warn=True, hide=False, env=proxy_env)
-
+      # Modify command to store its own PID
+      cap_pid_run_cmd = f"echo $$ > {PID_FILE} && {command}"
+      result = conn.run(cap_pid_run_cmd, warn=True, hide=False, env=proxy_env, pty=False)
       result_summary.update({'success': result.ok, 'stdout': result.stdout.strip(), 'stderr': result.stderr.strip(), 'exit_code': result.return_code})
 
       if result.ok:
@@ -266,4 +263,5 @@ if __name__ == '__main__':
   MISC_EXPS = [
     "1d-pca-cg-exp",
     "2d-pca-cg-exp",
+    "1d-k-cg-exp",
   ]
