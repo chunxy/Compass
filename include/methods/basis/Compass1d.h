@@ -75,7 +75,7 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
       query = std::get<pair<const dist_t *, const dist_t *>>(var).first;
       xquery = std::get<pair<const dist_t *, const dist_t *>>(var).second;
     }
-    SearchClusters(nq, query, nprobe, this->query_cluster_rank_);
+    SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
