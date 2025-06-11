@@ -1,4 +1,4 @@
-datasets=(sift gist audio)
+datasets=(sift glove100 audio)
 M_s=(16 32)
 efc_s=(200)
 nlist_s=(10000 20000)

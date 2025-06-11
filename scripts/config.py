@@ -8,19 +8,15 @@ DATASETS = [
   "audio",
   "video",
 ]
-GROUP_DATASET = {
-  "1": ["crawl"],
-  "2": ["video", "glove100"],
-  "3": ["sift", "gist", "audio"],
-}
 
 DA_S = [1, 2, 3, 4]
 
 # attribute dimension - interval, for reading JSON files of Compass result
 compass_da_run = {
   1: [
-    *[((100,), (r,)) for r in (200, 300, 600)], ((0,), (10000,)),
+    *[((100,), (r,)) for r in (200, 300, 600)],
     *[((100,), (r,)) for r in range(1100, 10000, 1000)],
+    ((0,), (10000,)),
   ],
   2: [
     *[((100, 200), (r1, r2)) for r1, r2 in \
@@ -77,14 +73,33 @@ DA_SEL = {
 
 COMPASS_METHODS = [
   "CompassK",
-  "CompassPca",
   "CompassBikmeans",
   "CompassKCg",
-  "CompassPcaCg",
   "CompassBikmeansCg",
+  "CompassPca",
+  "CompassPcaCg",
+]
+COMPASSX_METHODS = [
+  "CompassPca",
+  "CompassPcaCg",
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
 METHODS = COMPASS_METHODS + SOTA_METHODS
+
+compass_group_dataset = {
+  "1": ["crawl"],
+  "2": ["video", "glove100"],
+  "3": ["sift", "gist", "audio"],
+}
+compassx_group_dataset = {
+  "1": ["crawl"],
+  "2": ["video", "gist"],
+  "3": ["sift", "glove100", "audio"],
+}
+M_GROUP_DATASET = {
+  **{m: compass_group_dataset for m in COMPASS_METHODS},
+  **{m: compassx_group_dataset for m in COMPASSX_METHODS},
+}
 
 irangegraph_parameters = {
   "build": ["M", "efc"],
@@ -98,7 +113,7 @@ compass_parameters = {
   "build": ["M", "efc", "nlist"],
   "search": ["efs", "nrel"],
 }
-compass_x_parameters = {
+compassx_parameters = {
   "build": ["M", "efc", "nlist", "dx"],
   "search": ["efs", "nrel"],
 }
@@ -169,10 +184,10 @@ M_DA_RUN = {
 # method - parameter
 M_PARAM = {
   "CompassK": compass_parameters,
-  "CompassPca": compass_x_parameters,
+  "CompassPca": compassx_parameters,
   "CompassBikmeans": compass_parameters,
   "CompassKCg": compass_parameters,
-  "CompassPcaCg": compass_x_parameters,
+  "CompassPcaCg": compassx_parameters,
   "CompassBikmeansCg": compass_parameters,
   "iRangeGraph": irangegraph_parameters,
   "SeRF": serf_parameters,

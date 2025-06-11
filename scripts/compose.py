@@ -4,8 +4,8 @@ from pathlib import Path
 from config import (
   COMPASS_METHODS,
   DA_S,
-  GROUP_DATASET,
   M_DA_RUN,
+  M_GROUP_DATASET,
   M_PARAM,
   compass_args,
   dataset_args,
@@ -23,8 +23,8 @@ done'''
 
 def compose():
   for da in DA_S:
-    for group, datasets in GROUP_DATASET.items():
-      for m in COMPASS_METHODS:
+    for m in COMPASS_METHODS:
+      for group, datasets in M_GROUP_DATASET[m].items():
         parts = [p.lower() for p in re.findall(r'[A-Z][a-z]*', m)]
         filename = f"{da}d-" + "-".join(parts[1:]) + f"-exp-{group}.sh"
         with open(EXP_ROOT / filename, "w") as f:

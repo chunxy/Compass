@@ -13,7 +13,6 @@ for dx in ${dx_s[@]}; do
 /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 100 --r 200 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
 /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 100 --r 300 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
 /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 100 --r 600 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
-/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 0 --r 10000 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
 /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 100 --r 1100 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
 /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 100 --r 2100 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
 /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 100 --r 3100 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
@@ -23,6 +22,7 @@ for dx in ${dx_s[@]}; do
 /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 100 --r 7100 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
 /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 100 --r 8100 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
 /home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 100 --r 9100 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
+/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-1d-pca-cg --datacard ${dataset}_1_10000_float32 --l 0 --r 10000 --k 10 --M ${M} --efc ${efc} --nlist ${nlist} --dx ${dx} --efs ${efs_s[@]} --nrel ${nrel_s[@]}
 done
 done
 done
