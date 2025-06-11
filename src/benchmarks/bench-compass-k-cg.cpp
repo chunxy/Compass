@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
-  std::string method = "CompassKOrCg";
+  std::string method = "CompassKCg";
   std::string workload = fmt::format(
       HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, fmt::join(args.l_bounds, "-"), fmt::join(args.u_bounds, "-"), args.k
   );
