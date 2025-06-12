@@ -140,21 +140,20 @@ def run_remote_job(args):
       active_connections.append(conn)
 
       # Set working directory
-      conn.cd(REMOTE_WORKSPACE)
+      with conn.cd(REMOTE_WORKSPACE):
+        print(f"RUNNING on {host}: {command}")
 
-      print(f"RUNNING on {host}: {command}")
+        # Modify command to store its own PID
+        cap_pid_run_cmd = f"echo $$ > {PID_FILE} && {command}"
+        result = conn.run(cap_pid_run_cmd, warn=True, hide=False, env=proxy_env)
+        result_summary.update({'success': result.ok, 'stdout': result.stdout.strip(), 'stderr': result.stderr.strip(), 'exit_code': result.return_code})
 
-      # Modify command to store its own PID
-      cap_pid_run_cmd = f"echo $$ > {PID_FILE} && {command}"
-      result = conn.run(cap_pid_run_cmd, warn=True, hide=False, env=proxy_env, pty=False)
-      result_summary.update({'success': result.ok, 'stdout': result.stdout.strip(), 'stderr': result.stderr.strip(), 'exit_code': result.return_code})
-
-      if result.ok:
-        print(f"SUCCESS: Job on {host} finished with exit code {result.return_code}.")
-        # Optional: Download results here if needed
-        # e.g., conn.get(f"{REMOTE_EXPERIMENT_DIR}/output.csv", f"{LOCAL_RESULTS_DIR}/{host}_output.csv")
-      else:
-        print(f"FAILED: Job on {host} failed with exit code {result.return_code}.")
+        if result.ok:
+          print(f"SUCCESS: Job on {host} finished with exit code {result.return_code}.")
+          # Optional: Download results here if needed
+          # e.g., conn.get(f"{REMOTE_EXPERIMENT_DIR}/output.csv", f"{LOCAL_RESULTS_DIR}/{host}_output.csv")
+        else:
+          print(f"FAILED: Job on {host} failed with exit code {result.return_code}.")
 
   except Exception as e:
     print(f"ERROR: Could not connect or run job on {host}. Details: {e}")
@@ -185,17 +184,17 @@ def post_process():
   # It calls a local Python script, passing the results directory to it.
   # You would create 'draw_figures.py' to handle the plotting logic.
   try:
-    os.chdir(os.path.expanduser("~/repos/Compass/scripts"))
+    os.chdir(os.path.expanduser("~/repos/Compass/"))
 
     # Example: calling a plotting script
-    summarize = "summarize.py"
+    summarize = "scripts/summarize.py"
     if os.path.exists(summarize):
       subprocess.run(["python", summarize], check=True)
       print("\n✅ Post-processing script executed successfully.")
     else:
       print(f"NOTE: Post-processing script '{summarize}' not found. Skipping.")
 
-    cherrypick = "cherrypick.py"
+    cherrypick = "scripts/cherrypick.py"
     if os.path.exists(cherrypick):
       subprocess.run(["python", cherrypick], check=True)
       print("\n✅ Post-processing script executed successfully.")
@@ -255,13 +254,7 @@ def run_grouped_exp(exp_set):
 
 
 if __name__ == '__main__':
-  # run_grouped_exp(ONED_EXPS)
-  # run_grouped_exp(TWOD_EXPS)
+  run_grouped_exp(ONED_EXPS)
+  run_grouped_exp(TWOD_EXPS)
   run_grouped_exp(THREED_EXPS)
   run_grouped_exp(FOURD_EXPS)
-
-  MISC_EXPS = [
-    "1d-pca-cg-exp",
-    "2d-pca-cg-exp",
-    "1d-k-cg-exp",
-  ]
