@@ -64,7 +64,7 @@ class CompassGraph {
       const vector<attr_t> &u_bounds,
       const int efs,
       const int nrel,
-      vector<Metric> &metrics
+      vector<QueryMetric> &metrics
   ) {
     auto efs_ = std::max(efs, k);
     hnsw_.setEf(efs_);

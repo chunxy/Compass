@@ -52,7 +52,7 @@ class CompassIvf {
       const vector<attr_t> &l_bounds,
       const vector<attr_t> &u_bounds,
       const int nprobe,
-      vector<Metric> &metrics,
+      vector<QueryMetric> &metrics,
       faiss::idx_t *ranked_clusters
   ) {
     ivf_->quantizer->assign(nq, (float *)query, ranked_clusters, nprobe);

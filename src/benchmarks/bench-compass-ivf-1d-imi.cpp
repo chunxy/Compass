@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
       duration_cast<microseconds>(build_index_stop - build_index_start).count()
   );
 
-  vector<Metric> metrics(args.batchsz, Metric(nb));
+  vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
   faiss::idx_t *ranked_clusters = new faiss::idx_t[args.batchsz * args.nlist];
 
   for (auto nprobe : args.nprobe) {
@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
     Stat stat(nq);
     for (int j = 0; j < nq;) {
       // Metric metric(nb);
-      vector<Metric> metrics(args.batchsz, Metric(nb));
+      vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
       auto search_start = high_resolution_clock::now();
       auto results = comp.SearchKnn(
           xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, nprobe, metrics, ranked_clusters

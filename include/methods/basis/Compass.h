@@ -24,12 +24,14 @@ class Compass : public HybridIndex<dist_t, attr_t> {
       float *distances = nullptr
   ) = 0;
 
-  // Potentially assign original/transformed points to clusters using cluster graph.
+  // Potentially assign original/transformed points to clusters using cluster graph,
+  // as well as profile the initial search process.
   virtual void SearchClusters(
       const size_t n,
       const dist_t *data,
       const int k,
       faiss::idx_t *assigned_clusters,
+      BatchMetric &bm,
       float *distances = nullptr
   ) {
     AssignPoints(n, data, k, assigned_clusters, distances);
@@ -72,7 +74,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
       const int efs,
       const int nrel,
       const int nthread,
-      vector<Metric> &metrics
+      BatchMetric &bm
   ) override {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
@@ -86,7 +88,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
       query = std::get<pair<const dist_t *, const dist_t *>>(var).first;
       xquery = std::get<pair<const dist_t *, const dist_t *>>(var).second;
     }
-    SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_);
+    SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_, bm);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);
@@ -99,8 +101,8 @@ class Compass : public HybridIndex<dist_t, attr_t> {
 
       vector<bool> visited(this->n_, false);
 
-      metrics[q].nround = 0;
-      metrics[q].ncomp = 0;
+      bm.qmetrics[q].nround = 0;
+      bm.qmetrics[q].ncomp = 0;
 
       int curr_ci = q * nprobe;
 
@@ -173,19 +175,19 @@ class Compass : public HybridIndex<dist_t, attr_t> {
 
             auto vect = this->hnsw_.getDataByInternalId(tableid);
             auto dist = this->hnsw_.fstdistfunc_((float *)query + q * this->d_, vect, this->hnsw_.dist_func_param_);
-            metrics[q].ncomp++;
+            bm.qmetrics[q].ncomp++;
             crel++;
 
             recycle_set.emplace(-dist, tableid);
           }
-          metrics[q].nround++;
+          bm.qmetrics[q].nround++;
           int cnt = this->hnsw_.M_;
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
             recycle_set.pop();
             if (visited[top.second]) continue;
             visited[top.second] = true;
-            metrics[q].is_ivf_ppsl[top.second] = true;
+            bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             if (top_candidates.size() > efs_) top_candidates.pop();  // better not to overflow the result queue
@@ -202,15 +204,15 @@ class Compass : public HybridIndex<dist_t, attr_t> {
             candidate_set,
             visited,
             &pred,
-            std::ref(metrics[q].ncomp),
-            std::ref(metrics[q].is_graph_ppsl)
+            std::ref(bm.qmetrics[q].ncomp),
+            std::ref(bm.qmetrics[q].is_graph_ppsl)
         );
         if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
           break;
         }
       }
 
-      metrics[q].ncluster = curr_ci - q * nprobe;
+      bm.qmetrics[q].ncluster = curr_ci - q * nprobe;
       int nrecycled = 0;
       while (top_candidates.size() > k) top_candidates.pop();
       while (!recycle_set.empty()) {
@@ -219,13 +221,13 @@ class Compass : public HybridIndex<dist_t, attr_t> {
           break;
         else {
           top_candidates.emplace(-top.first, top.second);
-          metrics[q].is_ivf_ppsl[top.second] = true;
+          bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
           if (top_candidates.size() > k) top_candidates.pop();
           nrecycled++;
         }
         recycle_set.pop();
       }
-      metrics[q].nrecycled = nrecycled;
+      bm.qmetrics[q].nrecycled = nrecycled;
       while (top_candidates.size() > k) top_candidates.pop();
       size_t sz = top_candidates.size();
       while (!top_candidates.empty()) {

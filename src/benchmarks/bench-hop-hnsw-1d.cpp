@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading indices.\n");
 
   RangeQuery<float> pred(&args.l_bound, &args.u_bound, attrs.data(), nb, 1);
-  vector<Metric> metrics(args.batchsz, Metric(nb));
+  vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
 
   for (auto efs : args.efs) {
     time_t ts = time(nullptr);
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
     // statistics
     Stat stat(nq);
     for (int j = 0; j < nq;) {
-      vector<Metric> metrics(args.batchsz, Metric(nb));
+      vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
       auto search_start = high_resolution_clock::now();
       auto results = comp.SearchKnn<float>(xq + j * d, args.batchsz, args.k, efs, &pred, metrics);
       auto search_stop = high_resolution_clock::now();

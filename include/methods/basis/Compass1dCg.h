@@ -15,6 +15,7 @@ class Compass1dCg : public Compass1d<dist_t, attr_t> {
       const dist_t *data,
       const int k,
       faiss::idx_t *assigned_clusters,
+      BatchMetric &bm,
       float *distances = nullptr
   ) override {
     for (int i = 0; i < n; i++) {

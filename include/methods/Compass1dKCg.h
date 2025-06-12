@@ -27,7 +27,7 @@ class Compass1dKCg : public Compass1dCg<dist_t, attr_t> {
     }
   }
 
-  void BuildClusterGraph() {
+  void BuildClusterGraph() override {
     auto ivf_flat = dynamic_cast<faiss::IndexIVFFlat *>(this->ivf_);
     auto centroids = ((faiss::IndexFlatL2 *)ivf_flat->quantizer)->get_xb();
     for (int i = 0; i < ivf_flat->nlist; i++) {

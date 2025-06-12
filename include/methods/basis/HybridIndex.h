@@ -85,6 +85,6 @@ class HybridIndex {
       const int efs,
       const int nrel,
       const int nthread,
-      vector<Metric> &metrics
+      BatchMetric &bm
   ) = 0;
 };

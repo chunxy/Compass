@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
   }
   fmt::print("Finished loading indices.\n");
 
-  vector<Metric> metrics(args.batchsz, Metric(nb));
+  BatchMetric bm(args.batchsz, nb);
 
   for (auto efs : args.efs) {
     for (auto nrel : args.nrel) {
@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
             efs,
             nrel,
             args.nthread,
-            metrics
+            bm
         );
       }
       auto search_stop = high_resolution_clock::system_clock::now();
@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
       // statistics
       Stat stat(nq);
       for (int j = 0; j < nq;) {
-        vector<Metric> metrics(args.batchsz, Metric(nb));
+        BatchMetric bm(args.batchsz, nb);
         auto search_start = high_resolution_clock::now();
         auto results = comp.SearchKnn(
             xq + j * d,
@@ -186,13 +186,13 @@ int main(int argc, char **argv) {
             efs,
             nrel,
             args.nthread,
-            metrics
+            bm
         );
         auto search_stop = high_resolution_clock::now();
 
         for (int ii = 0; ii < results.size(); ii++) {
           auto rz = results[ii];
-          auto metric = metrics[ii];
+          auto metric = bm.qmetrics[ii];
           auto gt_min = dist_func(xq + j * d, xb + hybrid_topks[j].front() * d, &d);
           auto gt_max = dist_func(xq + j * d, xb + hybrid_topks[j].back() * d, &d);
           int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;

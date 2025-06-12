@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
       out = fopen((log_dir / out_text).c_str(), "w");
 #endif
 
-      vector<Metric> metrics(args.batchsz, Metric(nb));
+      vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
 
       auto search_start = high_resolution_clock::now();
 #ifndef COMPASS_DEBUG
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
       // statistics
       Stat stat(nq);
       for (int j = 0; j < nq;) {
-        vector<Metric> metrics(args.batchsz, Metric(nb));
+        vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
         auto search_start = high_resolution_clock::now();
         auto results =
             comp.SearchKnn(xq + j * d, args.batchsz, args.k, args.l_bounds, args.u_bounds, efs, nrel, metrics);

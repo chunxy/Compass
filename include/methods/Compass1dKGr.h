@@ -22,12 +22,12 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
       const int efs,
       const int nrel,
       const int nthread,
-      vector<Metric> &metrics
+      BatchMetric &bm
   ) {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
-    this->SearchClusters(nq, query, nprobe, this->query_cluster_rank_);
+    this->SearchClusters(nq, query, nprobe, this->query_cluster_rank_, bm);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
@@ -55,7 +55,7 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
 
             data = (unsigned int *)this->hnsw_.get_linklist(currObj, level);
             int size = this->hnsw_.getListCount(data);
-            metrics[q].ncomp += size;
+            bm.qmetrics[q].ncomp += size;
 
             tableint *datal = (tableint *)(data + 1);
             for (int i = 0; i < size; i++) {
@@ -78,7 +78,7 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
         visited[currObj] = true;
         candidate_set.emplace(-curdist, currObj);
         if (pred(currObj)) top_candidates.emplace(curdist, currObj);
-        metrics[q].cand_dist.push_back(curdist);
+        bm.qmetrics[q].cand_dist.push_back(curdist);
       }
 
       auto curr_ci = q * nprobe;
@@ -113,18 +113,18 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
 
             auto vect = this->hnsw_.getDataByInternalId(tableid);
             auto dist = this->hnsw_.fstdistfunc_((float *)query + q * this->d_, vect, this->hnsw_.dist_func_param_);
-            metrics[q].ncomp++;
+            bm.qmetrics[q].ncomp++;
             crel++;
 
             auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
             if (top_candidates.size() < efs || dist < upper_bound) {
               candidate_set.emplace(-dist, tableid);
               top_candidates.emplace(dist, tableid);
-              metrics[q].is_ivf_ppsl[tableid] = true;
+              bm.qmetrics[q].is_ivf_ppsl[tableid] = true;
               if (top_candidates.size() > efs_) top_candidates.pop();
             }
           }
-          metrics[q].nround++;
+          bm.qmetrics[q].nround++;
         }
 
         this->hnsw_.ReentrantSearchKnn(
@@ -135,15 +135,15 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
             candidate_set,
             visited,
             &pred,
-            std::ref(metrics[q].ncomp),
-            std::ref(metrics[q].is_graph_ppsl)
+            std::ref(bm.qmetrics[q].ncomp),
+            std::ref(bm.qmetrics[q].is_graph_ppsl)
         );
         if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
           break;
         }
       }
 
-      metrics[q].ncluster = curr_ci - q * nprobe;
+      bm.qmetrics[q].ncluster = curr_ci - q * nprobe;
       while (top_candidates.size() > k) top_candidates.pop();
       size_t sz = top_candidates.size();
       while (!top_candidates.empty()) {

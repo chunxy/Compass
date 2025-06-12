@@ -103,7 +103,7 @@ struct IvfGraph2dArgs {
   }
 };
 
-struct Metric {
+struct QueryMetric {
   std::vector<bool> is_ivf_ppsl;
   std::vector<bool> is_graph_ppsl;
   std::vector<float> cand_dist;
@@ -112,14 +112,16 @@ struct Metric {
   int ncluster;
   int nrecycled;
 
-  Metric(int nb)
-      : is_ivf_ppsl(nb, false),
-        is_graph_ppsl(nb, false),
-        cand_dist(500),
-        nround(0),
-        ncomp(0),
-        ncluster(0),
-        nrecycled(0) {}
+  QueryMetric(int nb)
+      : is_ivf_ppsl(nb, false), is_graph_ppsl(nb, false), nround(0), ncomp(0), ncluster(0), nrecycled(0) {}
+};
+
+struct BatchMetric {
+  std::vector<QueryMetric> qmetrics;
+  int cluster_search_time_in_ms;
+  int cluster_search_ncomp;
+
+  BatchMetric(int nq, int nb) : qmetrics(nq, QueryMetric(nb)), cluster_search_time_in_ms(0), cluster_search_ncomp(0) {}
 };
 
 struct Stat {

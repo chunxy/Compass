@@ -44,7 +44,7 @@ class HopHnsw : public HierarchicalNSW<dist_t> {
       const int k,
       const int efs,
       BaseFilterFunctor *is_id_allowed,
-      vector<Metric> &metrics
+      vector<QueryMetric> &metrics
   ) {
     auto efs_ = std::max(efs, k);
     this->setEf(efs_);
