@@ -4,16 +4,13 @@
 #include <omp.h>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
-#include <limits>
 #include <map>
 #include <numeric>
 #include <string>
-#include <utility>
 #include <vector>
 #include "config.h"
 #include "json.hpp"
@@ -24,7 +21,6 @@
 
 namespace fs = boost::filesystem;
 using namespace std::chrono;
-using std::vector;
 
 auto dist_func = hnswlib::L2Sqr;
 
@@ -144,7 +140,7 @@ int main(int argc, char **argv) {
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
       FILE *out = stdout;
-      nq = args.fast ? 1000 : nq;;
+      nq = args.fast ? 1000 : nq;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
@@ -158,16 +154,7 @@ int main(int argc, char **argv) {
 #endif
       for (int j = 0; j < nq; j += args.batchsz) {
         comp.SearchKnn(
-            xq + j * d,
-            args.batchsz,
-            args.k,
-            attrs.data(),
-            &args.l_bound,
-            &args.u_bound,
-            efs,
-            nrel,
-            args.nthread,
-            bm
+            xq + j * d, args.batchsz, args.k, attrs.data(), &args.l_bound, &args.u_bound, efs, nrel, args.nthread, bm
         );
       }
       auto search_stop = high_resolution_clock::system_clock::now();
@@ -175,77 +162,21 @@ int main(int argc, char **argv) {
 
       // statistics
       Stat stat(nq);
-      for (int j = 0; j < nq;) {
+      for (int j = 0; j < nq; j += args.batchsz) {
         BatchMetric bm(args.batchsz, nb);
         auto search_start = high_resolution_clock::now();
         auto results = comp.SearchKnn(
-            xq + j * d,
-            args.batchsz,
-            args.k,
-            attrs.data(),
-            &args.l_bound,
-            &args.u_bound,
-            efs,
-            nrel,
-            args.nthread,
-            bm
+            xq + j * d, args.batchsz, args.k, attrs.data(), &args.l_bound, &args.u_bound, efs, nrel, args.nthread, bm
         );
         auto search_stop = high_resolution_clock::now();
+        bm.latency_in_us = duration_cast<microseconds>(search_stop - search_start).count();
 
-        for (int ii = 0; ii < results.size(); ii++) {
-          auto rz = results[ii];
-          auto metric = bm.qmetrics[ii];
-          auto gt_min = dist_func(xq + j * d, xb + hybrid_topks[j].front() * d, &d);
-          auto gt_max = dist_func(xq + j * d, xb + hybrid_topks[j].back() * d, &d);
-          int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;
-          int ivf_ppsl_in_tp = 0, graph_ppsl_in_tp = 0;
-          for (auto pair : rz) {
-            auto i = pair.second;
-            auto d = pair.first;
-            if (metric.is_ivf_ppsl[i])
-              ivf_ppsl_in_rz++;
-            else if (metric.is_graph_ppsl[i])
-              graph_ppsl_in_rz++;
-            if (d <= gt_max + EPSILON) {
-              if (metric.is_ivf_ppsl[i])
-                ivf_ppsl_in_tp++;
-              else if (metric.is_graph_ppsl[i])
-                graph_ppsl_in_tp++;
-            }
-          }
-
-          stat.rz_min_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
-          stat.rz_max_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.back().first;
-          stat.ivf_ppsl_in_rz_s[j] = ivf_ppsl_in_rz;
-          stat.graph_ppsl_in_rz_s[j] = graph_ppsl_in_rz;
-          stat.gt_min_s[j] = gt_min;
-          stat.gt_max_s[j] = gt_max;
-          stat.ivf_ppsl_in_tp_s[j] = ivf_ppsl_in_tp;
-          stat.graph_ppsl_in_tp_s[j] = graph_ppsl_in_tp;
-
-          stat.tp_s[j] = ivf_ppsl_in_tp + graph_ppsl_in_tp;
-          stat.rz_s[j] = rz.size();
-          stat.rec_at_ks[j] = (double)stat.tp_s[j] / hybrid_topks[j].size();
-          stat.pre_at_ks[j] = (double)stat.tp_s[j] / rz.size();
-
-          stat.ivf_ppsl_nums[j] = std::accumulate(metric.is_ivf_ppsl.begin(), metric.is_ivf_ppsl.end(), 0);
-          stat.graph_ppsl_nums[j] = std::accumulate(metric.is_graph_ppsl.begin(), metric.is_graph_ppsl.end(), 0);
-          stat.ivf_ppsl_qlty[j] = stat.ivf_ppsl_nums[j] != 0 ? (double)ivf_ppsl_in_tp / stat.ivf_ppsl_nums[j] : 0;
-          stat.ivf_ppsl_rate[j] = stat.ivf_ppsl_nums[j] != 0 ? (double)ivf_ppsl_in_rz / stat.ivf_ppsl_nums[j] : 0;
-          stat.graph_ppsl_qlty[j] =
-              stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_tp / stat.graph_ppsl_nums[j] : 0;
-          stat.graph_ppsl_rate[j] =
-              stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_rz / stat.graph_ppsl_nums[j] : 0;
-          stat.perc_of_ivf_ppsl_in_tp[j] = stat.tp_s[j] != 0 ? (double)ivf_ppsl_in_tp / stat.tp_s[j] : 0;
-          stat.perc_of_ivf_ppsl_in_rz[j] = (double)ivf_ppsl_in_rz / rz.size();
-          stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
-          stat.num_computations[j] = metric.ncomp;
-          stat.num_rounds[j] = metric.nround;
-          stat.num_clusters[j] = metric.ncluster;
-          stat.num_recycled[j] = metric.nrecycled;
-          stat.latencies[j] = duration_cast<microseconds>(search_stop - search_start).count();
-          j++;
+        vector<float> gt_min_s(results.size()), gt_max_s(results.size());
+        for (int i = 0; i < results.size(); i++) {
+          gt_min_s[i] = dist_func(xq + (j + i) * d, xb + hybrid_topks[j + i].front() * d, &d);
+          gt_max_s[i] = dist_func(xq + (j + i) * d, xb + hybrid_topks[j + i].back() * d, &d);
         }
+        collect_batch_metric(results, bm, hybrid_topks, j, gt_min_s, gt_max_s, EPSILON, nsat, stat);
       }
 
       auto json = collate_stat(stat, nb, nsat, args.k, nq, search_time, args.nthread, out);

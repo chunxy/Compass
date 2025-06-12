@@ -1,5 +1,4 @@
 #include "utils/funcs.h"
-#include <bits/types/FILE.h>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <cassert>
@@ -14,8 +13,6 @@
 #include "json.hpp"
 #include "utils/card.h"
 #include "utils/reader.h"
-
-using std::vector;
 
 float *load_float32(const string &path, const int n, const int d) {
   auto storage = new float[n * d];
@@ -216,6 +213,69 @@ void stat_selectivity(
         break;
       }
     }
+  }
+}
+
+void collect_batch_metric(
+    const vector<vector<pair<float, labeltype>>> &results,  // indexed with i
+    const BatchMetric &bm,                                  // indexed with i
+    const vector<vector<labeltype>> &hybrid_topks,          // indexed from curr
+    const int curr,
+    const vector<float> &gt_min_s,  // indexed with i
+    const vector<float> &gt_max_s,  // indexed with i
+    const float EPSILON,
+    const int nsat,
+    Stat &stat  // indexed from curr
+) {
+  for (int i = 0, j = curr; i < results.size(); i++, j++) {
+    auto rz = results[i];
+    auto metric = bm.qmetrics[i];
+    int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;
+    int ivf_ppsl_in_tp = 0, graph_ppsl_in_tp = 0;
+    for (auto pair : rz) {
+      auto id = pair.second;
+      auto d = pair.first;
+      if (metric.is_ivf_ppsl[id])
+        ivf_ppsl_in_rz++;
+      else if (metric.is_graph_ppsl[id])
+        graph_ppsl_in_rz++;
+      if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), id) != hybrid_topks[j].end() ||
+          d <= gt_max_s[i] + EPSILON) {
+        if (metric.is_ivf_ppsl[id])
+          ivf_ppsl_in_tp++;
+        else if (metric.is_graph_ppsl[id])
+          graph_ppsl_in_tp++;
+      }
+    }
+
+    stat.rz_min_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
+    stat.rz_max_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.back().first;
+    stat.ivf_ppsl_in_rz_s[j] = ivf_ppsl_in_rz;
+    stat.graph_ppsl_in_rz_s[j] = graph_ppsl_in_rz;
+    stat.gt_min_s[j] = gt_min_s[i];
+    stat.gt_max_s[j] = gt_max_s[i];
+    stat.ivf_ppsl_in_tp_s[j] = ivf_ppsl_in_tp;
+    stat.graph_ppsl_in_tp_s[j] = graph_ppsl_in_tp;
+
+    stat.tp_s[j] = ivf_ppsl_in_tp + graph_ppsl_in_tp;
+    stat.rz_s[j] = rz.size();
+    stat.rec_at_ks[j] = (double)stat.tp_s[j] / hybrid_topks[j].size();
+    stat.pre_at_ks[j] = (double)stat.tp_s[j] / rz.size();
+
+    stat.ivf_ppsl_nums[j] = std::accumulate(metric.is_ivf_ppsl.begin(), metric.is_ivf_ppsl.end(), 0);
+    stat.graph_ppsl_nums[j] = std::accumulate(metric.is_graph_ppsl.begin(), metric.is_graph_ppsl.end(), 0);
+    stat.ivf_ppsl_qlty[j] = stat.ivf_ppsl_nums[j] != 0 ? (double)ivf_ppsl_in_tp / stat.ivf_ppsl_nums[j] : 0;
+    stat.ivf_ppsl_rate[j] = stat.ivf_ppsl_nums[j] != 0 ? (double)ivf_ppsl_in_rz / stat.ivf_ppsl_nums[j] : 0;
+    stat.graph_ppsl_qlty[j] = stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_tp / stat.graph_ppsl_nums[j] : 0;
+    stat.graph_ppsl_rate[j] = stat.graph_ppsl_nums[j] != 0 ? (double)graph_ppsl_in_rz / stat.graph_ppsl_nums[j] : 0;
+    stat.perc_of_ivf_ppsl_in_tp[j] = stat.tp_s[j] != 0 ? (double)ivf_ppsl_in_tp / stat.tp_s[j] : 0;
+    stat.perc_of_ivf_ppsl_in_rz[j] = (double)ivf_ppsl_in_rz / rz.size();
+    stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
+    stat.num_computations[j] = metric.ncomp;
+    stat.num_rounds[j] = metric.nround;
+    stat.num_clusters[j] = metric.ncluster;
+    stat.num_recycled[j] = metric.nrecycled;
+    stat.latencies[j] = bm.latency_in_us;
   }
 }
 
