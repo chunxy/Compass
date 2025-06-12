@@ -3,9 +3,7 @@
 #include <fmt/core.h>
 #include <omp.h>
 #include <algorithm>
-#include <boost/coroutine2/all.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -16,28 +14,26 @@
 #include <queue>
 #include <utility>
 #include <vector>
-#include "../../thirdparty/btree/btree_map.h"
-#include "../hnswlib/hnswlib.h"
-#include "../utils/predicate.h"
-#include "utils/Pod.h"
 #include "Proclus.h"
-#include "methods/basis/ReentrantHNSW.h"
+#include "btree_map.h"
 #include "faiss/MetricType.h"
+#include "hnswlib/hnswlib.h"
+#include "methods/basis/ReentrantHNSW.h"
+#include "utils/Pod.h"
+#include "utils/predicate.h"
 
 namespace fs = boost::filesystem;
-using coroutine_t = boost::coroutines2::coroutine<int>;
 
 using std::pair;
 using std::priority_queue;
 using std::vector;
 
 template <typename dist_t, typename attr_t>
-class CompassRProclus1d {
+class CompassRRProclus1d {
  private:
   L2Space space_;
   ReentrantHNSW<dist_t> hnsw_;
   Proclus *proclus_;
-  // faiss::IndexIVFPQ ivfpq_;
 
   HierarchicalNSW<dist_t> cgraph_;
 
@@ -50,7 +46,7 @@ class CompassRProclus1d {
   faiss::idx_t *ranked_clusters_;
 
  public:
-  CompassRProclus1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist, Proclus *proclus)
+  CompassRRProclus1d(size_t d, size_t M, size_t efc, size_t max_elements, size_t nlist, Proclus *proclus)
       : space_(d),
         hnsw_(&space_, max_elements, M, efc),
         proclus_(proclus),
@@ -72,7 +68,7 @@ class CompassRProclus1d {
       const int efs,
       const int nrel,
       const int nthread,
-      vector<Metric> &metrics,
+      vector<QueryMetric> &metrics,
       faiss::idx_t *ranked_clusters,
       float *distances
   ) {
@@ -118,7 +114,6 @@ class CompassRProclus1d {
             _mm_prefetch(hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
             if (visited[tableid]) continue;
-            // visited[tableid] = true;
 
             auto vect = hnsw_.getDataByInternalId(tableid);
             auto dist = hnsw_.fstdistfunc_((float *)query + q * dim_, vect, hnsw_.dist_func_param_);
@@ -161,7 +156,6 @@ class CompassRProclus1d {
       metrics[q].ncluster = curr_ci - q * nprobe;
       while (top_candidates.size() > k) top_candidates.pop();
       size_t sz = top_candidates.size();
-      // vector<std::pair<dist_t, labeltype>> result(sz);
       while (!top_candidates.empty()) {
         results[q][--sz] = top_candidates.top();
         top_candidates.pop();
@@ -212,14 +206,13 @@ class CompassRProclus1d {
 };
 
 template <typename dist_t, typename attr_t>
-int CompassRProclus1d<dist_t, attr_t>::AddGraphPoint(const void *data_point, labeltype label) {
+int CompassRRProclus1d<dist_t, attr_t>::AddGraphPoint(const void *data_point, labeltype label) {
   hnsw_.addPoint(data_point, label, -1);
   return 1;
 }
 
 template <typename dist_t, typename attr_t>
-int CompassRProclus1d<dist_t, attr_t>::AddPointsToIvf(size_t n, const void *data, labeltype *labels, attr_t *attr) {
-  // ivf_->add(n, (float *)data);  // add_sa_codes
+int CompassRRProclus1d<dist_t, attr_t>::AddPointsToIvf(size_t n, const void *data, labeltype *labels, attr_t *attr) {
   ranked_clusters_ = new faiss::idx_t[n];
   float *distances = new float[n];
   proclus_->search_l1_rerank_l2(n, (float *)data, ranked_clusters_, distances);

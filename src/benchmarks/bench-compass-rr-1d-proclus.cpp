@@ -4,7 +4,6 @@
 #include <omp.h>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
@@ -19,19 +18,16 @@
 #include "config.h"
 #include "faiss/MetricType.h"
 #include "json.hpp"
-#include "methods/basis/CompassRProclus1d.h"
-#include "utils/Pod.h"
+#include "methods/CompassRRProclus1d.h"
 #include "space_l2.h"
+#include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 
 namespace fs = boost::filesystem;
 using namespace std::chrono;
-using std::vector;
 
 auto dist_func = hnswlib::L2Sqr;
-
-
 
 int main(int argc, char **argv) {
   IvfGraph1dArgs args(argc, argv);
@@ -68,9 +64,9 @@ int main(int argc, char **argv) {
 
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
-  std::string medoids_ckp = fmt::format("{}-{}.medoids", args.nlist, args.dproclus);
-  std::string subspace_ckp = fmt::format("{}-{}.subspaces", args.nlist, args.dproclus);
-  std::string rank_ckp = fmt::format("{}-{}.ranking", args.nlist, args.dproclus);
+  std::string medoids_ckp = fmt::format("{}-{}.medoids", args.nlist, args.dx);
+  std::string subspace_ckp = fmt::format("{}-{}.subspaces", args.nlist, args.dx);
+  std::string rank_ckp = fmt::format("{}-{}.ranking", args.nlist, args.dx);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
 
   Proclus proclus(args.nlist, d);
@@ -88,8 +84,7 @@ int main(int argc, char **argv) {
     fmt::print("Cannot find medoids. Exitting now.\n");
     return -1;
   }
-  CompassRProclus1d<float, float> comp(d, args.M, args.efc, nb, args.nlist, &proclus);
-
+  CompassRRProclus1d<float, float> comp(d, args.M, args.efc, nb, args.nlist, &proclus);
 
   if (fs::exists(ckp_root / "Proclus" / c.name / rank_ckp)) {
     // std::ifstream in(ckp_root / "Proclus" / c.name / rank_ckp);
@@ -124,7 +119,7 @@ int main(int argc, char **argv) {
   }
   fmt::print("Finished loading indices.\n");
 
-  vector<Metric> metrics(args.batchsz, Metric(nb));
+  vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
   faiss::idx_t *ranked_clusters = new faiss::idx_t[args.batchsz * args.nlist];
   float *distances = new float[args.batchsz * args.nlist];
 
@@ -140,7 +135,7 @@ int main(int argc, char **argv) {
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
       FILE *out = stdout;
-      nq = args.fast ? 1000 : nq;;
+      nq = args.fast ? 1000 : nq;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
@@ -173,7 +168,7 @@ int main(int argc, char **argv) {
       // statistics
       Stat stat(nq);
       for (int j = 0; j < nq;) {
-        vector<Metric> metrics(args.batchsz, Metric(nb));
+        vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
         auto search_start = high_resolution_clock::now();
         auto results = comp.SearchKnn(
             xq + j * d,
