@@ -36,10 +36,13 @@ class CompassPcaCg : public CompassXCg<dist_t, attr_t> {
       BatchMetric &bm,
       float *distances = nullptr
   ) override {
+    auto search_beg = std::chrono::high_resolution_clock::now();
     auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
     auto xdata = ivf_trans->apply_chain(n, (float *)data);
     CompassXCg<dist_t, attr_t>::SearchClusters(n, xdata, k, assigned_clusters, bm, distances);
     delete[] xdata;
+    auto search_end = std::chrono::high_resolution_clock::now();
+    bm.cluster_search_time = std::chrono::duration_cast<std::chrono::microseconds>(search_end - search_beg).count();
   }
 
   void BuildClusterGraph() override {

@@ -23,6 +23,7 @@ class CompassCg : public Compass<dist_t, attr_t> {
       float *distances = nullptr
   ) override {
     int count_beg = this->cgraph_->metric_distance_computations;
+    auto search_beg = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < n; i++) {
       auto clusters = cgraph_->searchKnnCloserFirst(&data[i * this->d_], k);
       for (int j = 0; j < k; j++) {
@@ -34,7 +35,9 @@ class CompassCg : public Compass<dist_t, attr_t> {
         }
       }
     }
+    auto search_end = std::chrono::high_resolution_clock::now();
     int count_end = this->cgraph_->metric_distance_computations;
+    bm.cluster_search_time = std::chrono::duration_cast<std::chrono::microseconds>(search_end - search_beg).count();
     bm.cluster_search_ncomp = count_end - count_beg;
   }
 
