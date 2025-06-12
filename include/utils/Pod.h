@@ -118,39 +118,41 @@ struct QueryMetric {
 
 struct BatchMetric {
   std::vector<QueryMetric> qmetrics;
-  int latency_in_us;
-  int cluster_search_time_in_us;
+  int latency;
+  int cluster_search_time;
   int cluster_search_ncomp;
 
   BatchMetric(int nq, int nb)
-      : qmetrics(nq, QueryMetric(nb)), latency_in_us(0), cluster_search_time_in_us(0), cluster_search_ncomp(0) {}
+      : qmetrics(nq, QueryMetric(nb)), latency(0), cluster_search_time(0), cluster_search_ncomp(0) {}
 };
 
 struct Stat {
-  // result
+  // per-query results
   vector<float> rec_at_ks;
   vector<float> pre_at_ks;
-  vector<int> tp_s, rz_s;
+  vector<long> tp_s, rz_s;
   vector<float> gt_min_s, gt_max_s, rz_min_s, rz_max_s;
-  vector<int> ivf_ppsl_in_rz_s, ivf_ppsl_in_tp_s;
-  vector<int> graph_ppsl_in_rz_s, graph_ppsl_in_tp_s;
-  // intermediate
-  vector<int> ivf_ppsl_nums;
+  vector<long> ivf_ppsl_in_rz_s, ivf_ppsl_in_tp_s;
+  vector<long> graph_ppsl_in_rz_s, graph_ppsl_in_tp_s;
+  // per-query intermediates
+  vector<long> ivf_ppsl_nums;
   vector<float> ivf_ppsl_qlty;
   vector<float> ivf_ppsl_rate;
-  vector<int> graph_ppsl_nums;
+  vector<long> graph_ppsl_nums;
   vector<float> graph_ppsl_qlty;
   vector<float> graph_ppsl_rate;
   vector<vector<float>> cand_dist;
   vector<float> perc_of_ivf_ppsl_in_tp;
   vector<float> perc_of_ivf_ppsl_in_rz;
   vector<float> linear_scan_rate;
-  vector<int> num_computations;
-  vector<int> num_rounds;
+  vector<long> num_computations;
+  vector<long> num_rounds;
   vector<long> num_clusters;
   vector<long> num_recycled;
-  // system
+  // per-batch stat
   vector<long> latencies;
+  vector<long> cluster_search_time;
+  vector<long> cluster_search_ncomp;
 
   Stat(int nq)
       : rec_at_ks(nq, 0),
@@ -178,6 +180,5 @@ struct Stat {
         num_computations(nq, 0),
         num_rounds(nq, 0),
         num_clusters(nq, 0),
-        num_recycled(nq, 0),
-        latencies(nq, 0) {}
+        num_recycled(nq, 0) {}
 };

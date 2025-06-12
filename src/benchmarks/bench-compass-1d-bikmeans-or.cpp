@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
             xq + j * d, args.batchsz, args.k, attrs.data(), &args.l_bound, &args.u_bound, efs, nrel, args.nthread, bm
         );
         auto search_stop = high_resolution_clock::now();
-        bm.latency_in_us = duration_cast<microseconds>(search_stop - search_start).count();
+        bm.latency = duration_cast<microseconds>(search_stop - search_start).count();
 
         vector<float> gt_min_s(results.size()), gt_max_s(results.size());
         for (int i = 0; i < results.size(); i++) {

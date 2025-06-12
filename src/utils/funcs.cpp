@@ -275,8 +275,10 @@ void collect_batch_metric(
     stat.num_rounds[j] = metric.nround;
     stat.num_clusters[j] = metric.ncluster;
     stat.num_recycled[j] = metric.nrecycled;
-    stat.latencies[j] = bm.latency_in_us;
   }
+  stat.latencies.push_back(bm.latency);
+  stat.cluster_search_time.push_back(bm.cluster_search_time);
+  stat.cluster_search_ncomp.push_back(bm.cluster_search_ncomp);
 }
 
 nlohmann::json collate_stat(
@@ -322,11 +324,10 @@ nlohmann::json collate_stat(
   auto sum_of_perc_ivf_in_tp = std::accumulate(s.perc_of_ivf_ppsl_in_tp.begin(), s.perc_of_ivf_ppsl_in_tp.end(), 0.);
   auto sum_of_perc_ivf_in_rz = std::accumulate(s.perc_of_ivf_ppsl_in_rz.begin(), s.perc_of_ivf_ppsl_in_rz.end(), 0.);
   auto sum_of_linear_scan_rate = std::accumulate(s.linear_scan_rate.begin(), s.linear_scan_rate.end(), 0.);
-  auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0);
-  auto sum_of_num_cluster = std::accumulate(s.num_clusters.begin(), s.num_clusters.end(), 0);
-  auto sum_of_num_comp = std::accumulate(s.num_computations.begin(), s.num_computations.end(), 0);
-  auto sum_of_num_round = std::accumulate(s.num_rounds.begin(), s.num_rounds.end(), 0);
-  auto sum_of_num_recycled = std::accumulate(s.num_recycled.begin(), s.num_recycled.end(), 0);
+  auto sum_of_num_cluster = std::accumulate(s.num_clusters.begin(), s.num_clusters.end(), 0l);
+  auto sum_of_num_comp = std::accumulate(s.num_computations.begin(), s.num_computations.end(), 0l);
+  auto sum_of_num_round = std::accumulate(s.num_rounds.begin(), s.num_rounds.end(), 0l);
+  auto sum_of_num_recycled = std::accumulate(s.num_recycled.begin(), s.num_recycled.end(), 0l);
 
   nlohmann::json json;
   json["recall"] = s.rec_at_ks;
@@ -340,7 +341,16 @@ nlohmann::json collate_stat(
   json["perc_ivf_in_tp"] = s.perc_of_ivf_ppsl_in_tp;
   json["perc_ivf_in_rz"] = s.perc_of_ivf_ppsl_in_rz;
   json["linear_scan_rate"] = s.linear_scan_rate;
-  json["latency"] = s.latencies;
+
+  json["batched"] = {
+      {"latency_in_us", s.latencies},
+      {"cluster_search_time_in_us", s.cluster_search_time},
+      {"cluster_search_ncomp", s.cluster_search_ncomp},
+  };
+  auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0l);
+  auto sum_of_cluster_search_time = std::accumulate(s.cluster_search_time.begin(), s.cluster_search_time.end(), 0l);
+  auto sum_of_cluster_search_ncomp = std::accumulate(s.cluster_search_ncomp.begin(), s.cluster_search_ncomp.end(), 0l);
+
   json["aggregated"] = {
       {"recall", sum_of_rec / nq},
       {"precision", sum_of_pre / nq},
@@ -354,15 +364,18 @@ nlohmann::json collate_stat(
       {"perc_ivf_in_rz", sum_of_perc_ivf_in_rz / nq},
       {"linear_scan_rate", sum_of_linear_scan_rate / nq},
       {"num_queries", nq},
-      {"latency_in_s", (double)sum_of_latency / 1000000 / nq},
       {"selectivity", (double)nsat / nb},
       {"time_in_s", (double)search_time / 1000000},
       {"qps", (double)nq / search_time * 1000000},
+      {"tampered_qps", (double)nq / (search_time - sum_of_cluster_search_time) * 1000000},
       {"num_threads", nthread},
       {"num_computations", (double)sum_of_num_comp / nq},
       {"num_clusters", (double)sum_of_num_cluster / nq},
       {"num_rounds", (double)sum_of_num_round / nq},
       {"num_recycled", (double)sum_of_num_recycled / nq},
+      {"latency_in_s", (double)sum_of_latency / 1000000 / nq},
+      {"cluster_search_time_in_s", (double)sum_of_cluster_search_time / 1000000 / nq},
+      {"cluster_search_ncomp", (double)sum_of_cluster_search_ncomp / nq},
   };
   return json;
 }

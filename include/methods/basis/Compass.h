@@ -37,7 +37,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
     auto assign_beg = std::chrono::high_resolution_clock::now();
     AssignPoints(n, data, k, assigned_clusters, distances);
     auto assign_end = std::chrono::high_resolution_clock::now();
-    bm.cluster_search_time_in_us = std::chrono::duration_cast<std::chrono::microseconds>(assign_end - assign_beg).count();
+    bm.cluster_search_time = std::chrono::duration_cast<std::chrono::microseconds>(assign_end - assign_beg).count();
   }
 
  public:
