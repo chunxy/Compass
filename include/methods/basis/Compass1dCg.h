@@ -18,8 +18,9 @@ class Compass1dCg : public Compass1d<dist_t, attr_t> {
       BatchMetric &bm,
       float *distances = nullptr
   ) override {
+    int count_beg = this->cgraph_->metric_distance_computations;
     for (int i = 0; i < n; i++) {
-      auto clusters = cgraph_->searchKnnCloserFirst((float *)&data[i * this->d_], k);
+      auto clusters = cgraph_->searchKnnCloserFirst(&data[i * this->d_], k);
       for (int j = 0; j < k; j++) {
         assigned_clusters[i * k + j] = clusters[j].second;
       }
@@ -29,6 +30,8 @@ class Compass1dCg : public Compass1d<dist_t, attr_t> {
         }
       }
     }
+    int count_end = this->cgraph_->metric_distance_computations;
+    bm.cluster_search_ncomp = count_end - count_beg;
   }
 
  public:

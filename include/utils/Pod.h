@@ -118,10 +118,12 @@ struct QueryMetric {
 
 struct BatchMetric {
   std::vector<QueryMetric> qmetrics;
-  int cluster_search_time_in_ms;
+  int latency_in_us;
+  int cluster_search_time_in_us;
   int cluster_search_ncomp;
 
-  BatchMetric(int nq, int nb) : qmetrics(nq, QueryMetric(nb)), cluster_search_time_in_ms(0), cluster_search_ncomp(0) {}
+  BatchMetric(int nq, int nb)
+      : qmetrics(nq, QueryMetric(nb)), latency_in_us(0), cluster_search_time_in_us(0), cluster_search_ncomp(0) {}
 };
 
 struct Stat {
