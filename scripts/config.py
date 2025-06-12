@@ -1,13 +1,6 @@
 from functools import reduce
 
-DATASETS = [
-  "sift",
-  "gist",
-  "glove100",
-  "crawl",
-  "audio",
-  "video",
-]
+DATASETS = ["sift", "audio", "glove100", "crawl", "video", "gist"]
 
 DA_S = [1, 2, 3, 4]
 
@@ -97,8 +90,14 @@ compassx_group_dataset = {
   "3": ["sift", "glove100", "audio"],
 }
 M_GROUP_DATASET = {
-  **{m: compass_group_dataset for m in COMPASS_METHODS},
-  **{m: compassx_group_dataset for m in COMPASSX_METHODS},
+  **{
+    m: compass_group_dataset
+    for m in COMPASS_METHODS
+  },
+  **{
+    m: compassx_group_dataset
+    for m in COMPASSX_METHODS
+  },
 }
 
 irangegraph_parameters = {
