@@ -350,6 +350,7 @@ nlohmann::json collate_stat(
   auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0l);
   auto sum_of_cluster_search_time = std::accumulate(s.cluster_search_time.begin(), s.cluster_search_time.end(), 0l);
   auto sum_of_cluster_search_ncomp = std::accumulate(s.cluster_search_ncomp.begin(), s.cluster_search_ncomp.end(), 0l);
+  int nbatch = s.latencies.size();
 
   json["aggregated"] = {
       {"recall", sum_of_rec / nq},
@@ -373,9 +374,9 @@ nlohmann::json collate_stat(
       {"num_clusters", (double)sum_of_num_cluster / nq},
       {"num_rounds", (double)sum_of_num_round / nq},
       {"num_recycled", (double)sum_of_num_recycled / nq},
-      {"latency_in_s", (double)sum_of_latency / 1000000 / nq},
-      {"cluster_search_time_in_s", (double)sum_of_cluster_search_time / 1000000 / nq},
-      {"cluster_search_ncomp", (double)sum_of_cluster_search_ncomp / nq},
+      {"latency_in_s", (double)sum_of_latency / 1000000 / nbatch},
+      {"cluster_search_time_in_s", (double)sum_of_cluster_search_time / 1000000 / nbatch},
+      {"cluster_search_ncomp", (double)sum_of_cluster_search_ncomp / nbatch},
   };
   return json;
 }
