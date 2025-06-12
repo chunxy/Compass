@@ -8,6 +8,16 @@
 #include "faiss/MetricType.h"
 #include "faiss/VectorTransform.h"
 
+// CompassPca* is a bit different from CompassX* in that
+// it can transform the data on its own instead of
+// relying on the arguments passed from the caller.
+
+// But this transformation may be time-consuming.
+// So still consider passing the trasformed data
+// from the caller in future.
+// To do so, rewrite the current AssignPoints and SearchClusters
+// so that they directly operate on the transformed data; and
+// pass the transformed data from the caller.
 template <typename dist_t, typename attr_t>
 class CompassPca : public CompassX<dist_t, attr_t> {
  public:

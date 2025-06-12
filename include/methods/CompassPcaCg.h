@@ -28,6 +28,19 @@ class CompassPcaCg : public CompassXCg<dist_t, attr_t> {
     delete[] xdata;
   }
 
+  void SearchClusters(
+      const size_t n,
+      const dist_t *data,
+      const int k,
+      faiss::idx_t *assigned_clusters,
+      float *distances = nullptr
+  ) override {
+    auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
+    auto xdata = ivf_trans->apply_chain(n, (float *)data);
+    CompassXCg<dist_t, attr_t>::SearchClusters(n, xdata, k, assigned_clusters, distances);
+    delete[] xdata;
+  }
+
   void BuildClusterGraph() override {
     auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
     auto xivf = dynamic_cast<faiss::IndexIVFFlat *>(ivf_trans->index);

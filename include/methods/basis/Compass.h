@@ -14,6 +14,8 @@ class Compass : public HybridIndex<dist_t, attr_t> {
   vector<vector<btree::btree_map<attr_t, labeltype>>> btrees_;
   int da_;
 
+  // Assign original/transformed points to clusters.
+  // Called during index building.
   virtual void AssignPoints(
       const size_t n,
       const dist_t *data,
@@ -22,6 +24,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
       float *distances = nullptr
   ) = 0;
 
+  // Potentially assign original/transformed points to clusters using cluster graph.
   virtual void SearchClusters(
       const size_t n,
       const dist_t *data,
