@@ -59,8 +59,8 @@ int main(int argc, char **argv) {
   Compass1dPca<float, float> comp(nb, d, args.dx, args.M, args.efc, args.nlist);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
-  std::string pca_ivf_ckp = fmt::format(COMPASS_PCA_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
-  std::string pca_rank_ckp = fmt::format(COMPASS_PCA_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dx);
+  std::string pca_ivf_ckp = fmt::format(COMPASS_X_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
+  std::string pca_rank_ckp = fmt::format(COMPASS_X_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dx);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_root / "PCA" / c.name / pca_ivf_ckp)) {
     comp.LoadIvf(ckp_root / "PCA" / c.name / pca_ivf_ckp);

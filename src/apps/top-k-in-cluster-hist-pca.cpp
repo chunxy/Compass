@@ -1,7 +1,6 @@
 #include <fmt/core.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <boost/program_options/options_description.hpp>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
@@ -22,12 +21,12 @@ int main(int argc, char **argv) {
   int k;
   float l, r;
   string datacard;
-  int nlist, dpca;
+  int nlist, dx;
   configs.add_options()("k", po::value<decltype(k)>(&k)->required());
   configs.add_options()("l", po::value<decltype(l)>(&l)->required());
   configs.add_options()("r", po::value<decltype(r)>(&r)->required());
   configs.add_options()("nlist", po::value<decltype(nlist)>(&nlist)->required());
-  configs.add_options()("dpca", po::value<decltype(dpca)>(&dpca)->required());
+  configs.add_options()("dx", po::value<decltype(dx)>(&dx)->required());
   configs.add_options()("datacard", po::value<decltype(datacard)>(&datacard)->required());
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, configs), vm);
@@ -44,7 +43,7 @@ int main(int argc, char **argv) {
   load_hybrid_query_gt(c, {l}, {r}, k, hybrid_topks);
 
   fs::path ckp_root(CKPS);
-  string ivf_ckp = fmt::format(COMPASS_PCA_IVF_CHECKPOINT_TMPL, nlist, dpca);
+  string ivf_ckp = fmt::format(COMPASS_X_IVF_CHECKPOINT_TMPL, nlist, dx);
   fs::path ivf_path = ckp_root / "PCA" / c.name / ivf_ckp;
   auto ivf_file = fopen(ivf_path.c_str(), "r");
   auto pca_ivf = dynamic_cast<faiss::IndexPreTransform *>(faiss::read_index(ivf_file));
@@ -55,13 +54,12 @@ int main(int argc, char **argv) {
   ivf->quantizer->assign(c.n_queries, xqx, q_ranked_clusters, nlist);
 
   auto b_ranked_clusters = new faiss::idx_t[c.n_base];
-  string rank_ckp = fmt::format(COMPASS_PCA_RANK_CHECKPOINT_TMPL, c.n_base, nlist, dpca);
+  string rank_ckp = fmt::format(COMPASS_X_RANK_CHECKPOINT_TMPL, c.n_base, nlist, dx);
   fs::path rank_path = ckp_root / "PCA" / c.name / rank_ckp;
   if (fs::exists(rank_path)) {
     auto rank_file = std::ifstream(rank_path.c_str());
     rank_file.read((char *)b_ranked_clusters, sizeof(faiss::idx_t) * c.n_base);
-  }
-  else {
+  } else {
     auto xbx = pca_ivf->apply_chain(c.n_base, (float *)xb);
     ivf->quantizer->assign(c.n_base, xbx, b_ranked_clusters, 1);
     // std::ofstream rank_file(rank_path.c_str());
@@ -82,7 +80,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  string hist_file = fmt::format("pca_top_{}_in_cluster_hist_{}_{}_{}_{}_{}.bin", k, c.name, nlist, dpca, l, r);
+  string hist_file = fmt::format("pca_top_{}_in_cluster_hist_{}_{}_{}_{}_{}.bin", k, c.name, nlist, dx, l, r);
   fs::path stat_root(STATS);
   fs::path hist_path = stat_root / hist_file;
   std::ofstream out(hist_path.c_str());

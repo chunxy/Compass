@@ -62,7 +62,6 @@ int main(int argc, char **argv) {
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
   std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
-  std::string cluster_graph_ckp = fmt::format(COMPASS_CLUSTER_GRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_root / "BisectingKMeans" / c.name / ivf_ckp)) {
     comp.LoadIvf(ckp_root / "BisectingKMeans" / c.name / ivf_ckp);

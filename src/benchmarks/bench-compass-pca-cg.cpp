@@ -60,9 +60,9 @@ int main(int argc, char **argv) {
   CompassPcaCg<float, float> comp(nb, d, args.dx, c.attr_dim, args.M, args.efc, args.nlist);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
-  std::string pca_ivf_ckp = fmt::format(COMPASS_PCA_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
-  std::string pca_rank_ckp = fmt::format(COMPASS_PCA_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dx);
-  std::string cluster_graph_ckp = fmt::format(COMPASS_CLUSTER_GRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist);
+  std::string pca_ivf_ckp = fmt::format(COMPASS_X_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
+  std::string pca_rank_ckp = fmt::format(COMPASS_X_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dx);
+  std::string cgraph_ckp = fmt::format(COMPASS_X_CGRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist, args.dx);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_root / "PCA" / c.name / pca_ivf_ckp)) {
     comp.LoadIvf(ckp_root / "PCA" / c.name / pca_ivf_ckp);
@@ -94,8 +94,8 @@ int main(int argc, char **argv) {
     comp.SaveRanking(ckp_root / "PCA" / c.name / pca_rank_ckp);
   }
 
-  if (fs::exists(ckp_root / "PCA" / c.name / cluster_graph_ckp)) {
-    comp.LoadClusterGraph((ckp_root / "PCA" / c.name / cluster_graph_ckp).string());
+  if (fs::exists(ckp_root / "PCA" / c.name / cgraph_ckp)) {
+    comp.LoadClusterGraph((ckp_root / "PCA" / c.name / cgraph_ckp).string());
     fmt::print("Finished loading cluster graph index.\n");
   } else {
     auto build_index_start = high_resolution_clock::now();
@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
         "Finished building cluster graph, took {} microseconds.\n",
         duration_cast<microseconds>(build_index_stop - build_index_start).count()
     );
-    comp.SaveClusterGraph(ckp_root / "PCA" / c.name / cluster_graph_ckp);
+    comp.SaveClusterGraph(ckp_root / "PCA" / c.name / cgraph_ckp);
   }
 
   if (fs::exists(ckp_dir / graph_ckp)) {

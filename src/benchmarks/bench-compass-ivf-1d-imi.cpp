@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 
   CompassImi1d<float, float> comp(d, nb, args.nsub, args.nbits, xb);
   fs::path ckp_root(CKPS);
-  std::string ivf_ckp = fmt::format(COMPASS_IMI_CHECKPOINT_TMPL, args.nsub, args.nbits);
+  std::string ivf_ckp = fmt::format(COMPASS_IVF_IMI_CHECKPOINT_TMPL, args.nsub, args.nbits);
   fs::path ckp_dir = ckp_root / method / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);

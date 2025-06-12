@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
   std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
-  std::string cluster_graph_ckp = fmt::format(COMPASS_CLUSTER_GRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist);
+  std::string cgraph_ckp = fmt::format(COMPASS_CGRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
@@ -110,8 +110,8 @@ int main(int argc, char **argv) {
     comp.SaveGraph(ckp_dir / graph_ckp);
   }
 
-  if (fs::exists(ckp_dir / cluster_graph_ckp)) {
-    comp.LoadClusterGraph((ckp_dir / cluster_graph_ckp).string());
+  if (fs::exists(ckp_dir / cgraph_ckp)) {
+    comp.LoadClusterGraph((ckp_dir / cgraph_ckp).string());
     fmt::print("Finished loading cluster graph index.\n");
   } else {
     auto build_index_start = high_resolution_clock::now();
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
         "Finished building cluster graph, took {} microseconds.\n",
         duration_cast<microseconds>(build_index_stop - build_index_start).count()
     );
-    comp.SaveClusterGraph(ckp_dir / cluster_graph_ckp);
+    comp.SaveClusterGraph(ckp_dir / cgraph_ckp);
   }
 
   fmt::print("Finished loading indices.\n");
