@@ -11,7 +11,7 @@ from config import (
   dataset_args,
 )
 
-EXP_ROOT = Path("/home/chunxy/repos/Compass/exp/top10/compass")
+EXP_ROOT = Path("/home/chunxy/repos/Compass/runs/exp")
 
 
 def __enclose_for(ele_name, collection_name, body):

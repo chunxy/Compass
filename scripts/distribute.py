@@ -216,12 +216,21 @@ def post_process():
 
 
 def run_grouped_exp(exp_set):
+  # Generate experiment scripts.
+  os.chdir(os.path.expanduser("~/repos/Compass/"))
+  compose = "scripts/compose.py"
+  if os.path.exists(compose):
+    subprocess.run(["python", compose], check=True)
+    print(f"\n✅ Compose script '{compose}' executed successfully.")
+  else:
+    print(f"NOTE: Compose script '{compose}' not found. Skipping.")
+
   # Create a list of (host, job) tuples for distribution.
   # This simple round-robin logic assigns jobs to hosts cyclically.
   tasks_to_run = []
   for group, exp in zip(GROUPS.keys(), exp_set):
     for i, host in enumerate(GROUPS[group]):
-      exp_script = f"bash exp/top10/compass/{exp}-{i + 1}.sh"
+      exp_script = f"bash runs/exp/{exp}-{i + 1}.sh"
       task = PRE_EXP_SCRIPT + exp_script + POST_EXP_SCRIPT
       # Add the SSH key file as the third argument
       tasks_to_run.append((host, task, SSH_KEY_FILE))
