@@ -244,15 +244,15 @@ def run_grouped_exp(exp_set):
   successful_jobs = 0
   for res in all_results:
     status_word = "✅ SUCCESS" if res['success'] else "❌ FAILED"
-    print(f"- Host: {res['host']}")
-    print(f"  Command: {res['command']}")
-    print(f"  Status: {status_word}")
-    print(f"  Finish: {res['ftime']}")
+    run_log.write(f"- Host: {res['host']}\n")
+    run_log.write(f"  Command: {res['command']}\n")
+    run_log.write(f"  Status: {status_word}\n")
+    run_log.write(f"  Finish: {res['ftime']}\n")
     if not res['success']:
-      print(f"  Stderr: {res['stderr']}")
+      run_log.write(f"  Stderr: {res['stderr']}\n")
     successful_jobs += 1 if res['success'] else 0
 
-  print(f"\nTotal Jobs: {len(tasks_to_run)}, Successful: {successful_jobs}, Failed: {len(tasks_to_run) - successful_jobs}", file=run_log)
+  run_log.write(f"\nTotal Jobs: {len(tasks_to_run)}, Successful: {successful_jobs}, Failed: {len(tasks_to_run) - successful_jobs}\n")
   # --- Conditionally run post-processing ---
   if successful_jobs == len(tasks_to_run):
     post_process()
