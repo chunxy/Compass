@@ -146,7 +146,13 @@ def run_remote_job(args):
         # Modify command to store its own PID
         cap_pid_run_cmd = f"echo $$ > {PID_FILE} && {command}"
         result = conn.run(cap_pid_run_cmd, warn=True, hide=False, env=proxy_env)
-        result_summary.update({'success': result.ok, 'stdout': result.stdout.strip(), 'stderr': result.stderr.strip(), 'exit_code': result.return_code})
+        result_summary.update({
+          'success': result.ok,
+          'stdout': result.stdout.strip(),
+          'stderr': result.stderr.strip(),
+          'exit_code': result.return_code,
+          "ftime": datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        })
 
         if result.ok:
           print(f"SUCCESS: Job on {host} finished with exit code {result.return_code}.")
@@ -237,10 +243,13 @@ def run_grouped_exp(exp_set):
 
   successful_jobs = 0
   for res in all_results:
-    status = "✅ SUCCESS" if res['success'] else "❌ FAILED"
-    print(f"- Host: {res['host']}\n  Command: {res['command']}\n  Status: {status}", file=run_log)
+    status_word = "✅ SUCCESS" if res['success'] else "❌ FAILED"
+    print(f"- Host: {res['host']}")
+    print(f"  Command: {res['command']}")
+    print(f"  Status: {status_word}")
+    print(f"  Finish: {res['ftime']}")
     if not res['success']:
-      print(f"  Stderr: {res['stderr']}", file=run_log)
+      print(f"  Stderr: {res['stderr']}")
     successful_jobs += 1 if res['success'] else 0
 
   print(f"\nTotal Jobs: {len(tasks_to_run)}, Successful: {successful_jobs}, Failed: {len(tasks_to_run) - successful_jobs}", file=run_log)
