@@ -216,8 +216,9 @@ def post_process():
 
 
 def run_grouped_exp(exp_set):
-  # Generate experiment scripts.
   os.chdir(os.path.expanduser("~/repos/Compass/"))
+
+  # Generate experiment scripts.
   compose = "scripts/compose.py"
   if os.path.exists(compose):
     subprocess.run(["python", compose], check=True)
@@ -248,7 +249,7 @@ def run_grouped_exp(exp_set):
   print("📋 EXPERIMENT SUMMARY")
   print("====================================================")
 
-  run_log = open(f"run-log-{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.txt", "w")
+  run_log = open(f"scratches/run-log-{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.txt", "w")
 
   successful_jobs = 0
   for res in all_results:
