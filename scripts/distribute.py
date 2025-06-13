@@ -186,18 +186,17 @@ def post_process():
   try:
     os.chdir(os.path.expanduser("~/repos/Compass/"))
 
-    # Example: calling a plotting script
     summarize = "scripts/summarize.py"
     if os.path.exists(summarize):
       subprocess.run(["python", summarize], check=True)
-      print("\n✅ Post-processing script executed successfully.")
+      print(f"\n✅ Post-processing script '{summarize}' executed successfully.")
     else:
       print(f"NOTE: Post-processing script '{summarize}' not found. Skipping.")
 
     cherrypick = "scripts/cherrypick.py"
     if os.path.exists(cherrypick):
       subprocess.run(["python", cherrypick], check=True)
-      print("\n✅ Post-processing script executed successfully.")
+      print(f"\n✅ Post-processing script '{cherrypick}' executed successfully.")
     else:
       print(f"NOTE: Post-processing script '{cherrypick}' not found. Skipping.")
 
