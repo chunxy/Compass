@@ -4,8 +4,8 @@ DATASETS = ["sift", "audio", "glove100", "crawl", "video", "gist"]
 
 DA_S = [1, 2, 3, 4]
 
-# attribute dimension - interval, for reading JSON files of Compass result
-compass_da_run = {
+# attribute dimension - intervals, for reading JSON files of Compass result
+compass_da_interval = {
   1: [
     *[((100,), (r,)) for r in (200, 300, 600)],
     *[((100,), (r,)) for r in range(1100, 10000, 1000)],
@@ -30,21 +30,21 @@ compass_da_run = {
           [3400, 5900, 8400, 9400])],
   ],
 }
-sota_da_run = {
+sota_da_interval = {
   1: [*[(1, ), (2, ), (3, ), (5, )], *[(i, ) for i in range(10, 100, 10)]],
   2: [(pcnt, pcnt) for pcnt in (10, 30, 50, 80, 90)],
 }
 
-# attribute dimension - range, for plotting, shared across methods, using Compass's interval as base
+# attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
 DA_RANGE = {
   da: [
     "-".join([f"{(r - l) // 100}"
               for l, r in zip(*itvl)])  # noqa: E741
     for itvl in intervals
   ]
-  for da, intervals in compass_da_run.items()
+  for da, intervals in compass_da_interval.items()
 }
-# attribute dimension - selectivity, for plotting, shared across methods, using Compass's interval as base
+# attribute dimension - selectivities, for plotting, shared across methods, using Compass's interval as base
 DA_SEL = {
   da:
   list(
@@ -61,7 +61,7 @@ DA_SEL = {
       ),
     )
   )
-  for da, intervals in compass_da_run.items()
+  for da, intervals in compass_da_interval.items()
 }
 
 COMPASS_METHODS = [
@@ -121,7 +121,7 @@ compass_args = {
   "M": [16, 32],
   "efc": [200],
   "nlist": [10000, 20000],
-  "efs": [10, 20, 60, 100, 200, 300],
+  "efs": [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
   "nrel": [100, 200],
   "dx": [64, 128, 256, 512],
 }
@@ -171,11 +171,11 @@ M_WORKLOAD = {
 
 M_DA_RUN = {
   **{
-    m: compass_da_run
+    m: compass_da_interval
     for m in COMPASS_METHODS
   },
   **{
-    m: sota_da_run
+    m: sota_da_interval
     for m in SOTA_METHODS
   },
 }
