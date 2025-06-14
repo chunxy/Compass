@@ -7,8 +7,8 @@ from config import (
   dataset_args,
 )
 from summarize import (
-  draw_qps_comp_fixed_recall_by_dataset_selectivity,
-  draw_qps_comp_fixed_recall_by_selectivity,
+  draw_qps_comp_fixing_recall_by_dataset_selectivity,
+  draw_qps_comp_fixing_recall_by_selectivity,
   draw_qps_comp_wrt_recall_by_dataset_selectivity,
   draw_qps_comp_wrt_recall_by_selectivity,
 )
@@ -45,7 +45,7 @@ if __name__ == "__main__":
       nrel_s=nrel_s,
       prefix="cherrypick",
     )
-    draw_qps_comp_fixed_recall_by_selectivity(
+    draw_qps_comp_fixing_recall_by_selectivity(
       da=da,
       datasets=DATASETS,
       methods=clus_methods,
@@ -67,7 +67,7 @@ if __name__ == "__main__":
       nrel_s=nrel_s,
       prefix="cherrypick",
     )
-    draw_qps_comp_fixed_recall_by_selectivity(
+    draw_qps_comp_fixing_recall_by_selectivity(
       da=da,
       datasets=DATASETS,
       methods=clus_search_methods,
@@ -97,7 +97,7 @@ if __name__ == "__main__":
       nrel_s=nrel_s,
       prefix="cherrypick",
     )
-    draw_qps_comp_fixed_recall_by_dataset_selectivity(
+    draw_qps_comp_fixing_recall_by_dataset_selectivity(
       da=da,
       datasets=DATASETS,
       methods=METHODS,
@@ -106,7 +106,7 @@ if __name__ == "__main__":
       nrel_s=nrel_s,
       prefix="cherrypick",
     )
-    draw_qps_comp_fixed_recall_by_selectivity(
+    draw_qps_comp_fixing_recall_by_selectivity(
       da=da,
       datasets=DATASETS,
       methods=METHODS,

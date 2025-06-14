@@ -38,6 +38,8 @@ types = {
   "ncomp": float,
 }
 
+xlim = [0.6, 1]
+
 
 def summarize():
   for da in DA_S:
@@ -148,6 +150,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
       fig.set_size_inches(12, 6)
       unique_labels = {}
       for ax in axs.flat:
+        ax.set_xlim(xlim)
         handles, labels = ax.get_legend_handles_labels()
         for handle, label in zip(handles, labels):
           if label not in unique_labels:
@@ -206,6 +209,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
       fig.set_size_inches(20, 6)
       unique_labels = {}
       for ax in axs.flat:
+        ax.set_xlim(xlim)
         handles, labels = ax.get_legend_handles_labels()
         for handle, label in zip(handles, labels):
           if label not in unique_labels:
@@ -215,7 +219,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
       plt.close()
 
 
-def draw_qps_comp_fixed_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
+def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   recall_thresholds = [0.8, 0.9, 0.95]
   selectivities = DA_SEL[da]
@@ -268,7 +272,7 @@ def draw_qps_comp_fixed_recall_by_dataset_selectivity(da, datasets, methods, ann
       plt.close()
 
 
-def draw_qps_comp_fixed_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
+def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   recall_thresholds = [0.8, 0.9, 0.95]
   selectivities = DA_SEL[da]
@@ -331,5 +335,5 @@ if __name__ == "__main__":
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
     draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
-    draw_qps_comp_fixed_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
-    draw_qps_comp_fixed_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
+    draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
+    draw_qps_comp_fixing_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
