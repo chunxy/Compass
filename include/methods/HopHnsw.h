@@ -5,9 +5,8 @@
 #include <cstddef>
 #include <utility>
 #include <vector>
-#include "../hnswlib/hnswlib.h"
+#include "hnswlib/hnswlib.h"
 #include "utils/Pod.h"
-#include "visited_list_pool.h"
 
 using namespace hnswlib;
 using std::pair;

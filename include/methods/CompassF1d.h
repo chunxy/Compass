@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <boost/coroutine2/all.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -62,7 +61,7 @@ class CompassF1d {
       const int efs,
       const int min_comp,
       const int nthread,
-      vector<Metric> &metrics
+      vector<QueryMetric> &metrics
   );
 
   void SaveGraph(fs::path path);
@@ -127,7 +126,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassF1d<dist_t, attr_t>::Sear
     const int efs,
     const int nrel,
     const int nthread,
-    vector<Metric> &metrics
+    vector<QueryMetric> &metrics
 ) {
   auto efs_ = std::max(k, efs);
   hnsw_.setEf(efs_);
