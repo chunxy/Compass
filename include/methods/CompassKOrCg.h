@@ -25,24 +25,28 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
     auto efs_ = std::max(k, efs);
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
+    this->SearchClusters(nq, query, nprobe, this->query_cluster_rank_, bm, this->distances_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);
+    VisitedList *vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
       priority_queue<pair<float, int64_t>> top_candidates;
       priority_queue<pair<float, int64_t>> candidate_set;
       priority_queue<pair<float, int64_t>> recycle_set;
-      auto clusters = this->cgraph_->searchKnnCloserFirst(query + q * this->d_, nprobe);
 
-      vector<bool> visited(this->n_, false);
+      vl->reset();
+      vl_type *visited = vl->mass;
+      vl_type visited_tag = vl->curV;
+      // vector<bool> visited(this->n_, false);
 
-      int curr_ci = 0;
+      int curr_ci = q * nprobe;
 
       std::vector<std::unordered_set<labeltype>> candidates_per_dim(this->da_);
       for (int j = 0; j < this->da_; ++j) {
-        auto &btree = this->btrees_[clusters[curr_ci].second][j];
+        auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
         auto itr_beg = btree.lower_bound(l_bound[j]);
         auto itr_end = btree.upper_bound(u_bound[j]);
         for (auto itr = itr_beg; itr != itr_end; ++itr) {
@@ -67,16 +71,17 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
 
       while (true) {
         int crel = 0;
-        if (candidate_set.empty() || (curr_ci < nprobe)) {
+        if (candidate_set.empty() ||
+            (curr_ci < nprobe * (q + 1) && -candidate_set.top().first > this->distances_[curr_ci])) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
               curr_ci++;
-              if (curr_ci >= nprobe)
+              if (curr_ci >= nprobe * (q + 1))
                 break;
               else {
                 std::vector<std::unordered_set<labeltype>> _candidates_per_dim(this->da_);
                 for (int j = 0; j < this->da_; ++j) {
-                  auto &btree = this->btrees_[clusters[curr_ci].second][j];
+                  auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
                   auto _itr_beg = btree.lower_bound(l_bound[j]);
                   auto _itr_end = btree.upper_bound(u_bound[j]);
                   for (auto itr = _itr_beg; itr != _itr_end; ++itr) {
@@ -106,7 +111,8 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
 #ifdef USE_SSE
             _mm_prefetch(this->hnsw_.getDataByInternalId(*itr_beg), _MM_HINT_T0);
 #endif
-            if (visited[tableid]) continue;
+            if (visited[tableid] == visited_tag) continue;
+            visited[tableid] = visited_tag;
 
             auto vect = this->hnsw_.getDataByInternalId(tableid);
             auto dist = this->hnsw_.fstdistfunc_((float *)query + q * this->d_, vect, this->hnsw_.dist_func_param_);
@@ -120,8 +126,8 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
             recycle_set.pop();
-            if (visited[top.second]) continue;
-            visited[top.second] = true;
+            if (visited[top.second] == visited_tag) continue;
+            visited[top.second] = visited_tag;
             bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
@@ -136,17 +142,17 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
             -1,
             top_candidates,
             candidate_set,
-            visited,
+            vl,
             &pred,
             std::ref(bm.qmetrics[q].ncomp),
             std::ref(bm.qmetrics[q].is_graph_ppsl)
         );
-        if ((top_candidates.size() >= efs_) || curr_ci >= nprobe) {
+        if ((top_candidates.size() >= efs_) || curr_ci >= nprobe * (q + 1)) {
           break;
         }
       }
 
-      bm.qmetrics[q].ncluster = curr_ci;
+      bm.qmetrics[q].ncluster = curr_ci - q * nprobe;
       int nrecycled = 0;
       while (top_candidates.size() > k) top_candidates.pop();
       while (!recycle_set.empty()) {

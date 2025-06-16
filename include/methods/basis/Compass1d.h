@@ -83,6 +83,7 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
+    VisitedList* vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
@@ -90,7 +91,10 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
       priority_queue<pair<float, int64_t>> candidate_set;
       priority_queue<pair<float, int64_t>> recycle_set;
 
-      vector<bool> visited(this->n_, false);
+      vl->reset();
+      vl_type *visited = vl->mass;
+      vl_type visited_tag = vl->curV;
+      // vector<bool> visited(this->n_, false);
 
       int curr_ci = q * nprobe;
       auto itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]].lower_bound(*l_bound);
@@ -117,8 +121,7 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
 #ifdef USE_SSE
             _mm_prefetch(this->hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
-            if (visited[tableid]) continue;
-            // visited[tableid] = true;
+            if (visited[tableid] == visited_tag) continue;
 
             auto vect = this->hnsw_.getDataByInternalId(tableid);
             auto dist = this->hnsw_.fstdistfunc_((float *)query + q * this->d_, vect, this->hnsw_.dist_func_param_);
@@ -132,8 +135,8 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
             recycle_set.pop();
-            if (visited[top.second]) continue;
-            visited[top.second] = true;
+            if (visited[top.second] == visited_tag) continue;
+            visited[top.second] = visited_tag;
             bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
@@ -149,7 +152,7 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
             // distances[curr_ci],
             top_candidates,
             candidate_set,
-            visited,
+            vl,
             &pred,
             std::ref(bm.qmetrics[q].ncomp),
             std::ref(bm.qmetrics[q].is_graph_ppsl)

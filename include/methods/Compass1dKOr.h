@@ -31,8 +31,8 @@ class Compass1dKOr : public Compass1dK<dist_t, attr_t> {
     this->SearchClusters(nq, query, nprobe, this->query_cluster_rank_, bm, this->distances_);
 
     vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
-
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
+    VisitedList* vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
@@ -40,7 +40,10 @@ class Compass1dKOr : public Compass1dK<dist_t, attr_t> {
       priority_queue<pair<float, int64_t>> candidate_set;
       priority_queue<pair<float, int64_t>> recycle_set;
 
-      vector<bool> visited(this->hnsw_.cur_element_count, false);
+      vl->reset();
+      vl_type *visited = vl->mass;
+      vl_type visited_tag = vl->curV;
+      // vector<bool> visited(this->hnsw_.cur_element_count, false);
 
       int curr_ci = q * nprobe;
       auto itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]].lower_bound(*l_bound);
@@ -67,8 +70,8 @@ class Compass1dKOr : public Compass1dK<dist_t, attr_t> {
 #ifdef USE_SSE
             _mm_prefetch(this->hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
-            if (visited[tableid]) continue;
-            visited[tableid] = true;
+            if (visited[tableid] == visited_tag) continue;
+            visited[tableid] = visited_tag;
 
             auto vect = this->hnsw_.getDataByInternalId(tableid);
             auto dist = this->hnsw_.fstdistfunc_((float *)query + q * this->d_, vect, this->hnsw_.dist_func_param_);
@@ -94,7 +97,7 @@ class Compass1dKOr : public Compass1dK<dist_t, attr_t> {
             -1,
             top_candidates,
             candidate_set,
-            visited,
+            vl,
             &pred,
             std::ref(bm.qmetrics[q].ncomp),
             std::ref(bm.qmetrics[q].is_graph_ppsl)
