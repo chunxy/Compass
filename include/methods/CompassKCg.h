@@ -9,8 +9,8 @@
 template <typename dist_t, typename attr_t>
 class CompassKCg : public CompassCg<dist_t, attr_t> {
  public:
-  CompassKCg(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist)
-      : CompassCg<dist_t, attr_t>(n, d, da, M, efc, nlist) {
+  CompassKCg(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist, size_t M_cg)
+      : CompassCg<dist_t, attr_t>(n, d, da, M, efc, nlist, M_cg) {
     this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist);
   }
 

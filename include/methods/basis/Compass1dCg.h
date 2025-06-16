@@ -38,8 +38,8 @@ class Compass1dCg : public Compass1d<dist_t, attr_t> {
   }
 
  public:
-  Compass1dCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist) : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist) {
-    this->cgraph_ = new HierarchicalNSW<dist_t>(new L2Space(d), nlist, 8, 200);
+  Compass1dCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t M_cg) : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist) {
+    this->cgraph_ = new HierarchicalNSW<dist_t>(new L2Space(d), nlist, M_cg, 200);
   }
 
   virtual void BuildClusterGraph() = 0;

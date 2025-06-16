@@ -7,8 +7,8 @@
 template <typename dist_t, typename attr_t>
 class Compass1dKOrCg : public Compass1dKCg<dist_t, attr_t> {
  public:
-  Compass1dKOrCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist)
-      : Compass1dKCg<dist_t, attr_t>(n, d, M, efc, nlist) {}
+  Compass1dKOrCg(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t M_cg)
+      : Compass1dKCg<dist_t, attr_t>(n, d, M, efc, nlist, M_cg) {}
 
   // For ranking clusters using graph.
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(

@@ -57,12 +57,12 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
 
-  CompassKCg<float, float> comp(nb, d, c.attr_dim, args.M, args.efc, args.nlist);
+  CompassKCg<float, float> comp(nb, d, c.attr_dim, args.M, args.efc, args.nlist, args.M_cg);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
   std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
-  std::string cgraph_ckp = fmt::format(COMPASS_CGRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist);
+  std::string cgraph_ckp = fmt::format(COMPASS_CGRAPH_CHECKPOINT_TMPL, args.nlist, args.M_cg, 200);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_root / "BisectingKMeans" / c.name / ivf_ckp)) {
     comp.LoadIvf(ckp_root / "BisectingKMeans" / c.name / ivf_ckp);

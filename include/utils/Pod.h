@@ -12,12 +12,13 @@ struct IvfGraph1dArgs {
   std::string datacard;
   float l_bound, u_bound;
   int k = 100;
+  int dx = 64;
   int M = 32;
   int efc = 100;
   int nlist = 1000;  // the number of coarse clusters
-  int dx = 64;
   int nsub = 4;
   int nbits = 4;
+  int M_cg = 4;
   vector<int> nrel = {100};  // the number of candidates proposed by IVF per round
   vector<int> efs = {100};
   vector<int> nprobe = {100};
@@ -35,12 +36,13 @@ struct IvfGraph1dArgs {
     required_configs.add_options()("r", po::value<decltype(u_bound)>(&u_bound)->required());
     required_configs.add_options()("k", po::value<decltype(k)>(&k)->required());
     // index constrcution parameters
+    optional_configs.add_options()("dx", po::value<decltype(dx)>(&dx));
     optional_configs.add_options()("M", po::value<decltype(M)>(&M));
     optional_configs.add_options()("efc", po::value<decltype(efc)>(&efc));
     optional_configs.add_options()("nlist", po::value<decltype(nlist)>(&nlist));
-    optional_configs.add_options()("dx", po::value<decltype(dx)>(&dx));
     optional_configs.add_options()("nsub", po::value<decltype(nsub)>(&nsub));
     optional_configs.add_options()("nbits", po::value<decltype(nbits)>(&nbits));
+    optional_configs.add_options()("M_cg", po::value<decltype(M_cg)>(&M_cg));
     // index search parameters
     optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs)->multitoken());
     optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe)->multitoken());
@@ -66,6 +68,7 @@ struct IvfGraph2dArgs {
   int M = 32;
   int efc = 200;
   int nlist = 1000;  // the number of coarse clusters
+  int M_cg = 4;
   vector<int> efs = {100};
   vector<int> nprobe = {10};
   vector<int> nrel = {200};  // the number of candidates proposed by IVF per round
@@ -86,6 +89,7 @@ struct IvfGraph2dArgs {
     optional_configs.add_options()("M", po::value<decltype(M)>(&M));
     optional_configs.add_options()("efc", po::value<decltype(efc)>(&efc));
     optional_configs.add_options()("nlist", po::value<decltype(nlist)>(&nlist));
+    optional_configs.add_options()("M_cg", po::value<decltype(M_cg)>(&M_cg));
     // index search parameters
     optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs)->multitoken());
     optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe)->multitoken());

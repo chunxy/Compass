@@ -9,8 +9,8 @@
 template <typename dist_t, typename attr_t>
 class CompassPcaCg : public CompassXCg<dist_t, attr_t> {
  public:
-  CompassPcaCg(size_t n, size_t d, size_t dx, size_t da, size_t M, size_t efc, size_t nlist)
-      : CompassXCg<dist_t, attr_t>(n, d, dx, da, M, efc, nlist) {
+  CompassPcaCg(size_t n, size_t d, size_t dx, size_t da, size_t M, size_t efc, size_t nlist, size_t M_cg)
+      : CompassXCg<dist_t, attr_t>(n, d, dx, da, M, efc, nlist, M_cg) {
     auto xivf = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
     auto pca = new faiss::PCAMatrix(d, dx);
     // pca->eigen_power = -0.5;

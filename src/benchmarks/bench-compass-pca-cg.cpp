@@ -57,12 +57,12 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
 
-  CompassPcaCg<float, float> comp(nb, d, args.dx, c.attr_dim, args.M, args.efc, args.nlist);
+  CompassPcaCg<float, float> comp(nb, d, args.dx, c.attr_dim, args.M, args.efc, args.nlist, args.M_cg);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string pca_ivf_ckp = fmt::format(COMPASS_X_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
   std::string pca_rank_ckp = fmt::format(COMPASS_X_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dx);
-  std::string cgraph_ckp = fmt::format(COMPASS_X_CGRAPH_CHECKPOINT_TMPL, args.M, args.efc, args.nlist, args.dx);
+  std::string cgraph_ckp = fmt::format(COMPASS_X_CGRAPH_CHECKPOINT_TMPL, args.nlist, args.M_cg, 200);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_root / "PCA" / c.name / pca_ivf_ckp)) {
     comp.LoadIvf(ckp_root / "PCA" / c.name / pca_ivf_ckp);

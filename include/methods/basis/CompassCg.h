@@ -9,9 +9,9 @@ class CompassCg : public Compass<dist_t, attr_t> {
   HierarchicalNSW<dist_t> *cgraph_;
 
  public:
-  CompassCg(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist)
+  CompassCg(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist, size_t M_cg)
       : Compass<dist_t, attr_t>(n, d, da, M, efc, nlist) {
-    this->cgraph_ = new HierarchicalNSW<dist_t>(new L2Space(d), nlist, 8, 200);
+    this->cgraph_ = new HierarchicalNSW<dist_t>(new L2Space(d), nlist, M_cg, 200);
   }
 
   void SearchClusters(

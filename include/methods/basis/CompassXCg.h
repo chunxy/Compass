@@ -8,9 +8,9 @@ class CompassXCg : public CompassCg<dist_t, attr_t> {
   int dx_;
 
  public:
-  CompassXCg(size_t n, size_t d, size_t dx, size_t da, size_t M, size_t efc, size_t nlist)
-      : CompassCg<dist_t, attr_t>(n, d, da, M, efc, nlist), dx_(dx) {
-    this->cgraph_ = new HierarchicalNSW<dist_t>(new L2Space(dx), nlist, 8, 200);
+  CompassXCg(size_t n, size_t d, size_t dx, size_t da, size_t M, size_t efc, size_t nlist, size_t M_cg)
+      : CompassCg<dist_t, attr_t>(n, d, da, M, efc, nlist, M_cg), dx_(dx) {
+    this->cgraph_ = new HierarchicalNSW<dist_t>(new L2Space(dx), nlist, M_cg, 200);
   }
 
   void SearchClusters(

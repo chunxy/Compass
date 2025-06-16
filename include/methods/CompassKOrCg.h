@@ -7,8 +7,8 @@
 template <typename dist_t, typename attr_t>
 class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
  public:
-  CompassKOrCg(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist)
-      : CompassKCg<dist_t, attr_t>(n, d, da, M, efc, nlist) {}
+  CompassKOrCg(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist, size_t M_cg)
+      : CompassKCg<dist_t, attr_t>(n, d, da, M, efc, nlist, M_cg) {}
 
   vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
       const dist_t *query,
