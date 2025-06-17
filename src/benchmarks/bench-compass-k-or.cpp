@@ -118,6 +118,7 @@ int main(int argc, char **argv) {
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
       fs::path log_root(fmt::format(LOGS, args.k));
+      // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
@@ -127,16 +128,20 @@ int main(int argc, char **argv) {
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
 #endif
-      BatchMetric bm(args.batchsz, nb);
 
-      auto search_start = high_resolution_clock::system_clock::now();
+      int nbatch = nq / args.batchsz;
+      vector<BatchMetric> bms(nbatch, BatchMetric(args.batchsz, nb));
+      vector<vector<vector<pair<float, hnswlib::labeltype>>>> results(nbatch);
+      long long search_time = 0;
 #ifndef COMPASS_DEBUG
 // #pragma omp parallel
 // #pragma omp single
 // #pragma omp taskloop
 #endif
       for (int j = 0; j < nq; j += args.batchsz) {
-        comp.SearchKnn(
+        int b = j / args.batchsz;
+        auto batch_start = high_resolution_clock::system_clock::now();
+        results[b] = comp.SearchKnn(
             xq + j * d,
             args.batchsz,
             args.k,
@@ -146,38 +151,23 @@ int main(int argc, char **argv) {
             efs,
             nrel,
             args.nthread,
-            bm
+            bms[b]
         );
+        auto batch_stop = high_resolution_clock::system_clock::now();
+        auto batch_time = duration_cast<microseconds>(batch_stop - batch_start).count();
+        bms[b].latency = batch_time;
+        search_time += batch_time;
       }
-      auto search_stop = high_resolution_clock::system_clock::now();
-      auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
-
       // statistics
       Stat stat(nq);
       for (int j = 0; j < nq; j += args.batchsz) {
-        BatchMetric bm(args.batchsz, nb);
-        auto search_start = high_resolution_clock::now();
-        auto results = comp.SearchKnn(
-            xq + j * d,
-            args.batchsz,
-            args.k,
-            attrs,
-            args.l_bounds.data(),
-            args.u_bounds.data(),
-            efs,
-            nrel,
-            args.nthread,
-            bm
-        );
-        auto search_stop = high_resolution_clock::now();
-        bm.latency = duration_cast<microseconds>(search_stop - search_start).count();
-
-        vector<float> gt_min_s(results.size()), gt_max_s(results.size());
-        for (int i = 0; i < results.size(); i++) {
+        int b = j / args.batchsz;
+        vector<float> gt_min_s(results[b].size()), gt_max_s(results[b].size());
+        for (int i = 0; i < results[b].size(); i++) {
           gt_min_s[i] = dist_func(xq + (j + i) * d, xb + hybrid_topks[j + i].front() * d, &d);
           gt_max_s[i] = dist_func(xq + (j + i) * d, xb + hybrid_topks[j + i].back() * d, &d);
         }
-        collect_batch_metric(results, bm, hybrid_topks, j, gt_min_s, gt_max_s, EPSILON, nsat, stat);
+        collect_batch_metric(results[b], bms[b], hybrid_topks, j, gt_min_s, gt_max_s, EPSILON, nsat, stat);
       }
 
       auto json = collate_stat(stat, nb, nsat, args.k, nq, search_time, args.nthread, out);

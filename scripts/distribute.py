@@ -265,14 +265,43 @@ def run_grouped_exp(exp_set):
   run_log.write(f"\nTotal Jobs: {len(tasks_to_run)}, Successful: {successful_jobs}, Failed: {len(tasks_to_run) - successful_jobs}\n")
   # --- Conditionally run post-processing ---
   if successful_jobs == len(tasks_to_run):
-    post_process()
+    # post_process()
+    print("Good job!", file=run_log)
   else:
     print("\nSkipping post-processing due to failed jobs.", file=run_log)
   run_log.close()
 
 
 if __name__ == '__main__':
-  run_grouped_exp(ONED_EXPS)
-  run_grouped_exp(TWOD_EXPS)
-  run_grouped_exp(THREED_EXPS)
-  run_grouped_exp(FOURD_EXPS)
+  # run_grouped_exp(ONED_EXPS)
+  # run_grouped_exp(TWOD_EXPS)
+  # run_grouped_exp(THREED_EXPS)
+  # run_grouped_exp(FOURD_EXPS)
+  BASE_EXPS = [
+    "1d-k-exp",
+    "1d-k-cg-exp",
+    "1d-bikmeans-exp",
+    "1d-bikmeans-cg-exp",
+    "2d-k-exp",
+    "2d-k-cg-exp",
+  ]
+  BASE_EXPS_2 = [
+    "2d-bikmeans-exp",
+    "2d-bikmeans-cg-exp",
+    "3d-k-exp",
+    "3d-k-cg-exp",
+    "3d-bikmeans-exp",
+    "3d-bikmeans-cg-exp",
+  ]
+  PCA_EXPS = [
+    "1d-pca-exp",
+    "1d-pca-cg-exp",
+    "2d-pca-exp",
+    "2d-pca-cg-exp",
+    "3d-pca-exp",
+    "3d-pca-cg-exp",
+  ]
+  run_grouped_exp(BASE_EXPS)
+  run_grouped_exp(BASE_EXPS_2)
+  post_process()
+  run_grouped_exp(PCA_EXPS)
