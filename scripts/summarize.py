@@ -350,8 +350,8 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
 
 
 if __name__ == "__main__":
-  # summarize()
-  for da in [1,2]:
+  summarize()
+  for da in DA_S:
     draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
     draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
     draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
