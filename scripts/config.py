@@ -201,7 +201,7 @@ M_ARGS = {
   "SeRF": serf_args,
 }
 
-M_MARKER = {
+M_STYLE = {
   "CompassK": {
     "marker": "o"
   },

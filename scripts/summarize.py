@@ -15,7 +15,7 @@ from config import (
   DATASETS,
   M_ARGS,
   M_DA_RUN,
-  M_MARKER,
+  M_STYLE,
   M_PARAM,
   M_WORKLOAD,
   METHODS,
@@ -35,6 +35,7 @@ types = {
   "search": str,
   "recall": float,
   "qps": float,
+  "tqps": float,
   "ncomp": float,
 }
 
@@ -80,7 +81,7 @@ def summarize():
       ], index="path"
     )
 
-    rec, qps, ncomp = [], [], []
+    rec, qps, tqps, ncomp = [], [], [], []
     for e in entries:
       jsons = list(e[0].glob("*.json"))
       if len(jsons) == 0:
@@ -92,10 +93,12 @@ def summarize():
         # sel.append(f'{stat["aggregated"]["selectivity"]:.2f}')
         rec.append(stat["aggregated"]["recall"])
         qps.append(stat["aggregated"]["qps"])
+        tqps.append(stat["aggregated"].get("tampered_qps", 0))
         ncomp.append(stat["aggregated"]["num_computations"])
     # df["selectivity"] = sel
     df["recall"] = rec
     df["qps"] = qps
+    df["tqps"] = tqps
     df["ncomp"] = ncomp
 
     df.to_csv(f"stats-{da}d.csv")
@@ -112,9 +115,9 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
 
       data = df[selector]
       sel = float(data["selectivity"].unique()[0])
-      fig, axs = plt.subplots(1, 2, layout='constrained')
+      fig, axs = plt.subplots(1, 3, layout='constrained')
       for m in methods:
-        marker = M_MARKER[m]
+        marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
@@ -129,6 +132,11 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
               recall_comp = recall_comp.to_numpy()
               axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
               axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+
+              recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
+              recall_tqps = recall_tqps.to_numpy()
+              axs[2].plot(recall_tqps[:, 0], recall_tqps[:, 1])
+              axs[2].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
           else:
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps.to_numpy()
@@ -146,8 +154,11 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
           axs[1].set_xlabel('Recall')
           axs[1].set_ylabel('# Comp')
           axs[1].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
+          axs[2].set_xlabel('Recall')
+          axs[2].set_ylabel('Tampered QPS')
+          axs[2].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
 
-      fig.set_size_inches(12, 6)
+      fig.set_size_inches(15, 6)
       unique_labels = {}
       for ax in axs.flat:
         ax.set_xlim(xlim)
@@ -164,7 +175,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
 
   for rg in DA_RANGE[da]:
-    fig, axs = plt.subplots(2, len(datasets), layout='constrained')
+    fig, axs = plt.subplots(3, len(datasets), layout='constrained')
     for i, d in enumerate(datasets):
       selector = ((df["dataset"] == d) & (df["range"] == rg))
       if not selector.any():
@@ -173,7 +184,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
       data = df[selector]
       sel = float(data["selectivity"].unique()[0])
       for m in methods:
-        marker = M_MARKER[m]
+        marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
@@ -188,6 +199,11 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
               recall_comp = recall_comp.to_numpy()
               axs[1][i].plot(recall_comp[:, 0], recall_comp[:, 1])
               axs[1][i].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+
+              recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
+              recall_tqps = recall_tqps.to_numpy()
+              axs[2][i].plot(recall_tqps[:, 0], recall_tqps[:, 1])
+              axs[2][i].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
           else:
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps.to_numpy()
@@ -205,8 +221,11 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
           axs[1][i].set_xlabel('Recall')
           axs[1][i].set_ylabel('# Comp')
           axs[1][i].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
+          axs[2][i].set_xlabel('Recall')
+          axs[2][i].set_ylabel('Tampered QPS')
+          axs[2][i].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
 
-      fig.set_size_inches(20, 6)
+      fig.set_size_inches(20, 9)
       unique_labels = {}
       for ax in axs.flat:
         ax.set_xlim(xlim)
@@ -230,7 +249,7 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
 
       data = df[df["dataset"] == d]
       for m in methods:
-        marker = M_MARKER[m]
+        marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
@@ -283,7 +302,7 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
     for i, d in enumerate(datasets):
       data = df[df["dataset"] == d]
       for m in methods:
-        marker = M_MARKER[m]
+        marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
@@ -331,8 +350,8 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
 
 
 if __name__ == "__main__":
-  summarize()
-  for da in DA_S:
+  # summarize()
+  for da in [1,2]:
     draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
     draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
     draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
