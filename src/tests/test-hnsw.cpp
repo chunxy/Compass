@@ -30,19 +30,20 @@ int main(int argc, char **argv) {
   // IvfGraph1dArgs args(argc, argv);
 
   extern std::map<std::string, DataCard> name_to_card;
-  DataCard c = name_to_card["audio_1_10000_float32"];
+  DataCard c = name_to_card["siftsmall_1_1000_float32"];
+  float l = 0, r = 1000;
+  int k = 500;
+
   size_t d = c.dim;          // This has to be size_t due to dist_func() call.
   int nb = c.n_base;         // number of database vectors
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
-  // assert(nq % batchsz == 0);
-  int M = 32, efc = 200;
-  int k = 10;
+  int M = 8, efc = 200;
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-  fs::path root("/home/chunxy/repos/Compass/src/tests/test_hnsw");
+  fs::path root("/home/chunxy/repos/Compass/scratches/test-hnsw");
 
   fmt::print("Saving to {}.\n", (root / out_json).string());
 
@@ -55,7 +56,7 @@ int main(int argc, char **argv) {
 
   // Load groundtruth for hybrid search.
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, {0}, vector<float>{10000}, k, hybrid_topks);
+  load_hybrid_query_gt(c, {l},{r}, k, hybrid_topks);
   fmt::print("Finished loading groundtruth.\n");
 
   L2Space l2space(d);
@@ -75,7 +76,7 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading/building index\n");
 
   nlohmann::json json;
-  for (auto efs : {100, 200, 500}) {
+  for (auto efs : {50, 100, 150, 200}) {
     int initial_ncomp = comp->metric_distance_computations.load();
     int initial_nhops = comp->metric_hops.load();
     comp->setEf(efs);
@@ -101,7 +102,7 @@ int main(int argc, char **argv) {
         if (d <= gt_max + 1e-5) tp++;
       }
     }
-    json[fmt::to_string(efs)]["recall"] = (double)tp / nq * k;
+    json[fmt::to_string(efs)]["recall"] = (double)tp / nq / k;
     json[fmt::to_string(efs)]["qps"] = nq * 1000000. / search_time;
     json[fmt::to_string(efs)]["num_computations"] =
         (comp->metric_distance_computations.load() - initial_ncomp) / 2. / nq;
