@@ -1,7 +1,6 @@
 #include "utils/funcs.h"
 #include <fmt/core.h>
 #include <fmt/ranges.h>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -15,8 +14,11 @@
 #include "utils/reader.h"
 
 float *load_float32(const string &path, const int n, const int d) {
-  auto storage = new float[n * d];
   std::ifstream in(path);
+  if (!in.good()) {
+    throw fmt::format("Failed to open file: {}", path);
+  }
+  auto storage = new float[n * d];
   in.read((char *)storage, sizeof(float) * n * d);
   return storage;
 }
@@ -89,13 +91,14 @@ void load_hybrid_query_gt(
     gt_path = fmt::format(HYBRID_GT_PATH_TMPL, c.name, c.attr_range, l_bounds, u_bounds, k);
   }
 
-  assert(std::ifstream(gt_path).good());
   hybrid_topks.resize(c.n_queries);
   int i = 0;
   IVecItrReader groundtruth_it(gt_path);
   while (!groundtruth_it.HasEnded()) {
     auto topk = groundtruth_it.Next();
-    assert(k <= topk.size());
+    if (k > topk.size()) {
+      throw fmt::format("k ({}) is greater than the size of the ground truth ({})", k, topk.size());
+    }
     hybrid_topks[i].resize(k);
     for (int j = 0; j < k; j++) {
       hybrid_topks[i][j] = topk[j];
@@ -156,7 +159,6 @@ void load_filter_data(
 void load_filter_query_gt(const DataCard &c, const int k, vector<vector<labeltype>> &hybrid_topks) {
   std::string gt_path = fmt::format(FILTER_GT_PATH_TMPL, c.name, c.attr_range, k);
 
-  assert(std::ifstream(gt_path).good());
   hybrid_topks.resize(c.n_queries);
   int i = 0;
   IVecItrReader groundtruth_it(gt_path);

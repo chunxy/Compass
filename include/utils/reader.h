@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sys/types.h>
-#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>
@@ -34,8 +33,6 @@ class IVecItrReader {
   bool HasEnded();
 };
 
-class TextAttrReader {};
-
 template <typename T>
 class AttrReaderToVector {
  private:
@@ -52,7 +49,9 @@ class AttrReaderToVector {
   AttrReaderToVector(std::string from) {
     uint32_t n, d;
     std::ifstream ifs(from, std::ios::binary);
-    assert(ifs.is_open());
+    if (!ifs.good()) {
+      throw "Failed to open file: " + from;
+    }
 
     ifs.read((char *)&d, sizeof(d));
     ifs.seekg(0, std::ios::end);
@@ -111,7 +110,9 @@ class AttrReaderToRaw {
   AttrReaderToRaw(std::string from) {
     uint32_t n, d;
     std::ifstream ifs(from, std::ios::binary);
-    assert(ifs.is_open());
+    if (!ifs.good()) {
+      throw "Failed to open file: " + from;
+    }
 
     ifs.read((char *)&d, sizeof(d));
     ifs.seekg(0, std::ios::end);

@@ -1,13 +1,14 @@
 #include "utils/reader.h"
-#include <cassert>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <vector>
 
 FVecItrReader::FVecItrReader(std::string dataset_path) {
-  ifs_.open(dataset_path.c_str(), std::ios::binary & std::ios::in);
-  assert(ifs_.is_open());
+  ifs_.open(dataset_path, std::ios::binary | std::ios::in);
+  if (!ifs_.good()) {
+    throw "Failed to open file: " + dataset_path;
+  }
   eof_flag_ = false;
   Next();
 }
@@ -28,8 +29,10 @@ std::vector<float> FVecItrReader::Next() {
 bool FVecItrReader::HasEnded() { return eof_flag_; }
 
 IVecItrReader::IVecItrReader(std::string dataset_path) {
-  ifs_.open(dataset_path.c_str(), std::ios::binary & std::ios::in);
-  assert(ifs_.is_open());
+  ifs_.open(dataset_path, std::ios::binary | std::ios::in);
+  if (!ifs_.good()) {
+    throw "Failed to open file: " + dataset_path;
+  }
   eof_flag_ = false;
   Next();
 }
