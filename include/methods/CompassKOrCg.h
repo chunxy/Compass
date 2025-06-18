@@ -10,7 +10,7 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
   CompassKOrCg(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist, size_t M_cg)
       : CompassKCg<dist_t, attr_t>(n, d, da, M, efc, nlist, M_cg) {}
 
-  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
+  vector<priority_queue<pair<dist_t, labeltype>>> SearchKnn(
       const dist_t *query,
       const int nq,
       const int k,
@@ -27,15 +27,15 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
     int nprobe = this->nlist_ / 20;
     this->SearchClusters(nq, query, nprobe, this->query_cluster_rank_, bm, this->distances_);
 
-    vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
+    vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);
     VisitedList *vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
-      priority_queue<pair<float, int64_t>> top_candidates;
-      priority_queue<pair<float, int64_t>> candidate_set;
-      priority_queue<pair<float, int64_t>> recycle_set;
+      priority_queue<pair<dist_t, labeltype>> top_candidates;
+      priority_queue<pair<dist_t, labeltype>> candidate_set;
+      priority_queue<pair<dist_t, labeltype>> recycle_set;
 
       vl->reset();
       vl_type *visited = vl->mass;
@@ -169,11 +169,7 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
       }
       bm.qmetrics[q].nrecycled = nrecycled;
       while (top_candidates.size() > k) top_candidates.pop();
-      size_t sz = top_candidates.size();
-      while (!top_candidates.empty()) {
-        results[q][--sz] = top_candidates.top();
-        top_candidates.pop();
-      }
+      results[q] = std::move(top_candidates);
     }
 
     return results;

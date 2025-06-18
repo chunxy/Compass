@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
 
       int nbatch = nq / args.batchsz;
       vector<BatchMetric> bms(nbatch, BatchMetric(args.batchsz, nb));
-      vector<vector<vector<pair<float, hnswlib::labeltype>>>> results(nbatch);
+      vector<vector<priority_queue<pair<float, hnswlib::labeltype>>>> results(nbatch);
       long long search_time = 0;
 #ifndef COMPASS_DEBUG
 // #pragma omp parallel

@@ -219,9 +219,9 @@ void stat_selectivity(
 }
 
 void collect_batch_metric(
-    const vector<vector<pair<float, labeltype>>> &results,  // indexed with i
-    const BatchMetric &bm,                                  // indexed with i
-    const vector<vector<labeltype>> &hybrid_topks,          // indexed from curr
+    const vector<priority_queue<pair<float, labeltype>>> &results,  // indexed with i
+    const BatchMetric &bm,                                          // indexed with i
+    const vector<vector<labeltype>> &hybrid_topks,                  // indexed from curr
     const int curr,
     const vector<float> &gt_min_s,  // indexed with i
     const vector<float> &gt_max_s,  // indexed with i
@@ -232,26 +232,29 @@ void collect_batch_metric(
   for (int i = 0, j = curr; i < results.size(); i++, j++) {
     auto rz = results[i];
     auto metric = bm.qmetrics[i];
+    float rz_min = std::numeric_limits<float>::max(), rz_max = std::numeric_limits<float>::min();
     int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;
     int ivf_ppsl_in_tp = 0, graph_ppsl_in_tp = 0;
-    for (auto pair : rz) {
+    while (!rz.empty()) {
+      auto pair = rz.top();
+      rz.pop();
       auto id = pair.second;
-      auto d = pair.first;
+      auto dist = pair.first;
       if (metric.is_ivf_ppsl[id])
         ivf_ppsl_in_rz++;
       else if (metric.is_graph_ppsl[id])
         graph_ppsl_in_rz++;
       if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), id) != hybrid_topks[j].end() ||
-          d <= gt_max_s[i] + EPSILON) {
+          dist <= gt_max_s[i] + EPSILON) {
         if (metric.is_ivf_ppsl[id])
           ivf_ppsl_in_tp++;
         else if (metric.is_graph_ppsl[id])
           graph_ppsl_in_tp++;
       }
+      rz_min = std::min(rz_min, dist);
+      rz_max = std::max(rz_max, dist);
     }
 
-    stat.rz_min_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.front().first;
-    stat.rz_max_s[j] = rz.empty() ? std::numeric_limits<float>::max() : rz.back().first;
     stat.ivf_ppsl_in_rz_s[j] = ivf_ppsl_in_rz;
     stat.graph_ppsl_in_rz_s[j] = graph_ppsl_in_rz;
     stat.gt_min_s[j] = gt_min_s[i];

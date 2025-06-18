@@ -82,8 +82,8 @@ class CompassGraph {
       auto rel_end = rtree_.qend();
       auto curr = rel_beg;
 
-      std::priority_queue<pair<attr_t, int64_t>> top_candidates;
-      std::priority_queue<pair<attr_t, int64_t>> candidate_set;
+      std::priority_queue<pair<dist_t, labeltype>> top_candidates;
+      std::priority_queue<pair<dist_t, labeltype>> candidate_set;
 
       vl_type *visited = vl->mass;
       vl_type visited_tag = vl->curV;

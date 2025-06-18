@@ -14,6 +14,7 @@
 namespace fs = boost::filesystem;
 using hnswlib::L2Space;
 using hnswlib::labeltype;
+using std::priority_queue;
 using std::pair;
 using std::vector;
 
@@ -75,7 +76,7 @@ class HybridIndex {
 
   virtual void LoadRanking(fs::path path, attr_t *attrs) = 0;
 
-  virtual vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
+  virtual vector<priority_queue<pair<dist_t, labeltype>>> SearchKnn(
       const std::variant<const dist_t *, pair<const dist_t *, const dist_t *>> &var,
       const int nq,
       const int k,

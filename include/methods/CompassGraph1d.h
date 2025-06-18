@@ -67,8 +67,8 @@ class CompassGraph1d {
       auto pred_end = btree_.upper_bound(u_bound);
       auto curr = pred_beg;
 
-      std::priority_queue<pair<attr_t, int64_t>> top_candidates;
-      std::priority_queue<pair<attr_t, int64_t>> candidate_set;
+      std::priority_queue<pair<dist_t, labeltype>> top_candidates;
+      std::priority_queue<pair<dist_t, labeltype>> candidate_set;
 
       vl_type *visited = vl->mass;
       vl_type visited_tag = vl->curV;

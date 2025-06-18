@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <queue>
 #include <vector>
 #include "card.h"
 #include "hnswlib.h"
@@ -9,6 +10,7 @@
 
 using hnswlib::labeltype;
 using std::pair;
+using std::priority_queue;
 using std::vector;
 
 float *load_float32(const string &path, const int n, const int d);
@@ -55,9 +57,9 @@ void stat_selectivity(
 );
 
 void collect_batch_metric(
-    const vector<vector<pair<float, labeltype>>> &results,  // indexed with i
-    const BatchMetric &bm,                                  // indexed with i
-    const vector<vector<labeltype>> &hybrid_topks,          // indexed from curr
+    const vector<priority_queue<pair<float, labeltype>>> &results,  // indexed with i
+    const BatchMetric &bm,                                          // indexed with i
+    const vector<vector<labeltype>> &hybrid_topks,                  // indexed from curr
     const int curr,
     const vector<float> &gt_min_s,  // indexed with i
     const vector<float> &gt_max_s,  // indexed with i

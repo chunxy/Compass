@@ -67,7 +67,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
   }
 
   // By default, we will not use the distances to centroids.
-  vector<vector<pair<float, hnswlib::labeltype>>> SearchKnn(
+  vector<priority_queue<pair<dist_t, labeltype>>> SearchKnn(
       const std::variant<const dist_t *, pair<const dist_t *, const dist_t *>> &var,
       const int nq,
       const int k,
@@ -93,15 +93,15 @@ class Compass : public HybridIndex<dist_t, attr_t> {
     }
     SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_, bm);
 
-    vector<vector<pair<dist_t, labeltype>>> results(nq, vector<pair<dist_t, labeltype>>(k));
+    vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);
     VisitedList* vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
-      priority_queue<pair<float, int64_t>> top_candidates;
-      priority_queue<pair<float, int64_t>> candidate_set;
-      priority_queue<pair<float, int64_t>> recycle_set;
+      priority_queue<pair<dist_t, labeltype>> top_candidates;
+      priority_queue<pair<dist_t, labeltype>> candidate_set;
+      priority_queue<pair<dist_t, labeltype>> recycle_set;
 
       vl->reset();
       vl_type *visited = vl->mass;
@@ -236,11 +236,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
       }
       bm.qmetrics[q].nrecycled = nrecycled;
       while (top_candidates.size() > k) top_candidates.pop();
-      size_t sz = top_candidates.size();
-      while (!top_candidates.empty()) {
-        results[q][--sz] = top_candidates.top();
-        top_candidates.pop();
-      }
+      results[q] = std::move(top_candidates);
     }
 
     return results;

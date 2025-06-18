@@ -85,8 +85,8 @@ int main(int argc, char **argv) {
     vector<bool> is_graph_ppsl(nb);
     auto search_start = high_resolution_clock::system_clock::now();
     for (int j = 0; j < nq; j++) {
-      priority_queue<pair<float, int64_t>> top_candidates;
-      priority_queue<pair<float, int64_t>> candidate_set;
+      priority_queue<pair<float, labeltype>> top_candidates;
+      priority_queue<pair<float, labeltype>> candidate_set;
 
       vector<bool> visited(comp->cur_element_count, false);
 
