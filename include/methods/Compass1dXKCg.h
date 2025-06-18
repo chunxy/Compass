@@ -8,7 +8,6 @@ template <typename dist_t, typename attr_t>
 class Compass1dXKCg : public Compass1dXCg<dist_t, attr_t> {
  protected:
   HierarchicalNSW<dist_t> cgraph_;
-  size_t dx_;
 
  public:
   Compass1dXKCg(size_t n, size_t d, size_t dx, size_t M, size_t efc, size_t nlist, size_t M_cg)
