@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
       for (int j = 0; j < nq; j += args.batchsz) {
         int b = j / args.batchsz;
         auto batch_start = high_resolution_clock::system_clock::now();
-        results[b] = comp.SearchKnn(
+        results[b] = std::move(comp.SearchKnn(
             xq + j * d,
             args.batchsz,
             args.k,
@@ -168,7 +168,7 @@ int main(int argc, char **argv) {
             nrel,
             args.nthread,
             bms[b]
-        );
+        ));
         auto batch_stop = high_resolution_clock::system_clock::now();
         auto batch_time = duration_cast<microseconds>(batch_stop - batch_start).count();
         bms[b].latency = batch_time;
