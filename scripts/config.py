@@ -80,14 +80,14 @@ SOTA_METHODS = ["iRangeGraph", "SeRF"]
 METHODS = COMPASS_METHODS + SOTA_METHODS
 
 compass_group_dataset = {
-  "1": ["crawl"],
+  "1": ["crawl", "audio"],
   "2": ["video", "glove100"],
-  "3": ["sift", "gist", "audio"],
+  "3": ["sift", "gist"],
 }
 compassx_group_dataset = {
-  "1": ["crawl"],
+  "1": ["crawl", "audio"],
   "2": ["video", "gist"],
-  "3": ["sift", "glove100", "audio"],
+  "3": ["sift", "glove100"],
 }
 M_GROUP_DATASET = {
   **{
