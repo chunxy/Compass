@@ -35,4 +35,4 @@ const std::string COMPASS_GRAPH_CHECKPOINT_TMPL = "{}_{}.hnsw";             // {
 const std::string COMPASS_CGRAPH_CHECKPOINT_TMPL = "{}-{}-{}.hnsw";         // {nlist}-{M}-{efc}
 const std::string COMPASS_X_IVF_CHECKPOINT_TMPL = "{}-{}.x.ivf";            // {nlist}-{dx}
 const std::string COMPASS_X_RANK_CHECKPOINT_TMPL = "{}-{}-{}.x.rank";       // {nb}-{nlist}-{dx}
-const std::string COMPASS_X_CGRAPH_CHECKPOINT_TMPL = "{}-{}-{}-{}.x.hnsw";  // {M}-{efc}-{nlist}-{dx}
+const std::string COMPASS_X_CGRAPH_CHECKPOINT_TMPL = "{}-{}-{}-{}.x.hnsw";  // {nlist}-{M}-{efc}-{dx}
