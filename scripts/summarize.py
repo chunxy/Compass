@@ -95,7 +95,7 @@ def summarize():
         qps.append(stat["aggregated"]["qps"])
         tqps.append(stat["aggregated"].get("tampered_qps", 0))
         ncomp.append(stat["aggregated"]["num_computations"])
-        if "latency_in_s" in stat["aggregated"]:
+        if "cluster_search_time_in_s" in stat["aggregated"] and "latency_in_s" in stat["aggregated"]:
           prop.append(stat["aggregated"]["cluster_search_time_in_s"] / stat["aggregated"]["latency_in_s"])
         else:
           prop.append(0)
