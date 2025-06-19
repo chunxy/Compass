@@ -81,7 +81,7 @@ def summarize():
       ], index="path"
     )
 
-    rec, qps, tqps, ncomp = [], [], [], []
+    rec, qps, tqps, ncomp, prop = [], [], [], [], []
     for e in entries:
       jsons = list(e[0].glob("*.json"))
       if len(jsons) == 0:
@@ -95,6 +95,10 @@ def summarize():
         qps.append(stat["aggregated"]["qps"])
         tqps.append(stat["aggregated"].get("tampered_qps", 0))
         ncomp.append(stat["aggregated"]["num_computations"])
+        if "latency_in_s" in stat["aggregated"]:
+          prop.append(stat["aggregated"]["cluster_search_time_in_s"] / stat["aggregated"]["latency_in_s"])
+        else:
+          prop.append(0)
     # df["selectivity"] = sel
     df["recall"] = rec
     df["qps"] = qps
@@ -115,7 +119,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
 
       data = df[selector]
       sel = float(data["selectivity"].unique()[0])
-      fig, axs = plt.subplots(1, 3, layout='constrained')
+      fig, axs = plt.subplots(1, 4, layout='constrained')
       for m in methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
@@ -137,6 +141,12 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
               recall_tqps = recall_tqps.to_numpy()
               axs[2].plot(recall_tqps[:, 0], recall_tqps[:, 1])
               axs[2].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+
+              recall_prop = data_by_m_b_nrel[["recall", "proportion"]].sort_values(["recall", "proportion"], ascending=[True, True])
+              recall_prop = recall_prop.to_numpy()
+              axs[3].plot(recall_prop[:, 0], recall_prop[:, 1])
+              axs[3].scatter(recall_prop[:, 0], recall_prop[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+
           else:
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps.to_numpy()
@@ -175,7 +185,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
 
   for rg in DA_RANGE[da]:
-    fig, axs = plt.subplots(3, len(datasets), layout='constrained')
+    fig, axs = plt.subplots(4, len(datasets), layout='constrained')
     for i, d in enumerate(datasets):
       selector = ((df["dataset"] == d) & (df["range"] == rg))
       if not selector.any():
@@ -204,6 +214,11 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
               recall_tqps = recall_tqps.to_numpy()
               axs[2][i].plot(recall_tqps[:, 0], recall_tqps[:, 1])
               axs[2][i].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+
+              recall_prop = data_by_m_b_nrel[["recall", "proportion"]].sort_values(["recall", "proportion"], ascending=[True, True])
+              recall_prop = recall_prop.to_numpy()
+              axs[3][i].plot(recall_prop[:, 0], recall_prop[:, 1])
+              axs[3][i].scatter(recall_prop[:, 0], recall_prop[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
           else:
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps.to_numpy()
