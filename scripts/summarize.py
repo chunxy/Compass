@@ -37,6 +37,7 @@ types = {
   "qps": float,
   "tqps": float,
   "ncomp": float,
+  "prop": float,
 }
 
 xlim = [0.6, 1]
@@ -104,6 +105,7 @@ def summarize():
     df["qps"] = qps
     df["tqps"] = tqps
     df["ncomp"] = ncomp
+    df["prop"] = prop
 
     df.to_csv(f"stats-{da}d.csv")
 
@@ -142,7 +144,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
               axs[2].plot(recall_tqps[:, 0], recall_tqps[:, 1])
               axs[2].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
-              recall_prop = data_by_m_b_nrel[["recall", "proportion"]].sort_values(["recall", "proportion"], ascending=[True, True])
+              recall_prop = data_by_m_b_nrel[["recall", "prop"]].sort_values(["recall", "prop"], ascending=[True, True])
               recall_prop = recall_prop.to_numpy()
               axs[3].plot(recall_prop[:, 0], recall_prop[:, 1])
               axs[3].scatter(recall_prop[:, 0], recall_prop[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
@@ -152,6 +154,8 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
             recall_qps = recall_qps.to_numpy()
             axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
             axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
+            axs[2].plot(recall_qps[:, 0], recall_qps[:, 1])
+            axs[2].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
 
             recall_comp = data_by_m_b[["recall", "ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
             recall_comp = recall_comp.to_numpy()
@@ -167,8 +171,11 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
           axs[2].set_xlabel('Recall')
           axs[2].set_ylabel('Tampered QPS')
           axs[2].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
+          axs[3].set_xlabel('Recall')
+          axs[3].set_ylabel('Initial / Racing')
+          axs[3].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
 
-      fig.set_size_inches(15, 6)
+      fig.set_size_inches(15, 5)
       unique_labels = {}
       for ax in axs.flat:
         ax.set_xlim(xlim)
@@ -215,7 +222,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
               axs[2][i].plot(recall_tqps[:, 0], recall_tqps[:, 1])
               axs[2][i].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
-              recall_prop = data_by_m_b_nrel[["recall", "proportion"]].sort_values(["recall", "proportion"], ascending=[True, True])
+              recall_prop = data_by_m_b_nrel[["recall", "prop"]].sort_values(["recall", "prop"], ascending=[True, True])
               recall_prop = recall_prop.to_numpy()
               axs[3][i].plot(recall_prop[:, 0], recall_prop[:, 1])
               axs[3][i].scatter(recall_prop[:, 0], recall_prop[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
@@ -224,6 +231,8 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
             recall_qps = recall_qps.to_numpy()
             axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
             axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
+            axs[2][i].plot(recall_qps[:, 0], recall_qps[:, 1])
+            axs[2][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
 
             recall_comp = data_by_m_b[["recall", "ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
             recall_comp = recall_comp.to_numpy()
@@ -239,6 +248,9 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
           axs[2][i].set_xlabel('Recall')
           axs[2][i].set_ylabel('Tampered QPS')
           axs[2][i].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
+          axs[3][i].set_xlabel('Recall')
+          axs[3][i].set_ylabel('Initial / Racing')
+          axs[3][i].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
 
       fig.set_size_inches(20, 9)
       unique_labels = {}
