@@ -139,27 +139,24 @@ serf_args = {
 dataset_args = {
   "sift": {
     "dx": [64],
-    "nlist": [10000],
+    "nlist": [5000, 10000],
   },
   "glove100": {
     "dx": [64],
-    "nlist": [20000],
+    "efs": compass_args["efs"] + [350, 400, 500]
   },
   "audio": {
     "dx": [64],
-    "nlist": [10000],
+    "nlist": [5000, 10000],
   },
   "video": {
     "dx": [256, 512],
-    "nlist": [20000],
   },
   "gist": {
     "dx": [256, 512],
-    "nlist": [20000],
   },
   "crawl": {
     "dx": [128, 256],
-    "nlist": [20000]
   }
 }
 

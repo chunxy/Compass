@@ -266,7 +266,7 @@ def run_grouped_exp(exp_set):
   # --- Conditionally run post-processing ---
   if successful_jobs == len(tasks_to_run):
     # post_process()
-    print("Good job!", file=run_log)
+    print("\nGood job!", file=run_log)
   else:
     print("\nSkipping post-processing due to failed jobs.", file=run_log)
   run_log.close()
