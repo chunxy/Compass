@@ -24,7 +24,7 @@ def cleanup_connections(signum=None, frame=None):
   print("\nCleaning up remote processes...")
   for conn in active_connections:
     try:
-      conn.run(f"cat {PID_FILE} | xargs kill -9", warn=True, hide=True)
+      conn.run(f"kill $(ps -s $(cat {PID_FILE}) -o pid=)", warn=True, hide=True)
       print(f"Cleaned up processes on {conn.host}")
     except Exception as e:
       print(f"Error cleaning up {conn.host}: {e}")
@@ -151,7 +151,7 @@ def run_remote_job(args):
           'stdout': result.stdout.strip(),
           'stderr': result.stderr.strip(),
           'exit_code': result.return_code,
-          "ftime": datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+          'ftime': datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         })
 
         if result.ok:
@@ -277,7 +277,7 @@ if __name__ == '__main__':
   # run_grouped_exp(TWOD_EXPS)
   # run_grouped_exp(THREED_EXPS)
   # run_grouped_exp(FOURD_EXPS)
-  BASE_EXPS = [
+  EXPS_1 = [
     "1d-k-exp",
     "1d-k-cg-exp",
     "1d-bikmeans-exp",
@@ -285,7 +285,7 @@ if __name__ == '__main__':
     "2d-k-exp",
     "2d-k-cg-exp",
   ]
-  BASE_EXPS_2 = [
+  EXPS_2 = [
     "2d-bikmeans-exp",
     "2d-bikmeans-cg-exp",
     "3d-k-exp",
@@ -301,7 +301,7 @@ if __name__ == '__main__':
     "3d-pca-exp",
     "3d-pca-cg-exp",
   ]
-  run_grouped_exp(BASE_EXPS)
-  run_grouped_exp(BASE_EXPS_2)
-  post_process()
+  run_grouped_exp(EXPS_1)
+  run_grouped_exp(EXPS_2)
   run_grouped_exp(PCA_EXPS)
+  post_process()
