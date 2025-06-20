@@ -86,6 +86,20 @@ DataCard siftsmall_1_1000_float32{
     "float32",
 };
 
+DataCard siftsmall_1_1000_top500_float32{
+    "siftsmall",
+    siftsmall_bpath,
+    siftsmall_qpath,
+    "/home/chunxy/repos/Compass/data/gt/siftsmall_1000_{0}_{1000}_500.hybrid.gt",
+    128,
+    10000,
+    100,
+    500,
+    1,
+    1000,
+    "float32",
+};
+
 DataCard siftsmall_2_1000_float32{
     "siftsmall",
     siftsmall_bpath,
@@ -847,6 +861,7 @@ std::map<std::string, DataCard> name_to_card{
     {"siftsmall_1_1000_int32", siftsmall_1_1000_int32},
     // {"siftsmall_1_100_float32", siftsmall_1_100_float32},
     {"siftsmall_1_1000_float32", siftsmall_1_1000_float32},
+    {"siftsmall_1_1000_top500_float32", siftsmall_1_1000_top500_float32},
     {"siftsmall_2_1000_float32", siftsmall_2_1000_float32},
     {"sift_1_2_int32", sift_1_2_int32},
     {"sift_1_5_int32", sift_1_5_int32},

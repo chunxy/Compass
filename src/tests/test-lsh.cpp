@@ -7,10 +7,8 @@
 #include <numeric>
 #include <set>
 
-#include <faiss/IndexFlat.h>
-#include <faiss/IndexIVFPQ.h>
+#include <faiss/IndexLSH.h>
 #include <fmt/format.h>
-#include "config.h"
 #include "hnswlib/hnswlib.h"
 #include "utils/card.h"
 #include "utils/reader.h"
@@ -20,20 +18,20 @@ using idx_t = faiss::idx_t;
 int main() {
   auto func = hnswlib::L2Sqr;
   extern DataCard siftsmall_1_1000_float32;
-  unsigned long d = siftsmall_1_1000_float32.dim;  // dimension
-  int nb = siftsmall_1_1000_float32.n_base;        // database size
-  int nq = siftsmall_1_1000_float32.n_queries;     // nb of queries
+  size_t d = siftsmall_1_1000_float32.dim;      // dimension
+  int nb = siftsmall_1_1000_float32.n_base;     // database size
+  int nq = siftsmall_1_1000_float32.n_queries;  // nb of queries
   int nk = siftsmall_1_1000_float32.n_groundtruth;
 
   std::string groundtruth_path = siftsmall_1_1000_float32.groundtruth_path;
   std::string query_path = siftsmall_1_1000_float32.query_path;
   std::string base_path = siftsmall_1_1000_float32.base_path;
-  std::string attr_path = fmt::format(
-      VALUE_PATH_TMPL,
-      siftsmall_1_1000_float32.name,
-      siftsmall_1_1000_float32.attr_dim,
-      siftsmall_1_1000_float32.attr_range
-  );
+  // std::string attr_path = fmt::format(
+  //     VALUE_PATH_TMPL,
+  //     siftsmall_1_1000_float32.name,
+  //     siftsmall_1_1000_float32.attr_dim,
+  //     siftsmall_1_1000_float32.attr_range
+  // );
 
   FVecItrReader base_it(base_path);
   FVecItrReader query_it(query_path);
@@ -59,32 +57,29 @@ int main() {
     memcpy(gt + i * nk, next.data(), nk * sizeof(uint32_t));
     i++;
   }
-  AttrReaderToVector<float> reader(attr_path);
-  auto attrs = reader.GetAttrs();
+  // AttrReaderToVector<float> reader(attr_path);
+  // auto attrs = reader.GetAttrs();
 
-  int nlist = 100;                  // number of coarse clusters
-  int m = 8;                        // the number of dimensions per group
-  int nbits = 8;                    // the number of bits to represent the sub-centroid
-  faiss::IndexFlatL2 quantizer(d);  // the other index
-  faiss::IndexIVFPQ index(&quantizer, d, nlist, m, nbits);
-
+  int nbits = 1024;
+  faiss::IndexLSH index(d, nbits);
   index.train(nb, xb);
   index.add(nb, xb);
 
   omp_set_num_threads(1);
-  int k = 100;
+  int k = nk;
   {  // search xq
     idx_t *I = new idx_t[k * nq];
     float *D = new float[k * nq];
 
-    index.nprobe = 30;
     auto search_start = std::chrono::high_resolution_clock::now();
-    // Returned D are sorted according to the distance in the quantization space,
+    // Returned D are sorted according to the distance in the hashed space,
     // which does not necessarily reflect the distance in the original space.
-    index.search(nq, xq, k, D, I);
+    index.assign(nq, xq, I, k);
     auto search_end = std::chrono::high_resolution_clock::now();
     auto search_duration = std::chrono::duration_cast<std::chrono::microseconds>(search_end - search_start);
     fmt::print("QPS: {}\n", nq * 1e6 / search_duration.count());
+
+    index.search(nq, xq, k, D, I);
 
     std::vector<float> recall_at_ks(nq);
     for (int i = 0; i < nq; i++) {
@@ -106,13 +101,8 @@ int main() {
           corresp_dist
       );
     }
-    auto sum_of_recalls =
-        std::accumulate(recall_at_ks.begin(), recall_at_ks.end(), decltype(recall_at_ks)::value_type(0));
+    auto sum_of_recalls = std::accumulate(recall_at_ks.begin(), recall_at_ks.end(), 0.);
     printf("Average Recall: %4g%%\n", sum_of_recalls / nq * 100);
-
-    idx_t *coarse_lists = new idx_t[k * nq];
-    uint8_t *pq_codes = new uint8_t[index.code_size * nq];
-    index.quantizer->assign(nq, xq, coarse_lists);
 
     delete[] I;
     delete[] D;
