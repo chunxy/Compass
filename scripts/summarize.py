@@ -130,35 +130,35 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
             for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
               recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-              recall_qps = recall_qps.to_numpy()
+              recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
               axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
               axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
               recall_comp = data_by_m_b_nrel[["recall", "ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
-              recall_comp = recall_comp.to_numpy()
+              recall_comp = recall_comp[recall_comp["recall"].gt(xlim[0])].to_numpy()
               axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
               axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
               recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
-              recall_tqps = recall_tqps.to_numpy()
+              recall_tqps = recall_tqps[recall_tqps["recall"].gt(xlim[0])].to_numpy()
               axs[2].plot(recall_tqps[:, 0], recall_tqps[:, 1])
               axs[2].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
               recall_prop = data_by_m_b_nrel[["recall", "prop"]].sort_values(["recall", "prop"], ascending=[True, True])
-              recall_prop = recall_prop.to_numpy()
+              recall_prop = recall_prop[recall_prop["recall"].gt(xlim[0])].to_numpy()
               axs[3].plot(recall_prop[:, 0], recall_prop[:, 1])
               axs[3].scatter(recall_prop[:, 0], recall_prop[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
           else:
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-            recall_qps = recall_qps.to_numpy()
+            recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
             axs[0].plot(recall_qps[:, 0], recall_qps[:, 1])
             axs[0].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
             axs[2].plot(recall_qps[:, 0], recall_qps[:, 1])
             axs[2].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
 
             recall_comp = data_by_m_b[["recall", "ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
-            recall_comp = recall_comp.to_numpy()
+            recall_comp = recall_comp[recall_comp["recall"].gt(xlim[0])].to_numpy()
             axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
             axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}", **marker)
 
@@ -184,7 +184,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
           if label not in unique_labels:
             unique_labels[label] = handle
       fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
-      fig.savefig(f"{prefix}{da}d-10/{d.upper()}/{d.upper()}-{anno}-{rg}-QPS-Comp-Recall.jpg", dpi=200)
+      fig.savefig(f"{prefix}/{d.upper()}/{d.upper()}-{anno}-{rg}-QPS-Comp-Recall.jpg", dpi=200)
       plt.close()
 
 
@@ -208,34 +208,34 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
             for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
               recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-              recall_qps = recall_qps.to_numpy()
+              recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
               axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
               axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
               recall_comp = data_by_m_b_nrel[["recall", "ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
-              recall_comp = recall_comp.to_numpy()
+              recall_comp = recall_comp[recall_comp["recall"].gt(xlim[0])].to_numpy()
               axs[1][i].plot(recall_comp[:, 0], recall_comp[:, 1])
               axs[1][i].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
               recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
-              recall_tqps = recall_tqps.to_numpy()
+              recall_tqps = recall_tqps[recall_tqps["recall"].gt(xlim[0])].to_numpy()
               axs[2][i].plot(recall_tqps[:, 0], recall_tqps[:, 1])
               axs[2][i].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
               recall_prop = data_by_m_b_nrel[["recall", "prop"]].sort_values(["recall", "prop"], ascending=[True, True])
-              recall_prop = recall_prop.to_numpy()
+              recall_prop = recall_prop[recall_prop["recall"].gt(xlim[0])].to_numpy()
               axs[3][i].plot(recall_prop[:, 0], recall_prop[:, 1])
               axs[3][i].scatter(recall_prop[:, 0], recall_prop[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
           else:
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-            recall_qps = recall_qps.to_numpy()
+            recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
             axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
             axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
             axs[2][i].plot(recall_qps[:, 0], recall_qps[:, 1])
             axs[2][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
 
             recall_comp = data_by_m_b[["recall", "ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
-            recall_comp = recall_comp.to_numpy()
+            recall_comp = recall_comp[recall_comp["recall"].gt(xlim[0])].to_numpy()
             axs[1][i].plot(recall_comp[:, 0], recall_comp[:, 1])
             axs[1][i].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}", **marker)
 
@@ -261,7 +261,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
           if label not in unique_labels:
             unique_labels[label] = handle
       fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
-      fig.savefig(f"{prefix}{da}d-10/All-{anno}-{rg}-QPS-Comp-Recall.jpg", dpi=200)
+      fig.savefig(f"{prefix}/All-{anno}-{rg}-QPS-Comp-Recall.jpg", dpi=200)
       plt.close()
 
 
@@ -314,7 +314,7 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
       fig.set_size_inches(14, 5)
       handles, labels = axs[0].get_legend_handles_labels()
       fig.legend(handles, labels, loc="outside right upper")
-      fig.savefig(f"{prefix}{da}d-10/{d.upper()}/Recall-{rec:.3g}-{anno}-{d.upper()}-QPS-Comp.jpg", dpi=200)
+      fig.savefig(f"{prefix}/{d.upper()}/Recall-{rec:.3g}-{anno}-{d.upper()}-QPS-Comp.jpg", dpi=200)
       plt.close()
 
 
@@ -372,14 +372,14 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
         if label not in unique_labels:
           unique_labels[label] = handle
     fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
-    fig.savefig(f"{prefix}{da}d-10/Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg", dpi=200)
+    fig.savefig(f"{prefix}/Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg", dpi=200)
     plt.close()
 
 
 if __name__ == "__main__":
   summarize()
   for da in DA_S:
-    draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
-    draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
-    draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM")
-    draw_qps_comp_fixing_recall_by_selectivity(da, DATASETS, METHODS, "MoM")
+    draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+    draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+    draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+    draw_qps_comp_fixing_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
