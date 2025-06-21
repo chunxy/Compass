@@ -47,7 +47,7 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
       {
         tableint currObj = this->hnsw_.enterpoint_node_;
         dist_t curdist = this->hnsw_.fstdistfunc_(
-            (float *)query + q * this->d_,
+            query + q * this->d_,
             this->hnsw_.getDataByInternalId(this->hnsw_.enterpoint_node_),
             this->hnsw_.dist_func_param_
         );
@@ -68,7 +68,7 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
 
               if (cand < 0 || cand > this->hnsw_.max_elements_) throw std::runtime_error("cand error");
               dist_t d = this->hnsw_.fstdistfunc_(
-                  (float *)query + q * this->d_, this->hnsw_.getDataByInternalId(cand), this->hnsw_.dist_func_param_
+                  query + q * this->d_, this->hnsw_.getDataByInternalId(cand), this->hnsw_.dist_func_param_
               );
 
               if (d < curdist) {
