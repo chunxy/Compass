@@ -7,8 +7,7 @@
 #include <numeric>
 #include <set>
 
-#include <faiss/IndexFlat.h>
-#include <faiss/IndexIVFPQ.h>
+#include <faiss/IndexScalarQuantizer.h>
 #include <fmt/format.h>
 #include "config.h"
 #include "hnswlib/hnswlib.h"
@@ -62,22 +61,17 @@ int main() {
   AttrReaderToVector<float> reader(attr_path);
   auto attrs = reader.GetAttrs();
 
-  int nlist = 100;                  // number of coarse clusters
-  int m = 16;                        // the number of subgroups
-  int nbits = 8;                    // the number of bits to represent the sub-centroid
-  faiss::IndexFlatL2 quantizer(d);  // the other index
-  faiss::IndexIVFPQ index(&quantizer, d, nlist, m, nbits);
+  faiss::IndexScalarQuantizer index(d, faiss::ScalarQuantizer::QuantizerType::QT_4bit, faiss::METRIC_L2);
 
   index.train(nb, xb);
   index.add(nb, xb);
 
   omp_set_num_threads(1);
-  int k = 500;
+  int k = 100;
   {  // search xq
     idx_t *I = new idx_t[k * nq];
     float *D = new float[k * nq];
 
-    index.nprobe = 50;
     auto search_start = std::chrono::high_resolution_clock::now();
     // Returned D are sorted according to the distance in the quantization space,
     // which does not necessarily reflect the distance in the original space.
@@ -109,10 +103,6 @@ int main() {
         std::accumulate(recall_at_ks.begin(), recall_at_ks.end(), decltype(recall_at_ks)::value_type(0));
     fmt::print("QPS: {} ", nq * 1e6 / search_duration.count());
     printf("Average Recall: %4g%%\n", sum_of_recalls / nq * 100);
-
-    idx_t *coarse_lists = new idx_t[k * nq];
-    uint8_t *pq_codes = new uint8_t[index.code_size * nq];
-    index.quantizer->assign(nq, xq, coarse_lists);
 
     delete[] I;
     delete[] D;

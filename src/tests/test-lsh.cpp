@@ -17,20 +17,20 @@ using idx_t = faiss::idx_t;
 
 int main() {
   auto func = hnswlib::L2Sqr;
-  extern DataCard siftsmall_1_1000_float32;
-  size_t d = siftsmall_1_1000_float32.dim;      // dimension
-  int nb = siftsmall_1_1000_float32.n_base;     // database size
-  int nq = siftsmall_1_1000_float32.n_queries;  // nb of queries
-  int nk = siftsmall_1_1000_float32.n_groundtruth;
+  extern DataCard siftsmall_1_1000_top500_float32;
+  size_t d = siftsmall_1_1000_top500_float32.dim;      // dimension
+  int nb = siftsmall_1_1000_top500_float32.n_base;     // database size
+  int nq = siftsmall_1_1000_top500_float32.n_queries;  // nb of queries
+  int nk = siftsmall_1_1000_top500_float32.n_groundtruth;
 
-  std::string groundtruth_path = siftsmall_1_1000_float32.groundtruth_path;
-  std::string query_path = siftsmall_1_1000_float32.query_path;
-  std::string base_path = siftsmall_1_1000_float32.base_path;
+  std::string groundtruth_path = siftsmall_1_1000_top500_float32.groundtruth_path;
+  std::string query_path = siftsmall_1_1000_top500_float32.query_path;
+  std::string base_path = siftsmall_1_1000_top500_float32.base_path;
   // std::string attr_path = fmt::format(
   //     VALUE_PATH_TMPL,
-  //     siftsmall_1_1000_float32.name,
-  //     siftsmall_1_1000_float32.attr_dim,
-  //     siftsmall_1_1000_float32.attr_range
+  //     siftsmall_1_1000_top500_float32.name,
+  //     siftsmall_1_1000_top500_float32.attr_dim,
+  //     siftsmall_1_1000_top500_float32.attr_range
   // );
 
   FVecItrReader base_it(base_path);
@@ -77,7 +77,6 @@ int main() {
     index.assign(nq, xq, I, k);
     auto search_end = std::chrono::high_resolution_clock::now();
     auto search_duration = std::chrono::duration_cast<std::chrono::microseconds>(search_end - search_start);
-    fmt::print("QPS: {}\n", nq * 1e6 / search_duration.count());
 
     index.search(nq, xq, k, D, I);
 
@@ -102,6 +101,7 @@ int main() {
       );
     }
     auto sum_of_recalls = std::accumulate(recall_at_ks.begin(), recall_at_ks.end(), 0.);
+    fmt::print("QPS: {} ", nq * 1e6 / search_duration.count());
     printf("Average Recall: %4g%%\n", sum_of_recalls / nq * 100);
 
     delete[] I;
