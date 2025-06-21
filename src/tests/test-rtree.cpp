@@ -1,14 +1,10 @@
 // https://gist.github.com/warrenrentlytics/c9a1836a40d4fcbba28a7e29357dad7d
 
-#include <boost/core/no_exceptions_support.hpp>
 #include <fmt/core.h>
 #include <fmt/format.h>
+#include <boost/core/no_exceptions_support.hpp>
 #include <boost/foreach.hpp>
 #include <boost/geometry.hpp>
-#include <boost/geometry/geometries/box.hpp>
-#include <boost/geometry/geometries/point.hpp>
-#include <boost/geometry/index/predicates.hpp>
-#include <boost/geometry/index/rtree.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -16,7 +12,6 @@
 #include <random>
 #include <vector>
 
-// namespace geo = boost::geometry;
 namespace bgi = boost::geometry::index;
 namespace geo = boost::geometry;
 using point = geo::model::point<double, 2, geo::cs::cartesian>;
@@ -56,23 +51,21 @@ int main(int argc, char *argv[]) {
 
   // boost::geometry::dispatch::covered_by<point, box>;
   // a.apply(point(0,0), b, a);
-  auto rel_beg = rtree.qbegin(geo::index::covered_by(b));
+  auto rel_beg = rtree.qbegin(bgi::covered_by(b));
   auto rel_end = rtree.qend();
   std::vector<value> vec(rel_beg, rel_end);
   fmt::print("{}\n", vec.size());
   rtree.query(bgi::covered_by(b), std::back_inserter(result_n));
   // rtree.query(bgi::nearest(point(0, 0), 15), std::back_inserter(result_n));
   auto end = std::chrono::high_resolution_clock::now();
-  std::chrono::microseconds elapsed_microseconds =
-      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::chrono::microseconds elapsed_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
   std::chrono::duration<double> diff = end - start;
   std::cout << "knn query point:" << std::endl;
   std::cout << geo::wkt<point>(point(0, 0)) << std::endl;
   std::cout << elapsed_microseconds.count() << "us\n";
   std::cout << "knn query result:" << std::endl;
-  BOOST_FOREACH (value const &v, result_n)
-    std::cout << geo::wkt<point>(v.first) << " - " << v.second << std::endl;
+  BOOST_FOREACH (value const &v, result_n) std::cout << geo::wkt<point>(v.first) << " - " << v.second << std::endl;
 
   return 0;
 }
