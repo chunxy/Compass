@@ -4,7 +4,7 @@
 #include <queue>
 #include <vector>
 #include "card.h"
-#include "hnswlib.h"
+#include "hnswlib/hnswlib.h"
 #include "json.hpp"
 #include "utils/Pod.h"
 

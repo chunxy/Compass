@@ -14,8 +14,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "hnswlib/rng.h"
 #include "json.hpp"
-#include "rng.h"
 #include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"

@@ -13,7 +13,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "hnswalg.h"
+#include "hnswlib/hnswlib.h"
 #include "json.hpp"
 #include "utils/Pod.h"
 #include "utils/card.h"

@@ -61,7 +61,6 @@ include_directories(${PROJECT_SOURCE_DIR}/thirdparty/btree)
 # link_libraries(diskann)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/include/hnswlib)
 link_libraries(fmt::fmt-header-only Boost::program_options)
 
 # option(NOSIMD "build hnsw on SIMD" ON)

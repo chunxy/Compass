@@ -1,9 +1,9 @@
 #pragma once
 
 #include <algorithm>
-#include "hnswlib.h"
-#include "utils/predicate.h"
 #include "Compass1dK.h"
+#include "hnswlib/hnswlib.h"
+#include "utils/predicate.h"
 
 // Use graph to find entry points.
 template <typename dist_t, typename attr_t>
@@ -32,7 +32,7 @@ class Compass1dKGr : public Compass1dK<dist_t, attr_t> {
 
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
-    VisitedList* vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
+    VisitedList *vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {

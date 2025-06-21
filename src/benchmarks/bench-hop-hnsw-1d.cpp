@@ -12,9 +12,9 @@
 #include <string>
 #include <vector>
 #include "config.h"
+#include "hnswlib/hnswlib.h"
 #include "json.hpp"
 #include "methods/HopHnsw.h"
-#include "space_l2.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
 #include "utils/predicate.h"
