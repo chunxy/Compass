@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-  fs::path root("/home/chunxy/repos/Compass/src/tests/test_reentrant_hnsw");
+  fs::path root("/home/chunxy/repos/Compass/src/tests/test-reentrant-hnsw");
 
   fmt::print("Saving to {}.\n", (root / out_json).string());
 

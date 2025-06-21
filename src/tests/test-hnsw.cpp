@@ -18,6 +18,7 @@
 #include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
+#include "utils/reader.h"
 
 namespace fs = boost::filesystem;
 using namespace std::chrono;
@@ -30,15 +31,14 @@ int main(int argc, char **argv) {
   // IvfGraph1dArgs args(argc, argv);
 
   extern std::map<std::string, DataCard> name_to_card;
-  DataCard c = name_to_card["siftsmall_1_1000_float32"];
+  DataCard c = name_to_card["siftsmall_1_1000_top500_float32"];
   float l = 0, r = 1000;
-  int k = 500;
 
   size_t d = c.dim;          // This has to be size_t due to dist_func() call.
   int nb = c.n_base;         // number of database vectors
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
-  int M = 8, efc = 200;
+  int M = 4, efc = 200;
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
@@ -55,8 +55,19 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading data.\n");
 
   // Load groundtruth for hybrid search.
-  vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, {l},{r}, k, hybrid_topks);
+  vector<vector<uint32_t>> hybrid_topks(nq);
+  int k = ng;
+  IVecItrReader groundtruth_it(c.groundtruth_path);
+  int i = 0;
+  while (!groundtruth_it.HasEnded()) {
+    auto next = groundtruth_it.Next();
+    if (next.size() != ng) {
+      throw fmt::format("ng ({}) is greater than the size of the groundtruth ({})", ng, next.size());
+    }
+    hybrid_topks[i].resize(k);
+    memcpy(hybrid_topks[i].data(), next.data(), k * sizeof(uint32_t));
+    i++;
+  }
   fmt::print("Finished loading groundtruth.\n");
 
   L2Space l2space(d);
