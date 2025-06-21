@@ -8,5 +8,4 @@ CompileFlags:
 Diagnostics:
   Suppress:
     - old-style-cast
-    - unused-parameter
     - sign-conversion
