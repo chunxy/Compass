@@ -109,11 +109,11 @@ serf_parameters = {
   "search": ["efs"],
 }
 compass_parameters = {
-  "build": ["M", "efc", "nlist", "M_cg"],
+  "build": ["M", "efc", "nlist"],
   "search": ["efs", "nrel"],
 }
 compassx_parameters = {
-  "build": ["M", "efc", "nlist", "dx", "M_cg"],
+  "build": ["M", "efc", "nlist", "dx"],
   "search": ["efs", "nrel"],
 }
 
@@ -124,7 +124,6 @@ compass_args = {
   "efs": [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
   "nrel": [100, 200],
   "dx": [64, 128, 256, 512],
-  "M_cg": [4],
 }
 irangegraph_args = {
   "M": [8, 16, 32],
@@ -158,7 +157,6 @@ dataset_args = {
   },
   "crawl": {
     "dx": [128, 256],
-    "M_cg": [8],
   }
 }
 
