@@ -4,7 +4,6 @@
 #include <omp.h>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
@@ -28,8 +27,6 @@ using std::vector;
 auto dist_func = hnswlib::L2Sqr;
 
 int main(int argc, char **argv) {
-  // IvfGraph1dArgs args(argc, argv);
-
   extern std::map<std::string, DataCard> name_to_card;
   DataCard c = name_to_card["siftsmall_1_1000_top500_float32"];
   float l = 0, r = 1000;
@@ -118,6 +115,8 @@ int main(int argc, char **argv) {
     json[fmt::to_string(efs)]["num_computations"] =
         (comp->metric_distance_computations.load() - initial_ncomp) / 2. / nq;
     json[fmt::to_string(efs)]["nhops"] = (comp->metric_hops.load() - initial_nhops) / 2. / nq;
+    json["M"] = M;
+    json["k"] = k;
   }
 
   std::ofstream ofs((root / out_json).c_str());

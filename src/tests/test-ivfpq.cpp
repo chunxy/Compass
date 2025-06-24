@@ -63,7 +63,8 @@ int main() {
   auto attrs = reader.GetAttrs();
 
   int nlist = 100;                  // number of coarse clusters
-  int m = 16;                        // the number of subgroups
+  int nprobe = 20;                  // number of clusters to probe
+  int m = 8;                        // the number of subgroups
   int nbits = 8;                    // the number of bits to represent the sub-centroid
   faiss::IndexFlatL2 quantizer(d);  // the other index
   faiss::IndexIVFPQ index(&quantizer, d, nlist, m, nbits);
@@ -77,7 +78,7 @@ int main() {
     idx_t *I = new idx_t[k * nq];
     float *D = new float[k * nq];
 
-    index.nprobe = 50;
+    index.nprobe = nprobe;
     auto search_start = std::chrono::high_resolution_clock::now();
     // Returned D are sorted according to the distance in the quantization space,
     // which does not necessarily reflect the distance in the original space.
