@@ -34,8 +34,7 @@ class IterativeSearchState {
 template <typename dist_t>
 class IterativeSearch {
  private:
-  int n_, d_, M_, efc_;
-  int batch_k_, initial_efs_, delta_efs_;  // a decent combo of k and efs for search
+  const int n_, batch_k_, delta_efs_, initial_efs_;  // a decent combo of batch_k and delta_efs for search
   ReentrantHNSW<dist_t> *hnsw_;
 
   int UpdateNext(IterativeSearchState<dist_t> *state) {
@@ -68,16 +67,13 @@ class IterativeSearch {
   bool HasNext(IterativeSearchState<dist_t> *state) { return !state->batch_rz_.empty(); }
 
  public:
-  IterativeSearch(int n, int d, int M, int efc, const string &path, int batch_k = 10, int delta_efs = 50)
+  IterativeSearch(int n, int d, const string &path, int batch_k, int delta_efs)
       : n_(n),
-        d_(d),
-        M_(M),
-        efc_(efc),
         batch_k_(batch_k),
         delta_efs_(delta_efs),
+        initial_efs_(std::max(batch_k, delta_efs)),
         hnsw_(new ReentrantHNSW<dist_t>(new L2Space(d), path, false, n)) {
-    hnsw_->setEf(std::max(batch_k, delta_efs));
-    this->initial_efs_ = hnsw_->ef_;
+    hnsw_->setEf(this->initial_efs_);
   }
 
   IterativeSearchState<dist_t> *Open(const dist_t *query, int k) {
@@ -118,19 +114,10 @@ class IterativeSearch {
         }
       }
       state->visited_[curr_obj] = true;
-      state->candidate_set_.emplace(-curr_dist, curr_obj);
       state->all_candidates_.emplace(curr_dist, curr_obj);
+      state->candidate_set_.emplace(-curr_dist, curr_obj);
+      state->result_set_.emplace(-curr_dist, curr_obj);
 
-      // hnsw_->ReentrantSearchKnn(
-      //     state->query_,
-      //     this->k_,
-      //     state->top_candidates_,
-      //     state->cur_candidates_,
-      //     state->candidate_set_,
-      //     state->result_set_,
-      //     state->visited_,
-      //     state->ncomp_
-      // );
       UpdateNext(state);
     }
     return state;

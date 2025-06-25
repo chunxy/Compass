@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading/building index\n");
 
   nlohmann::json json;
-  for (auto efs : {10, 20, 50, 100, 150, 200}) {
+  for (auto efs : {10, 20, 40, 150}) {
     comp->setEf(efs);
     int ncomp = 0;
     double recall = 0;
@@ -121,6 +121,7 @@ int main(int argc, char **argv) {
 
               if (cand < 0 || cand > comp->max_elements_) throw std::runtime_error("cand error");
               float dist = comp->fstdistfunc_(xq + j * d, comp->getDataByInternalId(cand), comp->dist_func_param_);
+              ncomp++;
 
               if (dist < curr_dist) {
                 curr_dist = dist;
@@ -173,7 +174,7 @@ int main(int argc, char **argv) {
 
     json[fmt::to_string(efs)]["recall"] = recall / nq;
     json[fmt::to_string(efs)]["qps"] = nq * 1000000. / search_time;
-    json[fmt::to_string(efs)]["ncomp"] = ncomp / nq;
+    json[fmt::to_string(efs)]["ncomp"] = (double)ncomp / nq;
     json["M"] = M;
     json["k"] = k;
   }

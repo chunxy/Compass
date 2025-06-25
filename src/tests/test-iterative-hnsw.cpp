@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
   nlohmann::json json;
   for (auto efs : delta_efs_s) {
     if (fs::exists(ckp_path)) {
-      comp = new IterativeSearch<float>(nb, d, M, efc, ckp_path.string(), batch_k, efs);
+      comp = new IterativeSearch<float>(nb, d, ckp_path.string(), batch_k, efs);
     } else {
       throw std::runtime_error("Index file not found.");
     }
@@ -96,9 +96,9 @@ int main(int argc, char **argv) {
     double ncomp = 0;
     double search_time = 0;
     for (int j = 0; j < nq; j++) {
-      IterativeSearchState<float> *state = comp->Open(xq + j * d, k);
-
       auto search_start = high_resolution_clock::system_clock::now();
+
+      IterativeSearchState<float> *state = comp->Open(xq + j * d, k);
       std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
 
       while (rz_indices.size() < k) {
@@ -135,7 +135,6 @@ int main(int argc, char **argv) {
     json["M"] = M;
     json["k"] = k;
     json["batch_k"] = batch_k;
-    json["delta_efs"] = efs;
   }
 
   std::ofstream ofs((log_root / out_json).c_str());
