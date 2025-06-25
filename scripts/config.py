@@ -79,6 +79,29 @@ COMPASSX_METHODS = [
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
 METHODS = COMPASS_METHODS + SOTA_METHODS
 
+# method - workload template, accompanied with M_DA_RUN
+M_WORKLOAD = {
+  **{
+    m: "{}_10000_{}_{}_10"
+    for m in COMPASS_METHODS
+  },
+  **{
+    m: "{}_{}_10"
+    for m in SOTA_METHODS
+  },
+}
+
+M_DA_RUN = {
+  **{
+    m: compass_da_interval
+    for m in COMPASS_METHODS
+  },
+  **{
+    m: sota_da_interval
+    for m in SOTA_METHODS
+  },
+}
+
 compass_group_dataset = {
   "1": ["crawl", "audio"],
   "2": ["video", "glove100"],
@@ -117,6 +140,18 @@ compassx_parameters = {
   "search": ["efs", "nrel"],
 }
 
+# method - parameter
+M_PARAM = {
+  "CompassK": compass_parameters,
+  "CompassPca": compassx_parameters,
+  "CompassBikmeans": compass_parameters,
+  "CompassKCg": compass_parameters,
+  "CompassPcaCg": compassx_parameters,
+  "CompassBikmeansCg": compass_parameters,
+  "iRangeGraph": irangegraph_parameters,
+  "SeRF": serf_parameters,
+}
+
 compass_args = {
   "M": [16, 32],
   "efc": [200],
@@ -142,8 +177,7 @@ dataset_args = {
     "nlist": [5000, 10000],
   },
   "glove100": {
-    "dx": [64],
-    "efs": compass_args["efs"] + [350, 400, 500]
+    "dx": [64], "efs": compass_args["efs"] + [350, 400, 500]
   },
   "audio": {
     "dx": [64],
@@ -158,41 +192,6 @@ dataset_args = {
   "crawl": {
     "dx": [128, 256],
   }
-}
-
-# method - workload template, accompanied with M_DA_INTERVAL
-M_WORKLOAD = {
-  **{
-    m: "{}_10000_{}_{}_10"
-    for m in COMPASS_METHODS
-  },
-  **{
-    m: "{}_{}_10"
-    for m in SOTA_METHODS
-  },
-}
-
-M_DA_RUN = {
-  **{
-    m: compass_da_interval
-    for m in COMPASS_METHODS
-  },
-  **{
-    m: sota_da_interval
-    for m in SOTA_METHODS
-  },
-}
-
-# method - parameter
-M_PARAM = {
-  "CompassK": compass_parameters,
-  "CompassPca": compassx_parameters,
-  "CompassBikmeans": compass_parameters,
-  "CompassKCg": compass_parameters,
-  "CompassPcaCg": compassx_parameters,
-  "CompassBikmeansCg": compass_parameters,
-  "iRangeGraph": irangegraph_parameters,
-  "SeRF": serf_parameters,
 }
 
 M_ARGS = {
