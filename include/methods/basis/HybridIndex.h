@@ -14,8 +14,8 @@
 namespace fs = boost::filesystem;
 using hnswlib::L2Space;
 using hnswlib::labeltype;
-using std::priority_queue;
 using std::pair;
+using std::priority_queue;
 using std::vector;
 
 // Trainable, savable and loadable index.
@@ -24,7 +24,7 @@ class HybridIndex {
  protected:
   ReentrantHNSW<dist_t> hnsw_;
   faiss::Index *ivf_;
-  faiss::idx_t *base_cluster_rank_;   //  to speed up index loading
+  faiss::idx_t *base_cluster_rank_;   // to speed up index loading
   faiss::idx_t *query_cluster_rank_;  // pre-allocated for query
   dist_t *distances_;                 // pre-allocated for query
   int n_, d_, M_, efc_, nlist_;
