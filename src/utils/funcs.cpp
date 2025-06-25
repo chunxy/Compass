@@ -257,6 +257,8 @@ void collect_batch_metric(
 
     stat.ivf_ppsl_in_rz_s[j] = ivf_ppsl_in_rz;
     stat.graph_ppsl_in_rz_s[j] = graph_ppsl_in_rz;
+    stat.rz_min_s[j] = rz_min;
+    stat.rz_max_s[j] = rz_max;
     stat.gt_min_s[j] = gt_min_s[i];
     stat.gt_max_s[j] = gt_max_s[i];
     stat.ivf_ppsl_in_tp_s[j] = ivf_ppsl_in_tp;
