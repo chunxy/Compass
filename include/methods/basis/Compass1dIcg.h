@@ -79,9 +79,10 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       vl_type visited_tag = vl->curV;
       // vector<bool> visited(this->n_, false);
 
-      auto state = isearch_->Open(query, nprobe);
+      auto state = isearch_->Open((float *)query + q * this->d_, nprobe);
 
-      int clus = isearch_->Next(state).second, clus_cnt = 1;
+      auto next = isearch_->Next(state);
+      int clus = next.second, clus_cnt = 1;
       auto itr_beg = this->btrees_[clus].lower_bound(*l_bound);
       auto itr_end = this->btrees_[clus].upper_bound(*u_bound);
 
@@ -90,7 +91,8 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
         if (candidate_set.empty() || (clus != -1)) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
-              clus = isearch_->Next(state).second;
+              auto next = isearch_->Next(state);
+              clus = next.second;
               clus_cnt++;
               if (clus == -1)
                 break;
