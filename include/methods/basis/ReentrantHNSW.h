@@ -31,7 +31,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   void ReentrantSearchKnn(
       const void *query_data,
       const size_t k,
-      std::priority_queue<std::pair<dist_t, labeltype>> &all_candidates,
+      std::priority_queue<std::pair<dist_t, labeltype>> &recycled_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
@@ -68,7 +68,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         ncomp++;
         dist_t cand_nbr_dist =
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
-        all_candidates.emplace(cand_nbr_dist, cand_nbr);
+
         result_set.emplace(-cand_nbr_dist, cand_nbr);
         if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
           candidate_set.emplace(-cand_nbr_dist, cand_nbr);
@@ -76,8 +76,14 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
 #endif
           top_candidates.emplace(cand_nbr_dist, cand_nbr);
-          if (top_candidates.size() > efs) top_candidates.pop();
+          if (top_candidates.size() > efs) {
+            auto top = top_candidates.top();
+            recycled_candidates.emplace(-top.first, top.second);
+            top_candidates.pop();
+          }
           upper_bound = top_candidates.top().first;
+        } else {
+          recycled_candidates.emplace(-cand_nbr_dist, cand_nbr);
         }
       }
     }

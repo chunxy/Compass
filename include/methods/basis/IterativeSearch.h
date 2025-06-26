@@ -19,11 +19,11 @@ class IterativeSearchState {
   friend class IterativeSearch<dist_t>;
   const dist_t *query_;
   const int k_;
-  priority_queue<pair<dist_t, labeltype>> all_candidates_;
-  priority_queue<pair<dist_t, labeltype>> top_candidates_;
-  priority_queue<pair<dist_t, labeltype>> candidate_set_;
-  priority_queue<pair<dist_t, labeltype>> result_set_;
-  priority_queue<pair<dist_t, labeltype>> batch_rz_;
+  priority_queue<pair<dist_t, labeltype>> recycled_candidates_;  // min heap
+  priority_queue<pair<dist_t, labeltype>> top_candidates_;       // max heap
+  priority_queue<pair<dist_t, labeltype>> candidate_set_;        // min heap
+  priority_queue<pair<dist_t, labeltype>> result_set_;           // min heap
+  priority_queue<pair<dist_t, labeltype>> batch_rz_;             // min heap
   vector<bool> visited_;
   int ncomp_;
   int total_;
@@ -38,14 +38,15 @@ class IterativeSearch {
   ReentrantHNSW<dist_t> *hnsw_;
 
   int UpdateNext(IterativeSearchState<dist_t> *state) {
-    state->top_candidates_ = state->all_candidates_;
-    while (state->top_candidates_.size() > hnsw_->ef_) {
-      state->top_candidates_.pop();
+    while (!state->recycled_candidates_.empty() && state->top_candidates_.size() < hnsw_->ef_) {
+      auto top = state->recycled_candidates_.top();
+      state->top_candidates_.emplace(-top.first, top.second);
+      state->recycled_candidates_.pop();
     }
     hnsw_->ReentrantSearchKnn(
         state->query_,
         this->batch_k_,
-        state->all_candidates_,
+        state->recycled_candidates_,
         state->top_candidates_,
         state->candidate_set_,
         state->result_set_,
@@ -114,9 +115,9 @@ class IterativeSearch {
         }
       }
       state->visited_[curr_obj] = true;
-      state->all_candidates_.emplace(curr_dist, curr_obj);
       state->candidate_set_.emplace(-curr_dist, curr_obj);
       state->result_set_.emplace(-curr_dist, curr_obj);
+      state->top_candidates_.emplace(curr_dist, curr_obj);
 
       UpdateNext(state);
     }
