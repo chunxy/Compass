@@ -21,6 +21,10 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       float *distances = nullptr
   ) override {}  // dummy implementation
 
+  IterativeSearchState<dist_t> *Open(const dist_t *query, int idx, int nprobe) {
+    return isearch_->Open(query + idx * this->d_, nprobe);
+  }
+
  public:
   // This index only loads the ReentrantHnsw but does not build it.
   Compass1dIcg(
@@ -62,7 +66,6 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       query = std::get<pair<const dist_t *, const dist_t *>>(var).first;
       xquery = std::get<pair<const dist_t *, const dist_t *>>(var).second;
     }
-    // SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_, bm);
 
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
@@ -79,7 +82,7 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       vl_type visited_tag = vl->curV;
       // vector<bool> visited(this->n_, false);
 
-      auto state = isearch_->Open((float *)query + q * this->d_, nprobe);
+      auto state = Open(query, q, nprobe);
 
       auto next = isearch_->Next(state);
       int clus = next.second, clus_cnt = 1;

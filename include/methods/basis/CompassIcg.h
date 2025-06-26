@@ -1,59 +1,38 @@
 #pragma once
 
-#include "HybridIndex.h"
-#include "btree_map.h"
-#include "utils/predicate.h"
-
-using hnswlib::labeltype;
-using std::pair;
-using std::priority_queue;
-using std::vector;
+#include "Compass.h"
+#include "faiss/MetricType.h"
+#include "methods/basis/IterativeSearch.h"
 
 template <typename dist_t, typename attr_t>
-class Compass1d : public HybridIndex<dist_t, attr_t> {
+class CompassIcg : public Compass<dist_t, attr_t> {
  protected:
-  vector<btree::btree_map<attr_t, labeltype>> btrees_;
+  IterativeSearch<dist_t> *isearch_;
 
-  virtual void AssignPoints(
-      const size_t n,
-      const dist_t *data,
-      const int k,
-      faiss::idx_t *assigned_clusters,
-      float *distances = nullptr
-  ) = 0;
-
-  virtual void SearchClusters(
+ protected:
+  void SearchClusters(
       const size_t n,
       const dist_t *data,
       const int k,
       faiss::idx_t *assigned_clusters,
       BatchMetric &bm,
       float *distances = nullptr
-  ) {
-    auto assign_beg = std::chrono::high_resolution_clock::now();
-    AssignPoints(n, data, k, assigned_clusters, distances);
-    auto assign_end = std::chrono::high_resolution_clock::now();
-    bm.cluster_search_time = std::chrono::duration_cast<std::chrono::microseconds>(assign_end - assign_beg).count();
-  }
+  ) override {}  // dummy implementation
 
  public:
-  Compass1d(size_t n, size_t d, size_t M, size_t efc, size_t nlist)
-      : HybridIndex<dist_t, attr_t>(n, d, M, efc, nlist), btrees_(nlist, btree::btree_map<attr_t, labeltype>()) {}
-
-  void AddPointsToIvf(const size_t n, const dist_t *data, const labeltype *labels, const attr_t *attrs) override {
-    AssignPoints(n, data, 1, this->base_cluster_rank_);
-    for (int i = 0; i < n; i++) {
-      btrees_[this->base_cluster_rank_[i]].insert(std::make_pair(attrs[i], labels[i]));
-    }
-  }
-
-  void LoadRanking(fs::path path, attr_t *attrs) override {
-    std::ifstream in(path.string());
-    faiss::idx_t assigned_cluster;
-    for (int i = 0; i < this->n_; i++) {
-      in.read((char *)(&assigned_cluster), sizeof(faiss::idx_t));
-      btrees_[assigned_cluster].insert(std::make_pair(attrs[i], (labeltype)i));
-    }
+  CompassIcg(
+      size_t n,
+      size_t d,
+      size_t da,
+      size_t M,
+      size_t efc,
+      size_t nlist,
+      const string &path,
+      size_t batch_k,
+      size_t delta_efs
+  )
+      : Compass<dist_t, attr_t>(n, d, da, M, efc, nlist) {
+    this->isearch_ = new IterativeSearch<dist_t>(n, d, path, batch_k, delta_efs);
   }
 
   // By default, we will not use the distances to centroids.
@@ -81,11 +60,11 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
       query = std::get<pair<const dist_t *, const dist_t *>>(var).first;
       xquery = std::get<pair<const dist_t *, const dist_t *>>(var).second;
     }
-    SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_, bm);
+    // SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_, bm);
 
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
-    VisitedList* vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
+    VisitedList *vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
@@ -98,30 +77,79 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
       vl_type visited_tag = vl->curV;
       // vector<bool> visited(this->n_, false);
 
-      int curr_ci = q * nprobe;
-      auto itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]].lower_bound(*l_bound);
-      auto itr_end = this->btrees_[this->query_cluster_rank_[curr_ci]].upper_bound(*u_bound);
+      auto state = Open(query, q, nprobe);
+
+      auto next = isearch_->Next(state);
+      int clus = next.second, clus_cnt = 1;
+
+      std::vector<std::unordered_set<labeltype>> candidates_per_dim(this->da_);
+      for (int j = 0; j < this->da_; ++j) {
+        auto &btree = this->btrees_[clus][j];
+        auto beg = btree.lower_bound(l_bound[j]);
+        auto end = btree.upper_bound(u_bound[j]);
+        for (auto itr = beg; itr != end; ++itr) {
+          candidates_per_dim[j].insert(itr->second);
+        }
+      }
+      // Intersect all sets in candidates_per_dim
+      std::unordered_set<labeltype> intersection;
+      if (this->da_ > 0) intersection = candidates_per_dim[0];
+      for (int j = 1; j < this->da_; ++j) {
+        std::unordered_set<labeltype> temp;
+        for (const auto &id : intersection) {
+          if (candidates_per_dim[j].count(id)) {
+            temp.insert(id);
+          }
+        }
+        intersection = std::move(temp);
+      }
+
+      auto itr_beg = intersection.begin();
+      auto itr_end = intersection.end();
 
       while (true) {
         int crel = 0;
-        if (candidate_set.empty() || (curr_ci < nprobe * (q + 1))) {
+        if (candidate_set.empty() || (clus != -1)) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
-              curr_ci++;
-              if (curr_ci >= (q + 1) * nprobe)
+              auto _next = isearch_->Next(state);
+              clus = _next.second;
+              clus_cnt++;
+              if (clus == -1)
                 break;
               else {
-                itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]].lower_bound(*l_bound);
-                itr_end = this->btrees_[this->query_cluster_rank_[curr_ci]].upper_bound(*u_bound);
+                std::vector<std::unordered_set<labeltype>> _candidates_per_dim(this->da_);
+                for (int j = 0; j < this->da_; ++j) {
+                  auto &btree = this->btrees_[clus][j];
+                  auto beg = btree.lower_bound(l_bound[j]);
+                  auto end = btree.upper_bound(u_bound[j]);
+                  for (auto itr = beg; itr != end; ++itr) {
+                    _candidates_per_dim[j].insert(itr->second);
+                  }
+                }
+                // Intersect all sets in candidates_per_dim
+                std::unordered_set<labeltype> _intersection;
+                if (this->da_ > 0) _intersection = _candidates_per_dim[0];
+                for (int j = 1; j < this->da_; ++j) {
+                  std::unordered_set<labeltype> temp;
+                  for (const auto &id : _intersection) {
+                    if (_candidates_per_dim[j].count(id)) {
+                      temp.insert(id);
+                    }
+                  }
+                  _intersection = std::move(temp);
+                }
+                itr_beg = _intersection.begin();
+                itr_end = _intersection.end();
                 // recycle_set = priority_queue<pair<float, int64_t>>();
                 continue;
               }
             }
 
-            auto tableid = (*itr_beg).second;
+            auto tableid = *itr_beg;
             itr_beg++;
 #ifdef USE_SSE
-            _mm_prefetch(this->hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
+            _mm_prefetch(this->hnsw_.getDataByInternalId(tableid), _MM_HINT_T0);
 #endif
             if (visited[tableid] == visited_tag) continue;
 
@@ -159,12 +187,12 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
             std::ref(bm.qmetrics[q].ncomp),
             std::ref(bm.qmetrics[q].is_graph_ppsl)
         );
-        if ((top_candidates.size() >= efs_) || curr_ci >= (q + 1) * nprobe) {
+        if ((top_candidates.size() >= efs_) || clus == -1) {
           break;
         }
       }
 
-      bm.qmetrics[q].ncluster = curr_ci - q * nprobe;
+      bm.qmetrics[q].ncluster = clus_cnt;
       int nrecycled = 0;
       while (top_candidates.size() > k) top_candidates.pop();
       while (!recycle_set.empty()) {
@@ -182,6 +210,9 @@ class Compass1d : public HybridIndex<dist_t, attr_t> {
       bm.qmetrics[q].nrecycled = nrecycled;
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
+
+      bm.cluster_search_ncomp += isearch_->GetNcomp(state);
+      isearch_->Close(state);
     }
 
     return results;

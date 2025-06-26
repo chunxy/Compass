@@ -1,3 +1,5 @@
+#pragma once
+
 #include <variant>
 #include "HybridIndex.h"
 #include "btree_map.h"
