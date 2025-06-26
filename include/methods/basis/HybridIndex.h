@@ -64,6 +64,7 @@ class HybridIndex {
   virtual void LoadIvf(fs::path path) {
     auto ivf_file = fopen(path.c_str(), "r");
     auto index = faiss::read_index(ivf_file);
+    if (ivf_) delete ivf_;
     ivf_ = dynamic_cast<faiss::Index *>(index);
   }
 
