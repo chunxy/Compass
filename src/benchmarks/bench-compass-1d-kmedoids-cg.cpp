@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 
   std::string method = "CompassKmedoidsCg";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
-  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
+  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}_M_cg_{}", args.M, args.efc, args.nlist, args.M_cg);
 
   // Load data.
   float *xb, *xq;

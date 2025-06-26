@@ -71,6 +71,8 @@ COMPASS_METHODS = [
   "CompassBikmeansCg",
   "CompassPca",
   "CompassPcaCg",
+  "CopmassKIcg",
+  "CopmassBikmeansIcg",
 ]
 COMPASSX_METHODS = [
   "CompassPca",
@@ -132,24 +134,36 @@ serf_parameters = {
   "search": ["efs"],
 }
 compass_parameters = {
-  # "build": ["M", "efc", "nlist", "M_cg"],  # for running experiments
-  "build": ["M", "efc", "nlist"],  # for collecting results
+  "build": ["M", "efc", "nlist"],
   "search": ["efs", "nrel"],
 }
-compassx_parameters = {
-  # "build": ["M", "efc", "nlist", "dx", "M_cg"],  # for running experiments
-  "build": ["M", "efc", "nlist", "dx"],  # for collecting results
+compass_cg_parameters = {
+  "build": ["M", "efc", "nlist", "M_cg"],
   "search": ["efs", "nrel"],
+}
+compass_x_parameters = {
+  "build": ["M", "efc", "nlist", "dx"],
+  "search": ["efs", "nrel"],
+}
+compass_x_cg_parameters = {
+  "build": ["M", "efc", "nlist", "dx", "M_cg"],
+  "search": ["efs", "nrel"],
+}
+compass_icg_parameters = {
+  "build": ["M", "efc", "nlist", "M_cg"],
+  "search": ["efs", "nrel", "batch_k", "delta_efs"],
 }
 
 # method - parameter
 M_PARAM = {
   "CompassK": compass_parameters,
-  "CompassPca": compassx_parameters,
   "CompassBikmeans": compass_parameters,
-  "CompassKCg": compass_parameters,
-  "CompassPcaCg": compassx_parameters,
-  "CompassBikmeansCg": compass_parameters,
+  "CompassKCg": compass_cg_parameters,
+  "CompassBikmeansCg": compass_cg_parameters,
+  "CompassPca": compass_x_parameters,
+  "CompassPcaCg": compass_x_cg_parameters,
+  "CopmassKIcg": compass_icg_parameters,
+  "CopmassBikmeansIcg": compass_icg_parameters,
   "iRangeGraph": irangegraph_parameters,
   "SeRF": serf_parameters,
 }
@@ -162,6 +176,8 @@ compass_args = {
   "nrel": [50, 100, 200],
   "dx": [64, 128, 256, 512],
   "M_cg": [4],
+  "batch_k": [10],
+  "delta_efs": [200],
 }
 irangegraph_args = {
   "M": [8, 16, 32],
