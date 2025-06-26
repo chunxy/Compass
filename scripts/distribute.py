@@ -104,6 +104,33 @@ FOURD_EXPS = [
   "4d-pca-cg-exp",
 ]
 
+EXP_GROUP_1 = [
+  "1d-k-exp",
+  "1d-k-cg-exp",
+  "1d-bikmeans-exp",
+  "1d-bikmeans-cg-exp",
+  "2d-k-exp",
+  "2d-k-cg-exp",
+]
+
+EXP_GROUP_2 = [
+  "2d-bikmeans-exp",
+  "2d-bikmeans-cg-exp",
+  "3d-k-exp",
+  "3d-k-cg-exp",
+  "3d-bikmeans-exp",
+  "3d-bikmeans-cg-exp",
+]
+
+EXP_GROUP_PCA = [
+  "1d-pca-exp",
+  "1d-pca-cg-exp",
+  "2d-pca-exp",
+  "2d-pca-cg-exp",
+  "3d-pca-exp",
+  "3d-pca-cg-exp",
+]
+
 # ==============================================================================
 # 2. REMOTE EXECUTION FUNCTION - This function runs on each remote machine
 # ==============================================================================
@@ -192,19 +219,26 @@ def post_process():
   try:
     os.chdir(os.path.expanduser("~/repos/Compass/"))
 
-    summarize = "scripts/summarize.py"
-    if os.path.exists(summarize):
-      subprocess.run(["python", summarize], check=True)
-      print(f"\n✅ Post-processing script '{summarize}' executed successfully.")
-    else:
-      print(f"NOTE: Post-processing script '{summarize}' not found. Skipping.")
+    # summarize = "scripts/summarize.py"
+    # if os.path.exists(summarize):
+    #   subprocess.run(["python", summarize], check=True)
+    #   print(f"\n✅ Post-processing script '{summarize}' executed successfully.")
+    # else:
+    #   print(f"NOTE: Post-processing script '{summarize}' not found. Skipping.")
 
-    cherrypick = "scripts/cherrypick.py"
-    if os.path.exists(cherrypick):
-      subprocess.run(["python", cherrypick], check=True)
-      print(f"\n✅ Post-processing script '{cherrypick}' executed successfully.")
+    # cherrypick = "scripts/cherrypick.py"
+    # if os.path.exists(cherrypick):
+    #   subprocess.run(["python", cherrypick], check=True)
+    #   print(f"\n✅ Post-processing script '{cherrypick}' executed successfully.")
+    # else:
+    #   print(f"NOTE: Post-processing script '{cherrypick}' not found. Skipping.")
+
+    notify = "scripts/notify.py"
+    if os.path.exists(notify):
+      subprocess.run(["python", notify], check=True)
+      print(f"\n✅ Notification script '{notify}' executed successfully.")
     else:
-      print(f"NOTE: Post-processing script '{cherrypick}' not found. Skipping.")
+      print(f"NOTE: Notification script '{notify}' not found. Skipping.")
 
   except subprocess.CalledProcessError as e:
     print(f"ERROR: The post-processing script failed with exit code {e.returncode}.")
@@ -277,31 +311,8 @@ if __name__ == '__main__':
   # run_grouped_exp(TWOD_EXPS)
   # run_grouped_exp(THREED_EXPS)
   # run_grouped_exp(FOURD_EXPS)
-  EXPS_1 = [
-    "1d-k-exp",
-    "1d-k-cg-exp",
-    "1d-bikmeans-exp",
-    "1d-bikmeans-cg-exp",
-    "2d-k-exp",
-    "2d-k-cg-exp",
-  ]
-  EXPS_2 = [
-    "2d-bikmeans-exp",
-    "2d-bikmeans-cg-exp",
-    "3d-k-exp",
-    "3d-k-cg-exp",
-    "3d-bikmeans-exp",
-    "3d-bikmeans-cg-exp",
-  ]
-  PCA_EXPS = [
-    "1d-pca-exp",
-    "1d-pca-cg-exp",
-    "2d-pca-exp",
-    "2d-pca-cg-exp",
-    "3d-pca-exp",
-    "3d-pca-cg-exp",
-  ]
-  run_grouped_exp(EXPS_1)
-  run_grouped_exp(EXPS_2)
-  run_grouped_exp(PCA_EXPS)
+
+  run_grouped_exp(EXP_GROUP_1)
+  run_grouped_exp(EXP_GROUP_2)
+  run_grouped_exp(EXP_GROUP_PCA)
   post_process()

@@ -132,11 +132,13 @@ serf_parameters = {
   "search": ["efs"],
 }
 compass_parameters = {
-  "build": ["M", "efc", "nlist"],
+  # "build": ["M", "efc", "nlist", "M_cg"],  # for running experiments
+  "build": ["M", "efc", "nlist"],  # for collecting results
   "search": ["efs", "nrel"],
 }
 compassx_parameters = {
-  "build": ["M", "efc", "nlist", "dx"],
+  # "build": ["M", "efc", "nlist", "dx", "M_cg"],  # for running experiments
+  "build": ["M", "efc", "nlist", "dx"],  # for collecting results
   "search": ["efs", "nrel"],
 }
 
@@ -157,8 +159,9 @@ compass_args = {
   "efc": [200],
   "nlist": [10000, 20000],
   "efs": [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
-  "nrel": [100, 200],
+  "nrel": [50, 100, 200],
   "dx": [64, 128, 256, 512],
+  "M_cg": [4],
 }
 irangegraph_args = {
   "M": [8, 16, 32],
@@ -166,7 +169,7 @@ irangegraph_args = {
   "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500],
 }
 serf_args = {
-  "M": [16, 32],
+  "M": [16],
   "efc": [200],
   "efmax": [500],
   "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200],
@@ -177,7 +180,8 @@ dataset_args = {
     "nlist": [5000, 10000],
   },
   "glove100": {
-    "dx": [64], "efs": compass_args["efs"] + [350, 400, 500]
+    "dx": [64],
+    "efs": compass_args["efs"] + [250, 350, 400, 450, 500],
   },
   "audio": {
     "dx": [64],
@@ -185,12 +189,15 @@ dataset_args = {
   },
   "video": {
     "dx": [256, 512],
+    "efs": compass_args["efs"] + [250, 350, 400, 450, 500],
   },
   "gist": {
     "dx": [256, 512],
+    "efs": compass_args["efs"] + [250, 350, 400, 450, 500],
   },
   "crawl": {
     "dx": [128, 256],
+    "M_cg": [8],
   }
 }
 

@@ -33,7 +33,7 @@ def compose():
             for bp in M_PARAM[m]["build"]:
               f.write(f'{bp}_s=({" ".join(map(str, dataset_args[d].get(bp, compass_args[bp])))})\n')
             for sp in M_PARAM[m]["search"]:
-              f.write(f'{sp}_s=({" ".join(map(str,compass_args[sp]))})\n')
+              f.write(f'{sp}_s=({" ".join(map(str, dataset_args[d].get(sp, compass_args[sp])))})\n')
 
             build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["build"]))
             search_string = " ".join(map(lambda x: f"--{x} ${{{x}_s[@]}}", M_PARAM[m]["search"]))

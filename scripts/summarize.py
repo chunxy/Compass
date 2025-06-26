@@ -59,7 +59,7 @@ def summarize():
           st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
           for ba in product(*[dataset_args[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]):
             b = bt.format(*ba)
-            for sa in product(*[M_ARGS[m][sp] for sp in M_PARAM[m]["search"]]):
+            for sa in product(*[dataset_args[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]):
               s = st.format(*sa)
               if m in COMPASS_METHODS:
                 nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
