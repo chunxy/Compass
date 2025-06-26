@@ -34,6 +34,7 @@ add_executable(bench-compass-1d-idec bench-compass-1d-idec.cpp)
 
 # Iterative cluster graph
 add_executable(bench-compass-1d-k-icg bench-compass-1d-k-icg.cpp)
+add_executable(bench-compass-1d-bikmeans-icg bench-compass-1d-bikmeans-icg.cpp)
 
 # Baseline
 add_executable(bench-compass-ivf bench-compass-ivf.cpp)
