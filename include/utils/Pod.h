@@ -19,6 +19,8 @@ struct IvfGraph1dArgs {
   int nsub = 4;
   int nbits = 4;
   int M_cg = 4;
+  int batch_k = 100;
+  int delta_efs = 50;
   vector<int> nrel = {100};  // the number of candidates proposed by IVF per round
   vector<int> efs = {100};
   vector<int> nprobe = {100};
@@ -43,6 +45,8 @@ struct IvfGraph1dArgs {
     optional_configs.add_options()("nsub", po::value<decltype(nsub)>(&nsub));
     optional_configs.add_options()("nbits", po::value<decltype(nbits)>(&nbits));
     optional_configs.add_options()("M_cg", po::value<decltype(M_cg)>(&M_cg));
+    optional_configs.add_options()("batch_k", po::value<decltype(batch_k)>(&batch_k));
+    optional_configs.add_options()("delta_efs", po::value<decltype(delta_efs)>(&delta_efs));
     // index search parameters
     optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs)->multitoken());
     optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe)->multitoken());
