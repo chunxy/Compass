@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 
   std::string method = "CompassKIcg";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
-  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}", args.M, args.efc, args.nlist);
+  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}_M_cg_{}", args.M, args.efc, args.nlist, args.M_cg);
 
   // Load data.
   float *xb, *xq;
@@ -123,7 +123,8 @@ int main(int argc, char **argv) {
     for (auto nrel : args.nrel) {
       time_t ts = time(nullptr);
       auto tm = localtime(&ts);
-      std::string search_param = fmt::format("efs_{}_nrel_{}", efs, nrel);
+      std::string search_param =
+          fmt::format("efs_{}_nrel_{}_batch_k_{}_delta_efs_{}", efs, nrel, args.batch_k, args.delta_efs);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
       // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
