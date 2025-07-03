@@ -1,15 +1,15 @@
 #pragma once
 
 #include <cstddef>
-#include "basis/Compass1dIcg.h"
+#include "basis/CompassIcg.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 
 template <typename dist_t, typename attr_t>
-class Compass1dKIcg : public Compass1dIcg<dist_t, attr_t> {
+class CompassKIcg : public CompassIcg<dist_t, attr_t> {
  public:
-  Compass1dKIcg(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t M_cg, size_t batch_k, size_t delta_efs)
-      : Compass1dIcg<dist_t, attr_t>(n, d, M, efc, nlist, M_cg, batch_k, delta_efs) {
+  CompassKIcg(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t M_cg, size_t batch_k, size_t delta_efs)
+      : CompassIcg<dist_t, attr_t>(n, d, M, efc, nlist, M_cg, batch_k, delta_efs) {
     this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist);
   }
 

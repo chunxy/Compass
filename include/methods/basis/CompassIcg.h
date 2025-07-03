@@ -27,12 +27,12 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       size_t M,
       size_t efc,
       size_t nlist,
-      const string &path,
+      size_t M_cg,
       size_t batch_k,
       size_t delta_efs
   )
       : Compass<dist_t, attr_t>(n, d, da, M, efc, nlist) {
-    this->isearch_ = new IterativeSearch<dist_t>(n, d, path, batch_k, delta_efs);
+    this->isearch_ = new IterativeSearch<dist_t>(n, d, M_cg, batch_k, delta_efs);
   }
 
   // By default, we will not use the distances to centroids.
@@ -77,7 +77,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       vl_type visited_tag = vl->curV;
       // vector<bool> visited(this->n_, false);
 
-      auto state = Open(query, q, nprobe);
+      auto state = Open(xquery, q, nprobe);
 
       auto next = isearch_->Next(state);
       int clus = next.second, clus_cnt = 1;
@@ -216,5 +216,16 @@ class CompassIcg : public Compass<dist_t, attr_t> {
     }
 
     return results;
+  }
+
+  virtual void BuildClusterGraph() = 0;
+
+  void SaveClusterGraph(fs::path path) {
+    fs::create_directories(path.parent_path());
+    this->isearch_->hnsw_->saveIndex(path.string());
+  }
+
+  virtual void LoadClusterGraph(fs::path path) {
+    this->isearch_->hnsw_->loadIndex(path.string(), new L2Space(this->d_));
   }
 };

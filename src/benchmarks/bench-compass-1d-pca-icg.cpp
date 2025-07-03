@@ -14,7 +14,7 @@
 #include <vector>
 #include "config.h"
 #include "json.hpp"
-#include "methods/Compass1dKIcg.h"
+#include "methods/Compass1dPcaIcg.h"
 #include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
@@ -35,9 +35,10 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
-  std::string method = "CompassBikmeansIcg";
+  std::string method = "CompassPcaIcg";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
-  std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}_M_cg_{}", args.M, args.efc, args.nlist, args.M_cg);
+  std::string build_param =
+      fmt::format("M_{}_efc_{}_nlist_{}_dx_{}_M_cg_{}", args.M, args.efc, args.nlist, args.dx, args.M_cg);
 
   // Load data.
   float *xb, *xq;
@@ -57,39 +58,47 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
-  Compass1dKIcg<float, float> comp(nb, d, args.M, args.efc, args.nlist, args.M_cg, args.batch_k, args.delta_efs);
+  Compass1dPcaIcg<float, float> comp(
+      nb, d, args.dx, args.M, args.efc, args.nlist, args.M_cg, args.batch_k, args.delta_efs
+  );
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
-  std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
-  std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
-  std::string cgraph_ckp = fmt::format(COMPASS_CGRAPH_CHECKPOINT_TMPL, args.nlist, args.M_cg, 200);
+  std::string pca_ivf_ckp = fmt::format(COMPASS_X_IVF_CHECKPOINT_TMPL, args.nlist, args.dx);
+  std::string pca_rank_ckp = fmt::format(COMPASS_X_RANK_CHECKPOINT_TMPL, nb, args.nlist, args.dx);
+  std::string cgraph_ckp = fmt::format(COMPASS_X_CGRAPH_CHECKPOINT_TMPL, args.nlist, args.M_cg, 200, args.dx);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
-  if (fs::exists(ckp_root / "BisectingKMeans" / c.name / ivf_ckp)) {
-    comp.LoadIvf(ckp_root / "BisectingKMeans" / c.name / ivf_ckp);
-    fmt::print("Finished loading IVF index.\n");
+  if (fs::exists(ckp_root / "PCA" / c.name / pca_ivf_ckp)) {
+    comp.LoadIvf(ckp_root / "PCA" / c.name / pca_ivf_ckp);
+    fmt::print("Finished loading PCA IVF index.\n");
   } else {
-    fmt::print("Cannot find transplanted centroids. Exitting now.\n");
-    return -1;
+    auto train_ivf_start = high_resolution_clock::now();
+    comp.TrainIvf(nb, xb);
+    auto train_ivf_stop = high_resolution_clock::now();
+    fmt::print(
+        "Finished training PCA IVF, took {} microseconds.\n",
+        duration_cast<microseconds>(train_ivf_stop - train_ivf_start).count()
+    );
+    comp.SaveIvf(ckp_root / "PCA" / c.name / pca_ivf_ckp);
   }
 
-  if (fs::exists(ckp_root / "BisectingKMeans" / c.name / rank_ckp)) {
-    comp.LoadRanking(ckp_root / "BisectingKMeans" / c.name / rank_ckp, attrs.data());
-    fmt::print("Finished loading IVF ranking.\n");
+  std::vector<labeltype> labels(nb);
+  std::iota(labels.begin(), labels.end(), 0);
+  if (fs::exists(ckp_root / "PCA" / c.name / pca_rank_ckp)) {
+    comp.LoadRanking(ckp_root / "PCA" / c.name / pca_rank_ckp, attrs.data());
+    fmt::print("Finished loading PCA IVF ranking.\n");
   } else {
     auto add_points_start = high_resolution_clock::now();
-    std::vector<labeltype> labels(nb);
-    std::iota(labels.begin(), labels.end(), 0);
     comp.AddPointsToIvf(nb, xb, labels.data(), attrs.data());
     auto add_points_stop = high_resolution_clock::now();
     fmt::print(
         "Finished adding points, took {} microseconds.\n",
         duration_cast<microseconds>(add_points_stop - add_points_start).count()
     );
-    comp.SaveRanking(ckp_root / "BisectingKMeans" / c.name / rank_ckp);
+    comp.SaveRanking(ckp_root / "PCA" / c.name / pca_rank_ckp);
   }
 
-  if (fs::exists(ckp_root / "BisectingKMeans" / c.name / cgraph_ckp)) {
-    comp.LoadClusterGraph((ckp_root / "BisectingKMeans" / c.name / cgraph_ckp).string());
+  if (fs::exists(ckp_root / "PCA" / c.name / cgraph_ckp)) {
+    comp.LoadClusterGraph((ckp_root / "PCA" / c.name / cgraph_ckp).string());
     fmt::print("Finished loading cluster graph index.\n");
   } else {
     auto build_index_start = high_resolution_clock::now();
@@ -99,11 +108,9 @@ int main(int argc, char **argv) {
         "Finished building cluster graph, took {} microseconds.\n",
         duration_cast<microseconds>(build_index_stop - build_index_start).count()
     );
-    comp.SaveClusterGraph(ckp_root / "BisectingKMeans" / c.name / cgraph_ckp);
+    comp.SaveClusterGraph(ckp_root / "PCA" / c.name / cgraph_ckp);
   }
 
-  std::vector<labeltype> labels(nb);
-  std::iota(labels.begin(), labels.end(), 0);
   if (fs::exists(ckp_dir / graph_ckp)) {
     comp.LoadGraph((ckp_dir / graph_ckp).string());
     fmt::print("Finished loading graph index.\n");

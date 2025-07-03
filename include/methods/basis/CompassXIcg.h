@@ -24,11 +24,14 @@ class CompassXIcg : public CompassIcg<dist_t, attr_t> {
       size_t M,
       size_t efc,
       size_t nlist,
-      const string &path,
+      size_t M_cg,
       size_t batch_k,
       size_t delta_efs
   )
-      : Compass<dist_t, attr_t>(n, d, M, efc, nlist), dx_(dx) {
-    this->isearch_ = new IterativeSearch<dist_t>(n, dx, path, batch_k, delta_efs);
+      : CompassIcg<dist_t, attr_t>(n, d, M, efc, nlist, M_cg, batch_k, delta_efs), dx_(dx) {
+    // NOTE: double allocation
+    this->isearch_ = new IterativeSearch<dist_t>(n, dx, M_cg, batch_k, delta_efs);
   }
+
+  void LoadClusterGraph(fs::path path) override { this->isearch_->hnsw_->loadIndex(path.string(), new L2Space(dx_)); }
 };

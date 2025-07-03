@@ -131,6 +131,15 @@ EXP_GROUP_PCA = [
   "3d-pca-cg-exp",
 ]
 
+EXP_GROUP_ICG = [
+  "1d-k-icg-exp",
+  "1d-bikmeans-icg-exp",
+  "1d-pca-icg-exp",
+  "2d-k-icg-exp",
+  "2d-bikmeans-icg-exp",
+  "2d-pca-icg-exp",
+]
+
 # ==============================================================================
 # 2. REMOTE EXECUTION FUNCTION - This function runs on each remote machine
 # ==============================================================================
@@ -219,19 +228,19 @@ def post_process():
   try:
     os.chdir(os.path.expanduser("~/repos/Compass/"))
 
-    # summarize = "scripts/summarize.py"
-    # if os.path.exists(summarize):
-    #   subprocess.run(["python", summarize], check=True)
-    #   print(f"\n✅ Post-processing script '{summarize}' executed successfully.")
-    # else:
-    #   print(f"NOTE: Post-processing script '{summarize}' not found. Skipping.")
+    summarize = "scripts/summarize.py"
+    if os.path.exists(summarize):
+      subprocess.run(["python", summarize], check=True)
+      print(f"\n✅ Post-processing script '{summarize}' executed successfully.")
+    else:
+      print(f"NOTE: Post-processing script '{summarize}' not found. Skipping.")
 
-    # cherrypick = "scripts/cherrypick.py"
-    # if os.path.exists(cherrypick):
-    #   subprocess.run(["python", cherrypick], check=True)
-    #   print(f"\n✅ Post-processing script '{cherrypick}' executed successfully.")
-    # else:
-    #   print(f"NOTE: Post-processing script '{cherrypick}' not found. Skipping.")
+    cherrypick = "scripts/cherrypick.py"
+    if os.path.exists(cherrypick):
+      subprocess.run(["python", cherrypick], check=True)
+      print(f"\n✅ Post-processing script '{cherrypick}' executed successfully.")
+    else:
+      print(f"NOTE: Post-processing script '{cherrypick}' not found. Skipping.")
 
     notify = "scripts/notify.py"
     if os.path.exists(notify):

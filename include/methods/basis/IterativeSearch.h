@@ -33,7 +33,7 @@ class IterativeSearchState {
 
 template <typename dist_t>
 class IterativeSearch {
- private:
+ public:
   const int n_, batch_k_, delta_efs_, initial_efs_;  // a decent combo of batch_k and delta_efs for search
   ReentrantHNSW<dist_t> *hnsw_;
 
@@ -74,6 +74,15 @@ class IterativeSearch {
         delta_efs_(delta_efs),
         initial_efs_(std::max(batch_k, delta_efs)),
         hnsw_(new ReentrantHNSW<dist_t>(new L2Space(d), path, false, n)) {
+    hnsw_->setEf(this->initial_efs_);
+  }
+
+  IterativeSearch(int n, int d, int M_cg, int batch_k, int delta_efs)
+      : n_(n),
+        batch_k_(batch_k),
+        delta_efs_(delta_efs),
+        initial_efs_(std::max(batch_k, delta_efs)),
+        hnsw_(new ReentrantHNSW<dist_t>(new L2Space(d), n, M_cg, 200)) {
     hnsw_->setEf(this->initial_efs_);
   }
 

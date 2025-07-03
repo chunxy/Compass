@@ -15,6 +15,7 @@ class Compass1dXCg : public Compass1dCg<dist_t, attr_t> {
  public:
   Compass1dXCg(size_t n, size_t d, size_t dx, size_t M, size_t efc, size_t nlist, size_t M_cg)
       : Compass1dCg<dist_t, attr_t>(n, d, M, efc, nlist, M_cg), dx_(dx) {
+    // NOTE: double allocation
     this->cgraph_ = new HierarchicalNSW<dist_t>(new L2Space(dx), nlist, M_cg, 200);
   }
 
@@ -46,6 +47,7 @@ class Compass1dXCg : public Compass1dCg<dist_t, attr_t> {
   }
 
   void LoadClusterGraph(fs::path path) override {
+    // NOTE: double allocation
     this->cgraph_ = new HierarchicalNSW<dist_t>(new L2Space(dx_), path.string());
   }
 };

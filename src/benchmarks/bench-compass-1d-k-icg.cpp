@@ -50,28 +50,20 @@ int main(int argc, char **argv) {
 
   // Load groundtruth for hybrid search.
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, {args.l_bound}, {args.u_bound}, args.k, hybrid_topks);
+  load_hybrid_query_gt(c, {args.l_bound}, vector<float>{args.u_bound}, args.k, hybrid_topks);
   fmt::print("Finished loading groundtruth.\n");
 
   // Compute selectivity.
   int nsat;
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
+  Compass1dKIcg<float, float> comp(nb, d, args.M, args.efc, args.nlist, args.M_cg, args.batch_k, args.delta_efs);
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   std::string ivf_ckp = fmt::format(COMPASS_IVF_CHECKPOINT_TMPL, args.nlist);
   std::string rank_ckp = fmt::format(COMPASS_RANK_CHECKPOINT_TMPL, nb, args.nlist);
   std::string cgraph_ckp = fmt::format(COMPASS_CGRAPH_CHECKPOINT_TMPL, args.nlist, args.M_cg, 200);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
-
-  if (!fs::exists(ckp_dir / cgraph_ckp)) {
-    fmt::print(stderr, "Iterative cluster graph method loads index from the path does not exist.\n");
-    exit(1);
-  }
-  Compass1dKIcg<float, float> comp(
-      nb, d, args.M, args.efc, args.nlist, (ckp_dir / cgraph_ckp).string(), args.batch_k, args.delta_efs
-  );
-
   if (fs::exists(ckp_dir / ivf_ckp)) {
     comp.LoadIvf(ckp_dir / ivf_ckp);
     fmt::print("Finished loading IVF index.\n");
@@ -117,6 +109,19 @@ int main(int argc, char **argv) {
     comp.SaveGraph(ckp_dir / graph_ckp);
   }
 
+  if (fs::exists(ckp_dir / cgraph_ckp)) {
+    comp.LoadClusterGraph((ckp_dir / cgraph_ckp).string());
+    fmt::print("Finished loading cluster graph index.\n");
+  } else {
+    auto build_index_start = high_resolution_clock::now();
+    comp.BuildClusterGraph();
+    auto build_index_stop = high_resolution_clock::now();
+    fmt::print(
+        "Finished building cluster graph, took {} microseconds.\n",
+        duration_cast<microseconds>(build_index_stop - build_index_start).count()
+    );
+    comp.SaveClusterGraph(ckp_dir / cgraph_ckp);
+  }
   fmt::print("Finished loading indices.\n");
 
   for (auto efs : args.efs) {
@@ -127,8 +132,8 @@ int main(int argc, char **argv) {
           fmt::format("efs_{}_nrel_{}_batch_k_{}_delta_efs_{}", efs, nrel, args.batch_k, args.delta_efs);
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-      // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
-      fs::path log_root(fmt::format(LOGS, args.k));
+      fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      // fs::path log_root(fmt::format(LOGS, args.k));
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());

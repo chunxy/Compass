@@ -21,24 +21,15 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       float *distances = nullptr
   ) override {}  // dummy implementation
 
-  IterativeSearchState<dist_t> *Open(const dist_t *query, int idx, int nprobe) {
+  virtual IterativeSearchState<dist_t> *Open(const dist_t *query, int idx, int nprobe) {
     return isearch_->Open(query + idx * this->d_, nprobe);
   }
 
  public:
   // This index only loads the ReentrantHnsw but does not build it.
-  Compass1dIcg(
-      size_t n,
-      size_t d,
-      size_t M,
-      size_t efc,
-      size_t nlist,
-      const string &path,
-      size_t batch_k,
-      size_t delta_efs
-  )
+  Compass1dIcg(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t M_cg, size_t batch_k, size_t delta_efs)
       : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist) {
-    this->isearch_ = new IterativeSearch<dist_t>(n, d, path, batch_k, delta_efs);
+    this->isearch_ = new IterativeSearch<dist_t>(n, d, M_cg, batch_k, delta_efs);
   }
 
   // By default, we will not use the distances to centroids.
@@ -82,7 +73,7 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       vl_type visited_tag = vl->curV;
       // vector<bool> visited(this->n_, false);
 
-      auto state = Open(query, q, nprobe);
+      auto state = Open(xquery, q, nprobe);
 
       auto next = isearch_->Next(state);
       int clus = next.second, clus_cnt = 1;
@@ -177,5 +168,16 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
     }
 
     return results;
+  }
+
+  virtual void BuildClusterGraph() = 0;
+
+  void SaveClusterGraph(fs::path path) {
+    fs::create_directories(path.parent_path());
+    this->isearch_->hnsw_->saveIndex(path.string());
+  }
+
+  virtual void LoadClusterGraph(fs::path path) {
+    this->isearch_->hnsw_->loadIndex(path.string(), new L2Space(this->d_));
   }
 };
