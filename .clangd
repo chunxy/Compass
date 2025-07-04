@@ -5,6 +5,7 @@ CompileFlags:
       "-I/home/chunxy/repos/Compass/thirdparty/faiss",
       "-I/home/chunxy/repos/Compass/thirdparty/btree",
     ]
+  Remove: ["-fopenmp"]
 Diagnostics:
   Suppress:
     - old-style-cast
