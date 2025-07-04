@@ -10,6 +10,7 @@
 #include <faiss/IndexScalarQuantizer.h>
 #include <fmt/format.h>
 #include "config.h"
+#include "faiss/IndexHNSW.h"
 #include "hnswlib/hnswlib.h"
 #include "utils/card.h"
 #include "utils/reader.h"
@@ -61,23 +62,23 @@ int main() {
   AttrReaderToVector<float> reader(attr_path);
   auto attrs = reader.GetAttrs();
 
-  faiss::IndexScalarQuantizer index(d, faiss::ScalarQuantizer::QuantizerType::QT_4bit, faiss::METRIC_L2);
-
+  faiss::IndexHNSWSQ index(d, faiss::ScalarQuantizer::QuantizerType::QT_8bit, 4);
   index.train(nb, xb);
   index.add(nb, xb);
 
   omp_set_num_threads(1);
-  int k = 100;
+  int k = 500;
+  index.hnsw.efSearch = std::max(k, index.hnsw.efSearch);
   {  // search xq
     idx_t *I = new idx_t[k * nq];
     float *D = new float[k * nq];
 
-    auto search_start = std::chrono::high_resolution_clock::now();
+    auto search_beg = std::chrono::high_resolution_clock::now();
     // Returned D are sorted according to the distance in the quantization space,
     // which does not necessarily reflect the distance in the original space.
     index.search(nq, xq, k, D, I);
     auto search_end = std::chrono::high_resolution_clock::now();
-    auto search_duration = std::chrono::duration_cast<std::chrono::microseconds>(search_end - search_start);
+    auto search_duration = std::chrono::duration_cast<std::chrono::microseconds>(search_end - search_beg);
 
     std::vector<float> recall_at_ks(nq);
     for (int i = 0; i < nq; i++) {
