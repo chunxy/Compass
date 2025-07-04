@@ -245,6 +245,12 @@ M_STYLE = {
   "CompassBikmeansCg": {
     "marker": "s", "edgecolor": "black"
   },
+  "CompassKIcg": {
+    "marker": "o", "edgecolor": "red"
+  },
+  "CompassBikmeansIcg": {
+    "marker": "s", "edgecolor": "red"
+  },
   "iRangeGraph": {
     "marker": "^"
   },

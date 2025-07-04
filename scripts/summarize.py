@@ -185,7 +185,9 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
           if label not in unique_labels:
             unique_labels[label] = handle
       fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
-      fig.savefig(f"{prefix}/{d.upper()}/{d.upper()}-{anno}-{rg}-QPS-Comp-Recall.jpg", dpi=200)
+      path = Path(f"{prefix}/{d.upper()}/{d.upper()}-{anno}-{rg}-QPS-Comp-Recall.jpg")
+      path.parent.mkdir(parents=True, exist_ok=True)
+      fig.savefig(path, dpi=200)
       plt.close()
 
 
@@ -262,7 +264,9 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
           if label not in unique_labels:
             unique_labels[label] = handle
       fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
-      fig.savefig(f"{prefix}/All-{anno}-{rg}-QPS-Comp-Recall.jpg", dpi=200)
+      path = Path(f"{prefix}/All-{anno}-{rg}-QPS-Comp-Recall.jpg")
+      path.parent.mkdir(parents=True, exist_ok=True)
+      fig.savefig(path, dpi=200)
       plt.close()
 
 
@@ -315,7 +319,9 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
       fig.set_size_inches(14, 5)
       handles, labels = axs[0].get_legend_handles_labels()
       fig.legend(handles, labels, loc="outside right upper")
-      fig.savefig(f"{prefix}/{d.upper()}/Recall-{rec:.3g}-{anno}-{d.upper()}-QPS-Comp.jpg", dpi=200)
+      path = Path(f"{prefix}/{d.upper()}/Recall-{rec:.3g}-{anno}-{d.upper()}-QPS-Comp.jpg")
+      path.parent.mkdir(parents=True, exist_ok=True)
+      fig.savefig(path, dpi=200)
       plt.close()
 
 
@@ -373,7 +379,9 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
         if label not in unique_labels:
           unique_labels[label] = handle
     fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
-    fig.savefig(f"{prefix}/Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg", dpi=200)
+    path = Path(f"{prefix}/Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=200)
     plt.close()
 
 
