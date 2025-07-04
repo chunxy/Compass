@@ -31,7 +31,7 @@ for d in DATASETS:
 nrel_100 = [100]
 nrel_100_200 = [100, 200]
 clus_methods = ["CompassK", "CompassBikmeans", "CompassPca"]
-clus_search_methods = ["CompassBikmeans", "CompassBikmeansCg"]
+clus_search_methods = ["CompassBikmeans", "CompassBikmeansCg", "CompassBikmeansIcg"]
 
 
 # Compare clustering methods.
@@ -46,7 +46,7 @@ def compare_clustering_methods():
       anno="CoC",
       d_m_b=d_m_b_M32,
       nrel_s=nrel_100,
-      prefix=f"cherrypick{da}d-10",
+      prefix=f"cherrypick{da}d-10/varying-clus",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
       da=da,
@@ -55,7 +55,7 @@ def compare_clustering_methods():
       anno="CoC",
       d_m_b=d_m_b_M32,
       nrel_s=nrel_100,
-      prefix=f"cherrypick{da}d-10",
+      prefix=f"cherrypick{da}d-10/varying-clus",
     )
 
 
@@ -69,7 +69,7 @@ def compare_cluster_search_methods():
       anno="SoS",
       d_m_b=d_m_b_M32,
       nrel_s=nrel_100,
-      prefix=f"cherrypick{da}d-10",
+      prefix=f"cherrypick{da}d-10/varying-clus-search",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
       da=da,
@@ -78,7 +78,7 @@ def compare_cluster_search_methods():
       anno="SoS",
       d_m_b=d_m_b_M32,
       nrel_s=nrel_100,
-      prefix=f"cherrypick{da}d-10",
+      prefix=f"cherrypick{da}d-10/varying-clus-search",
     )
 
 
@@ -174,14 +174,14 @@ def compare_varying_nlist():
       anno="nlist",
       d_m_b=d_m_b_M32_smallnlist,
       nrel_s=nrel_100,
-      prefix=f"cherrypick{da}d-10",
+      prefix=f"cherrypick{da}d-10/varying-nlist",
     )
 
 
 if __name__ == "__main__":
-  # compare_clustering_methods()
-  # compare_cluster_search_methods()
-  # compare_with_sotas()
-  # compare_varying_nrel()
-  # compare_varying_M()
+  compare_clustering_methods()
+  compare_cluster_search_methods()
+  compare_with_sotas()
+  compare_varying_nrel()
+  compare_varying_M()
   compare_varying_nlist()
