@@ -71,8 +71,8 @@ COMPASS_METHODS = [
   "CompassBikmeansCg",
   "CompassPca",
   "CompassPcaCg",
-  "CopmassKIcg",
-  "CopmassBikmeansIcg",
+  "CompassKIcg",
+  "CompassBikmeansIcg",
 ]
 COMPASSX_METHODS = [
   "CompassPca",
@@ -162,8 +162,8 @@ M_PARAM = {
   "CompassBikmeansCg": compass_cg_parameters,
   "CompassPca": compass_x_parameters,
   "CompassPcaCg": compass_x_cg_parameters,
-  "CopmassKIcg": compass_icg_parameters,
-  "CopmassBikmeansIcg": compass_icg_parameters,
+  "CompassKIcg": compass_icg_parameters,
+  "CompassBikmeansIcg": compass_icg_parameters,
   "iRangeGraph": irangegraph_parameters,
   "SeRF": serf_parameters,
 }
@@ -180,15 +180,15 @@ compass_args = {
   "delta_efs": [200],
 }
 irangegraph_args = {
-  "M": [8, 16, 32],
+  "M": [16, 32],
   "efc": [200],
   "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500],
 }
 serf_args = {
-  "M": [16],
+  "M": [16, 32],
   "efc": [200],
   "efmax": [500],
-  "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200],
+  "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 1000],
 }
 dataset_args = {
   "sift": {
