@@ -62,7 +62,9 @@ int main() {
   AttrReaderToVector<float> reader(attr_path);
   auto attrs = reader.GetAttrs();
 
-  faiss::IndexHNSWSQ index(d, faiss::ScalarQuantizer::QuantizerType::QT_8bit, 4);
+  faiss::IndexHNSWSQ index(d, faiss::ScalarQuantizer::QuantizerType::QT_8bit_uniform, 4);
+  // faiss::IndexHNSWPQ index(d, 8, 4, 8);
+  // faiss::IndexHNSWFlat index(d, 4);
   index.train(nb, xb);
   index.add(nb, xb);
 
