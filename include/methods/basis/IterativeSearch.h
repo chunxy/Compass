@@ -17,7 +17,7 @@ class IterativeSearch;
 template <typename dist_t>
 class IterativeSearchState {
   friend class IterativeSearch<dist_t>;
-  const dist_t *query_;
+  const void *query_;
   const int k_;
   priority_queue<pair<dist_t, labeltype>> recycled_candidates_;  // min heap
   priority_queue<pair<dist_t, labeltype>> top_candidates_;       // max heap
@@ -28,7 +28,7 @@ class IterativeSearchState {
   int ncomp_;
   int total_;
 
-  IterativeSearchState(const dist_t *query, int k) : query_(query), k_(k) {}
+  IterativeSearchState(const void *query, int k) : query_(query), k_(k) {}
 };
 
 template <typename dist_t>
@@ -68,25 +68,25 @@ class IterativeSearch {
   bool HasNext(IterativeSearchState<dist_t> *state) { return !state->batch_rz_.empty(); }
 
  public:
-  IterativeSearch(int n, int d, const string &path, int batch_k, int delta_efs)
+  IterativeSearch(int n, int d, const string &path, SpaceInterface<dist_t> *s, int batch_k, int delta_efs)
       : n_(n),
         batch_k_(batch_k),
         delta_efs_(delta_efs),
         initial_efs_(std::max(batch_k, delta_efs)),
-        hnsw_(new ReentrantHNSW<dist_t>(new L2Space(d), path, false, n)) {
+        hnsw_(new ReentrantHNSW<dist_t>(s, path, false, n)) {
     hnsw_->setEf(this->initial_efs_);
   }
 
-  IterativeSearch(int n, int d, int M_cg, int batch_k, int delta_efs)
+  IterativeSearch(int n, int d, SpaceInterface<dist_t> *s, int M_cg, int batch_k, int delta_efs)
       : n_(n),
         batch_k_(batch_k),
         delta_efs_(delta_efs),
         initial_efs_(std::max(batch_k, delta_efs)),
-        hnsw_(new ReentrantHNSW<dist_t>(new L2Space(d), n, M_cg, 200)) {
+        hnsw_(new ReentrantHNSW<dist_t>(s, n, M_cg, 200)) {
     hnsw_->setEf(this->initial_efs_);
   }
 
-  IterativeSearchState<dist_t> *Open(const dist_t *query, int k) {
+  IterativeSearchState<dist_t> *Open(const void *query, int k) {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> *state = new IterativeSearchState<dist_t>(query, k);
     state->visited_.resize(n_, false);

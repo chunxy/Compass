@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 
   nlohmann::json json;
   for (auto efs : delta_efs_s) {
-    comp = new IterativeSearch<float>(nb, d, cgraph_path.string(), batch_k, efs);
+    comp = new IterativeSearch<float>(nb, d, cgraph_path.string(), new L2Space(d), batch_k, efs);
     fmt::print("Finished loading/building index\n");
 
     double recall = 0;

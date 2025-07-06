@@ -321,4 +321,103 @@ class L2SpaceI : public SpaceInterface<int> {
 
     ~L2SpaceI() {}
 };
+
+
+static int
+L2SqrB(const void *pVect1v, const void *pVect2v, const void *qty_ptr) {
+    uint8_t *pVect1 = (uint8_t *) pVect1v;
+    uint8_t *pVect2 = (uint8_t *) pVect2v;
+    size_t qty = *((size_t *) qty_ptr);
+
+    int res = 0;
+    for (size_t i = 0; i < qty; i++) {
+        int t = *pVect1 - *pVect2;
+        pVect1++;
+        pVect2++;
+        res += t * t;
+    }
+    return res;
+}
+
+#if defined(USE_SSE)
+static int
+L2SqrBSimd8ExtSSE(const void *pVect1v, const void *pVect2v, const void *qty_ptr) {
+    uint8_t *pVect1 = (uint8_t *) pVect1v;
+    uint8_t *pVect2 = (uint8_t *) pVect2v;
+    size_t qty = *((size_t *) qty_ptr);
+    int32_t PORTABLE_ALIGN32 TmpRes[4];
+    size_t qty8 = qty >> 3;
+
+    const uint8_t *pEnd1 = pVect1 + (qty8 << 3);
+
+    __m128i diff, v1, v2, v1_16, v2_16, squared;
+    __m128i zero = _mm_setzero_si128();
+    __m128i sum = _mm_setzero_si128();
+
+    while (pVect1 < pEnd1) {
+        //_mm_prefetch((char*)(pVect2 + 16), _MM_HINT_T0);
+        v1 = _mm_loadl_epi64((__m128i *)pVect1);
+        pVect1 += 8;
+        v2 = _mm_loadl_epi64((__m128i *)pVect2);
+        pVect2 += 8;
+        v1_16 = _mm_unpacklo_epi8(v1, zero);
+        v2_16 = _mm_unpacklo_epi8(v2, zero);
+        diff = _mm_sub_epi16(v1_16, v2_16);
+        squared = _mm_madd_epi16(diff, diff);
+        sum = _mm_add_epi32(sum, squared);
+    }
+
+    _mm_store_si128((__m128i *)TmpRes, sum);
+    return TmpRes[0] + TmpRes[1] + TmpRes[2] + TmpRes[3];
+}
+
+static int
+L2SqrBSimd8ExtSSEResiduals(const void *pVect1v, const void *pVect2v, const void *qty_ptr) {
+    size_t qty = *((size_t *) qty_ptr);
+    size_t qty8 = qty >> 3 << 3;
+
+    int res = L2SqrBSimd8ExtSSE(pVect1v, pVect2v, &qty8);
+    size_t qty_left = qty - qty8;
+
+    uint8_t *pVect1 = (uint8_t *) pVect1v + qty8;
+    uint8_t *pVect2 = (uint8_t *) pVect2v + qty8;
+    int res_tail = L2SqrB(pVect1, pVect2, &qty_left);
+
+    return (res + res_tail);
+}
+
+#endif
+
+class L2SpaceB : public SpaceInterface<int> {
+    DISTFUNC<int> fstdistfunc_;
+    size_t data_size_;
+    size_t dim_;
+
+ public:
+    L2SpaceB(size_t dim) {
+        if (dim % 8 == 0) {
+            fstdistfunc_ = L2SqrBSimd8ExtSSE;
+        } else if (dim > 8) {
+            fstdistfunc_ = L2SqrBSimd8ExtSSEResiduals;
+        } else {
+            fstdistfunc_ = L2SqrB;
+        }
+        dim_ = dim;
+        data_size_ = dim * sizeof(uint8_t);
+    }
+
+    size_t get_data_size() {
+        return data_size_;
+    }
+
+    DISTFUNC<int> get_dist_func() {
+        return fstdistfunc_;
+    }
+
+    void *get_dist_func_param() {
+        return &dim_;
+    }
+
+    ~L2SpaceB() {}
+};
 }  // namespace hnswlib

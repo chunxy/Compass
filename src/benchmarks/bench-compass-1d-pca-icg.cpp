@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
   stat_selectivity(attrs, args.l_bound, args.u_bound, nsat);
 
   Compass1dPcaIcg<float, float> comp(
-      nb, d, args.dx, args.M, args.efc, args.nlist, args.M_cg, args.batch_k, args.delta_efs
+      nb, d, args.dx, new L2Space(args.dx), args.M, args.efc, args.nlist, args.M_cg, args.batch_k, args.delta_efs
   );
   fs::path ckp_root(CKPS);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);

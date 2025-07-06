@@ -21,15 +21,26 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       float *distances = nullptr
   ) override {}  // dummy implementation
 
-  virtual IterativeSearchState<dist_t> *Open(const dist_t *query, int idx, int nprobe) {
-    return isearch_->Open(query + idx * this->d_, nprobe);
+  virtual IterativeSearchState<dist_t> *Open(const void *query, int idx, int nprobe) {
+    const void *target = ((char *)query) + this->isearch_->hnsw_->data_size_ * idx;
+    return this->isearch_->Open(target, nprobe);
   }
 
  public:
   // This index only loads the ReentrantHnsw but does not build it.
-  Compass1dIcg(size_t n, size_t d, size_t M, size_t efc, size_t nlist, size_t M_cg, size_t batch_k, size_t delta_efs)
+  Compass1dIcg(
+      size_t n,
+      size_t d,
+      SpaceInterface<dist_t> *s,
+      size_t M,
+      size_t efc,
+      size_t nlist,
+      size_t M_cg,
+      size_t batch_k,
+      size_t delta_efs
+  )
       : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist) {
-    this->isearch_ = new IterativeSearch<dist_t>(n, d, M_cg, batch_k, delta_efs);
+    this->isearch_ = new IterativeSearch<dist_t>(n, d, s, M_cg, batch_k, delta_efs);
   }
 
   // By default, we will not use the distances to centroids.

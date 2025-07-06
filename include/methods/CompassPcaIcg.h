@@ -8,9 +8,10 @@
 template <typename dist_t, typename attr_t>
 class CompassPcaIcg : public CompassXIcg<dist_t, attr_t> {
  protected:
-  IterativeSearchState<dist_t> *Open(const dist_t *query, int idx, int nprobe) override {
+  IterativeSearchState<dist_t> *Open(const void *query, int idx, int nprobe) override {
     auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
-    auto xquery = ivf_trans->apply_chain(1, query + idx * this->d_);
+    const void *target = ((char *)query) + idx * this->hnsw_.data_size_;
+    auto xquery = ivf_trans->apply_chain(1, (float *)target);
     auto ret = this->isearch_->Open(xquery, nprobe);
     delete[] xquery;
     return ret;
@@ -21,6 +22,7 @@ class CompassPcaIcg : public CompassXIcg<dist_t, attr_t> {
       size_t n,
       size_t d,
       size_t dx,
+      SpaceInterface<dist_t> *s,
       size_t M,
       size_t efc,
       size_t nlist,
@@ -28,7 +30,7 @@ class CompassPcaIcg : public CompassXIcg<dist_t, attr_t> {
       size_t batch_k,
       size_t delta_efs
   )
-      : CompassXIcg<dist_t, attr_t>(n, d, dx, M, efc, nlist, M_cg, batch_k, delta_efs) {
+      : CompassXIcg<dist_t, attr_t>(n, d, dx, s, M, efc, nlist, M_cg, batch_k, delta_efs) {
     auto xivf = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
     auto pca = new faiss::PCAMatrix(d, dx);
     // pca->eigen_power = -0.5;

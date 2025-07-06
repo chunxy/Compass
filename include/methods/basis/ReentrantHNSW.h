@@ -164,7 +164,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       auto curr_dist = -candidate_set.top().first;
       candidate_set.pop();
 
-      if (curr_dist > upper_bound && top_candidates.size() >= efs) {
+      if (curr_dist > upper_bound) {
         break;
       }
 

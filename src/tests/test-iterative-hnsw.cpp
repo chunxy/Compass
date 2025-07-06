@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
   nlohmann::json json;
   for (auto efs : delta_efs_s) {
     if (fs::exists(ckp_path)) {
-      comp = new IterativeSearch<float>(nb, d, ckp_path.string(), batch_k, efs);
+      comp = new IterativeSearch<float>(nb, d, ckp_path.string(), new L2Space(d), batch_k, efs);
     } else {
       throw std::runtime_error("Index file not found.");
     }
