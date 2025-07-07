@@ -73,6 +73,8 @@ struct IvfGraph2dArgs {
   int efc = 200;
   int nlist = 1000;  // the number of coarse clusters
   int M_cg = 4;
+  int batch_k = 100;
+  int delta_efs = 50;
   vector<int> efs = {100};
   vector<int> nprobe = {10};
   vector<int> nrel = {200};  // the number of candidates proposed by IVF per round
@@ -94,6 +96,8 @@ struct IvfGraph2dArgs {
     optional_configs.add_options()("efc", po::value<decltype(efc)>(&efc));
     optional_configs.add_options()("nlist", po::value<decltype(nlist)>(&nlist));
     optional_configs.add_options()("M_cg", po::value<decltype(M_cg)>(&M_cg));
+    optional_configs.add_options()("batch_k", po::value<decltype(batch_k)>(&batch_k));
+    optional_configs.add_options()("delta_efs", po::value<decltype(delta_efs)>(&delta_efs));
     // index search parameters
     optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs)->multitoken());
     optional_configs.add_options()("nprobe", po::value<decltype(nprobe)>(&nprobe)->multitoken());

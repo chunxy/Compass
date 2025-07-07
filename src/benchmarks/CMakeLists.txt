@@ -55,3 +55,7 @@ add_executable(bench-compass-bikmeans-cg bench-compass-bikmeans-cg.cpp)
 add_executable(bench-compass-pca bench-compass-pca.cpp)
 add_executable(bench-compass-pca-cg bench-compass-pca-cg.cpp)
 
+# Iterative cluster graph
+add_executable(bench-compass-k-icg bench-compass-k-icg.cpp)
+add_executable(bench-compass-bikmeans-icg bench-compass-bikmeans-icg.cpp)
+add_executable(bench-compass-pca-icg bench-compass-pca-icg.cpp)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include "basis/CompassXIcg.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
@@ -23,6 +24,7 @@ class CompassPcaIcg : public CompassXIcg<dist_t, attr_t> {
       size_t d,
       size_t dx,
       SpaceInterface<dist_t> *s,
+      size_t da,
       size_t M,
       size_t efc,
       size_t nlist,
@@ -30,7 +32,7 @@ class CompassPcaIcg : public CompassXIcg<dist_t, attr_t> {
       size_t batch_k,
       size_t delta_efs
   )
-      : CompassXIcg<dist_t, attr_t>(n, d, dx, s, M, efc, nlist, M_cg, batch_k, delta_efs) {
+      : CompassXIcg<dist_t, attr_t>(n, d, dx, s, da, M, efc, nlist, M_cg, batch_k, delta_efs) {
     auto xivf = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
     auto pca = new faiss::PCAMatrix(d, dx);
     // pca->eigen_power = -0.5;
