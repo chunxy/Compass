@@ -135,20 +135,18 @@ class CompassIcg : public Compass<dist_t, attr_t> {
                   }
                 }
                 // Intersect all sets in candidates_per_dim
-                std::unordered_set<labeltype> _intersection;
-                if (this->da_ > 0) _intersection = _candidates_per_dim[0];
+                if (this->da_ > 0) intersection = _candidates_per_dim[0];
                 for (int j = 1; j < this->da_; ++j) {
                   std::unordered_set<labeltype> temp;
-                  for (const auto &id : _intersection) {
+                  for (const auto &id : intersection) {
                     if (_candidates_per_dim[j].count(id)) {
                       temp.insert(id);
                     }
                   }
-                  _intersection = std::move(temp);
+                  intersection = std::move(temp);
                 }
-                itr_beg = _intersection.begin();
-                itr_end = _intersection.end();
-                // recycle_set = priority_queue<pair<float, int64_t>>();
+                itr_beg = intersection.begin();
+                itr_end = intersection.end();
                 continue;
               }
             }
