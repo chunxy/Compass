@@ -3,16 +3,18 @@
 #include <fmt/format.h>
 #include <omp.h>
 #include <sys/stat.h>
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <cassert>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <filesystem>
 #include <map>
 #include <set>
 #include <string>
+
+#include "faiss/IndexScalarQuantizer.h"
 #include "json.hpp"
 #include "methods/basis/IterativeSearch.h"
 #include "utils/Pod.h"
@@ -20,7 +22,7 @@
 #include "utils/funcs.h"
 #include "utils/reader.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 namespace po = boost::program_options;
 using namespace std::chrono;
 
@@ -36,7 +38,7 @@ int main(int argc, char **argv) {
   int M = 4, efc = 200;
   int k = 500;
   int batch_k = 100;
-  vector<int> delta_efs_s = {20};
+  vector<int> delta_efs_s = {100, 200};
 
   po::options_description optional_configs("Optional");
   optional_configs.add_options()("k", po::value<decltype(k)>(&k));
@@ -52,7 +54,6 @@ int main(int argc, char **argv) {
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
   fs::path log_root("/home/chunxy/repos/Compass/scratches/test-iterative-hnsw");
   fs::path ckp_root("/home/chunxy/repos/Compass/scratches/test-reentrant-hnsw");
-
   fmt::print("Saving to {}.\n", (log_root / out_json).string());
 
   // Load data.
@@ -77,28 +78,40 @@ int main(int argc, char **argv) {
   }
   fmt::print("Finished loading groundtruth.\n");
 
-  L2Space l2space(d);
-  IterativeSearch<float> *comp;
+  faiss::IndexScalarQuantizer sq(d, faiss::ScalarQuantizer::QuantizerType::QT_8bit_uniform, faiss::METRIC_L2);
+  sq.train(nb, xb);
+  sq.add(nb, xb);
+  uint8_t *quantized_xb = new uint8_t[nb * sq.code_size];
+  sq.sa_encode(nb, xb, quantized_xb);
+  uint8_t *quantized_xq = new uint8_t[nq * sq.code_size];
+  sq.sa_encode(nq, xq, quantized_xq);
 
-  string index_file = fmt::format("{}_M_{}_efc_{}.hnsw", c.name, M, efc);
+  IterativeSearch<int> *comp;
+
+  string index_file = fmt::format("{}_M_{}_efc_{}.{}bits.hnsw", c.name, M, efc, sq.code_size);
   fs::path ckp_path = ckp_root / index_file;
   if (fs::exists(ckp_path)) {
-    comp = new IterativeSearch<float>(nb, d, ckp_path.string(), new L2Space(d));
+    comp = new IterativeSearch<int>(nb, d, ckp_path.string(), new L2SpaceB(d));
   } else {
-    throw std::runtime_error("Index file not found.");
+    comp = new IterativeSearch<int>(nb, d, new L2SpaceB(d), M);
+    for (int i = 0; i < nb; i++) {
+      comp->hnsw_->addPoint(quantized_xb + i * sq.code_size, i);
+    }
+    comp->hnsw_->saveIndex(ckp_path.string());
   }
   fmt::print("Finished loading/building index\n");
 
   nlohmann::json json;
   for (auto efs : delta_efs_s) {
     comp->SetSearchParam(batch_k, efs);
+
     double recall = 0;
     double ncomp = 0;
     double search_time = 0;
     for (int j = 0; j < nq; j++) {
       std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
 
-      IterativeSearchState<float> *state = comp->Open(xq + j * d, k);
+      IterativeSearchState<int> *state = comp->Open((quantized_xq + j * sq.code_size), k);
       while (rz_indices.size() < k) {
         auto search_beg = high_resolution_clock::system_clock::now();
         auto pair = comp->Next(state);

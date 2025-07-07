@@ -76,24 +76,26 @@ int main(int argc, char **argv) {
   if (!fs::exists(cgraph_path)) {
     throw std::runtime_error("Index file not found.");
   }
+  comp = new IterativeSearch<float>(nb, d, cgraph_path.string(), new L2Space(d));
+  fmt::print("Finished loading/building index\n");
 
   nlohmann::json json;
   for (auto efs : delta_efs_s) {
-    comp = new IterativeSearch<float>(nb, d, cgraph_path.string(), new L2Space(d), batch_k, efs);
-    fmt::print("Finished loading/building index\n");
-
+    comp->SetSearchParam(batch_k, efs);
     double recall = 0;
     double ncomp = 0;
     double search_time = 0;
     nq = 1000;
     for (int j = 0; j < nq; j++) {
-      auto search_start = high_resolution_clock::system_clock::now();
-
-      IterativeSearchState<float> *state = comp->Open(xq + j * d, k);
       std::set<labeltype> graph_rz, ivf_rz, rz_interse;
 
+      IterativeSearchState<float> *state = comp->Open(xq + j * d, k);
       while (graph_rz.size() < k) {
+        auto search_beg = high_resolution_clock::system_clock::now();
         auto pair = comp->Next(state);
+        auto search_end = high_resolution_clock::system_clock::now();
+        search_time += duration_cast<microseconds>(search_end - search_beg).count();
+
         if (pair.first == -1 && pair.second == -1) {
           break;
         }
@@ -101,8 +103,6 @@ int main(int argc, char **argv) {
         auto d = pair.first;
         graph_rz.insert(i);
       }
-      auto search_stop = high_resolution_clock::system_clock::now();
-      search_time += duration_cast<microseconds>(search_stop - search_start).count();
 
       ncomp += comp->GetNcomp(state);
       comp->Close(state);

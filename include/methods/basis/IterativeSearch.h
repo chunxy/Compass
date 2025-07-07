@@ -34,7 +34,8 @@ class IterativeSearchState {
 template <typename dist_t>
 class IterativeSearch {
  public:
-  const int n_, batch_k_, delta_efs_, initial_efs_;  // a decent combo of batch_k and delta_efs for search
+  const int n_;
+  int batch_k_, delta_efs_, initial_efs_;  // a decent combo of batch_k and delta_efs for search
   ReentrantHNSW<dist_t> *hnsw_;
 
   int UpdateNext(IterativeSearchState<dist_t> *state) {
@@ -68,21 +69,13 @@ class IterativeSearch {
   bool HasNext(IterativeSearchState<dist_t> *state) { return !state->batch_rz_.empty(); }
 
  public:
-  IterativeSearch(int n, int d, const string &path, SpaceInterface<dist_t> *s, int batch_k, int delta_efs)
-      : n_(n),
-        batch_k_(batch_k),
-        delta_efs_(delta_efs),
-        initial_efs_(std::max(batch_k, delta_efs)),
-        hnsw_(new ReentrantHNSW<dist_t>(s, path, false, n)) {
+  IterativeSearch(int n, int d, const string &path, SpaceInterface<dist_t> *s)
+      : n_(n), batch_k_(10), delta_efs_(20), initial_efs_(20), hnsw_(new ReentrantHNSW<dist_t>(s, path, false, n)) {
     hnsw_->setEf(this->initial_efs_);
   }
 
-  IterativeSearch(int n, int d, SpaceInterface<dist_t> *s, int M_cg, int batch_k, int delta_efs)
-      : n_(n),
-        batch_k_(batch_k),
-        delta_efs_(delta_efs),
-        initial_efs_(std::max(batch_k, delta_efs)),
-        hnsw_(new ReentrantHNSW<dist_t>(s, n, M_cg, 200)) {
+  IterativeSearch(int n, int d, SpaceInterface<dist_t> *s, int M_cg)
+      : n_(n), batch_k_(10), delta_efs_(20), initial_efs_(20), hnsw_(new ReentrantHNSW<dist_t>(s, n, M_cg, 200)) {
     hnsw_->setEf(this->initial_efs_);
   }
 
@@ -151,10 +144,17 @@ class IterativeSearch {
     return Next(state);
   }
 
-  int GetNcomp(IterativeSearchState<dist_t> *state) { return state->ncomp_; }
-
   void Close(IterativeSearchState<dist_t> *state) {
     delete state;
+    hnsw_->setEf(this->initial_efs_);
+  }
+
+  int GetNcomp(IterativeSearchState<dist_t> *state) { return state->ncomp_; }
+
+  void SetSearchParam(int batch_k, int delta_efs) {
+    this->batch_k_ = batch_k;
+    this->delta_efs_ = delta_efs;
+    this->initial_efs_ = std::max(batch_k, delta_efs);
     hnsw_->setEf(this->initial_efs_);
   }
 };

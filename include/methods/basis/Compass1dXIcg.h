@@ -27,7 +27,8 @@ class Compass1dXIcg : public Compass1dIcg<dist_t, attr_t> {
   )
       : Compass1dIcg<dist_t, attr_t>(n, d, s, M, efc, nlist, M_cg, batch_k, delta_efs), dx_(dx) {
     // NOTE: double allocation
-    this->isearch_ = new IterativeSearch<dist_t>(n, dx, s, M_cg, batch_k, delta_efs);
+    this->isearch_ = new IterativeSearch<dist_t>(n, dx, s, M_cg);
+    this->isearch_->SetSearchParam(batch_k, delta_efs);
   }
 
   void LoadClusterGraph(fs::path path) override { this->isearch_->hnsw_->loadIndex(path.string(), new L2Space(dx_)); }
