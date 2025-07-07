@@ -324,4 +324,5 @@ if __name__ == '__main__':
   run_grouped_exp(EXP_GROUP_1)
   run_grouped_exp(EXP_GROUP_2)
   run_grouped_exp(EXP_GROUP_PCA)
+  run_grouped_exp(EXP_GROUP_ICG)
   post_process()

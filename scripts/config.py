@@ -73,10 +73,12 @@ COMPASS_METHODS = [
   "CompassPcaCg",
   "CompassKIcg",
   "CompassBikmeansIcg",
+  "CompassPcaIcg",
 ]
 COMPASSX_METHODS = [
   "CompassPca",
   "CompassPcaCg",
+  "CompassPcaIcg",
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
 METHODS = COMPASS_METHODS + SOTA_METHODS
@@ -141,6 +143,10 @@ compass_cg_parameters = {
   "build": ["M", "efc", "nlist", "M_cg"],
   "search": ["efs", "nrel"],
 }
+compass_icg_parameters = {
+  "build": ["M", "efc", "nlist", "M_cg"],
+  "search": ["efs", "nrel", "batch_k", "delta_efs"],
+}
 compass_x_parameters = {
   "build": ["M", "efc", "nlist", "dx"],
   "search": ["efs", "nrel"],
@@ -149,8 +155,8 @@ compass_x_cg_parameters = {
   "build": ["M", "efc", "nlist", "dx", "M_cg"],
   "search": ["efs", "nrel"],
 }
-compass_icg_parameters = {
-  "build": ["M", "efc", "nlist", "M_cg"],
+compass_x_icg_parameters = {
+  "build": ["M", "efc", "nlist", "dx", "M_cg"],
   "search": ["efs", "nrel", "batch_k", "delta_efs"],
 }
 
@@ -160,10 +166,11 @@ M_PARAM = {
   "CompassBikmeans": compass_parameters,
   "CompassKCg": compass_cg_parameters,
   "CompassBikmeansCg": compass_cg_parameters,
-  "CompassPca": compass_x_parameters,
-  "CompassPcaCg": compass_x_cg_parameters,
   "CompassKIcg": compass_icg_parameters,
   "CompassBikmeansIcg": compass_icg_parameters,
+  "CompassPca": compass_x_parameters,
+  "CompassPcaCg": compass_x_cg_parameters,
+  "CompassPcaIcg": compass_x_icg_parameters,
   "iRangeGraph": irangegraph_parameters,
   "SeRF": serf_parameters,
 }
@@ -190,7 +197,16 @@ serf_args = {
   "efmax": [500],
   "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 1000],
 }
-dataset_args = {
+M_ARGS = {
+  **{
+    m: compass_args
+    for m in COMPASS_METHODS
+  },
+  "iRangeGraph": irangegraph_args,
+  "SeRF": serf_args,
+}
+
+D_ARGS = {
   "sift": {
     "dx": [64],
     "nlist": [5000, 10000],
@@ -215,15 +231,6 @@ dataset_args = {
     "dx": [128, 256],
     "M_cg": [8],
   }
-}
-
-M_ARGS = {
-  **{
-    m: compass_args
-    for m in COMPASS_METHODS
-  },
-  "iRangeGraph": irangegraph_args,
-  "SeRF": serf_args,
 }
 
 M_STYLE = {

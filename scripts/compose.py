@@ -8,7 +8,7 @@ from config import (
   M_GROUP_DATASET,
   M_PARAM,
   compass_args,
-  dataset_args,
+  D_ARGS,
 )
 
 EXP_ROOT = Path("/home/chunxy/repos/Compass/runs/exp")
@@ -31,9 +31,9 @@ def compose():
           for d in datasets:
             f.write(f'dataset={d}\n')
             for bp in M_PARAM[m]["build"]:
-              f.write(f'{bp}_s=({" ".join(map(str, dataset_args[d].get(bp, compass_args[bp])))})\n')
+              f.write(f'{bp}_s=({" ".join(map(str, D_ARGS[d].get(bp, compass_args[bp])))})\n')
             for sp in M_PARAM[m]["search"]:
-              f.write(f'{sp}_s=({" ".join(map(str, dataset_args[d].get(sp, compass_args[sp])))})\n')
+              f.write(f'{sp}_s=({" ".join(map(str, D_ARGS[d].get(sp, compass_args[sp])))})\n')
 
             build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["build"]))
             search_string = " ".join(map(lambda x: f"--{x} ${{{x}_s[@]}}", M_PARAM[m]["search"]))

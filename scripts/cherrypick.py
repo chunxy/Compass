@@ -4,7 +4,7 @@ from config import (
   DA_S,
   DATASETS,
   METHODS,
-  dataset_args,
+  D_ARGS,
 )
 from summarize import (
   draw_qps_comp_fixing_recall_by_dataset_selectivity,
@@ -184,12 +184,12 @@ def compare_with_sotas():
     for m in COMPASS_METHODS:
       d_m_b[d][m] = ["M_16_efc_200_nlist_10000"]
     for m in COMPASSX_METHODS:
-      d_m_b[d][m] = [f"M_16_efc_200_nlist_10000_dx_{dx}" for dx in dataset_args[d]["dx"]]
+      d_m_b[d][m] = [f"M_16_efc_200_nlist_10000_dx_{dx}" for dx in D_ARGS[d]["dx"]]
   for d in ("gist", "video", "crawl", "glove100"):
     for m in COMPASS_METHODS:
       d_m_b[d][m] = ["M_16_efc_200_nlist_20000"]
     for m in COMPASSX_METHODS:
-      d_m_b[d][m] = [f"M_16_efc_200_nlist_20000_dx_{dx}" for dx in dataset_args[d]["dx"]]
+      d_m_b[d][m] = [f"M_16_efc_200_nlist_20000_dx_{dx}" for dx in D_ARGS[d]["dx"]]
   for d in DATASETS:
     d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
     d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
