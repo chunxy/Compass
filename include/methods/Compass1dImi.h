@@ -28,7 +28,7 @@ class Compass1dImi : public Compass1d<dist_t, attr_t> {
     ivf_flat_->quantizer_trains_alone = true;
   }
 
-  void AssignPoints(const size_t n, const dist_t *data, const int k, faiss::idx_t *assigned_clusters, float *distances)
+  void AssignPoints(const size_t n, const void *data, const int k, faiss::idx_t *assigned_clusters, float *distances)
       override {
     if (distances == nullptr) {
       ivf_flat_->quantizer->assign(n, (float *)data, assigned_clusters, k);

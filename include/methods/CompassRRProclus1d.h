@@ -116,7 +116,7 @@ class CompassRRProclus1d {
             if (visited[tableid]) continue;
 
             auto vect = hnsw_.getDataByInternalId(tableid);
-            auto dist = hnsw_.fstdistfunc_((float *)query + q * dim_, vect, hnsw_.dist_func_param_);
+            auto dist = hnsw_.fstdistfunc_((char *)query + hnsw_.data_size_ * q, vect, hnsw_.dist_func_param_);
             metrics[q].ncomp++;
             crel++;
 
@@ -138,7 +138,7 @@ class CompassRRProclus1d {
         }
 
         hnsw_.ReentrantSearchKnnBounded(
-            (float *)query + q * dim_,
+            (char *)query + hnsw_.data_size_ * q,
             k,
             distances[curr_ci],
             top_candidates,

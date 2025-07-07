@@ -91,7 +91,9 @@ class CompassGraph {
       {
         tableint currObj = hnsw_.enterpoint_node_;
         dist_t currDist = hnsw_.fstdistfunc_(
-            (float *)query + q * d, hnsw_.getDataByInternalId(hnsw_.enterpoint_node_), hnsw_.dist_func_param_
+            (char *)query + hnsw_.data_size_ * q,
+            hnsw_.getDataByInternalId(hnsw_.enterpoint_node_),
+            hnsw_.dist_func_param_
         );
 
         for (int level = hnsw_.maxlevel_; level > 0; level--) {
@@ -109,8 +111,9 @@ class CompassGraph {
               tableint cand = datal[i];
 
               if (cand < 0 || cand > hnsw_.max_elements_) throw std::runtime_error("cand error");
-              dist_t dist =
-                  hnsw_.fstdistfunc_((float *)query + q * d, hnsw_.getDataByInternalId(cand), hnsw_.dist_func_param_);
+              dist_t dist = hnsw_.fstdistfunc_(
+                  (char *)query + hnsw_.data_size_ * q, hnsw_.getDataByInternalId(cand), hnsw_.dist_func_param_
+              );
 
               if (dist < currDist) {
                 currDist = dist;
@@ -138,7 +141,7 @@ class CompassGraph {
           _mm_prefetch(hnsw_.getDataByInternalId((*curr).second), _MM_HINT_T0);
 #endif
           auto vect = hnsw_.getDataByInternalId(id);
-          auto dist = hnsw_.fstdistfunc_(vect, (float *)(query) + q * d, space_.get_dist_func_param());
+          auto dist = hnsw_.fstdistfunc_(vect, (char *)query + hnsw_.data_size_ * q, space_.get_dist_func_param());
           metrics[q].ncomp++;
           metrics[q].is_ivf_ppsl[id] = true;
           candidate_set.emplace(-dist, id);
@@ -147,7 +150,7 @@ class CompassGraph {
           i++;
         }
         hnsw_.ReentrantSearchKnn(
-            (float *)query + q * d,
+            (char *)query + hnsw_.data_size_ * q,
             k,
             -1,
             top_candidates,

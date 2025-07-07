@@ -61,7 +61,9 @@ class HopHnsw : public HierarchicalNSW<dist_t> {
       {
         tableint currObj = this->enterpoint_node_;
         dist_t currDist = this->fstdistfunc_(
-            (float *)query + q * d, this->getDataByInternalId(this->enterpoint_node_), this->dist_func_param_
+            (char *)query + this->data_size_ * q,
+            this->getDataByInternalId(this->enterpoint_node_),
+            this->dist_func_param_
         );
 
         for (int level = this->maxlevel_; level > 0; level--) {
@@ -79,8 +81,9 @@ class HopHnsw : public HierarchicalNSW<dist_t> {
               tableint cand = datal[i];
 
               if (cand < 0 || cand > this->max_elements_) throw std::runtime_error("cand error");
-              dist_t dist =
-                  this->fstdistfunc_((float *)query + q * d, this->getDataByInternalId(cand), this->dist_func_param_);
+              dist_t dist = this->fstdistfunc_(
+                  (char *)query + this->data_size_ * q, this->getDataByInternalId(cand), this->dist_func_param_
+              );
 
               if (dist < currDist) {
                 currDist = dist;
@@ -123,7 +126,9 @@ class HopHnsw : public HierarchicalNSW<dist_t> {
           if (visited[cand_nbr] == visited_tag) continue;
           visited[cand_nbr] = visited_tag;
           metrics[q].ncomp++;
-          dist_t cand_nbr_dist = this->fstdistfunc_((float *)query + q * d, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+          dist_t cand_nbr_dist = this->fstdistfunc_(
+              (char *)query + this->data_size_ * q, this->getDataByInternalId(cand_nbr), this->dist_func_param_
+          );
           if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
             candidate_set.emplace(-cand_nbr_dist, cand_nbr);
 #ifdef USE_SSE
@@ -153,8 +158,9 @@ class HopHnsw : public HierarchicalNSW<dist_t> {
             visited[twohop_nbr] = visited_tag;
             metrics[q].ncomp++;
 
-            dist_t twohop_nbr_dist =
-                this->fstdistfunc_((float *)query + q * d, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
+            dist_t twohop_nbr_dist = this->fstdistfunc_(
+                (char *)query + this->data_size_ * q, this->getDataByInternalId(twohop_nbr), this->dist_func_param_
+            );
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
               candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
 #ifdef USE_SSE

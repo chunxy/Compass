@@ -14,7 +14,7 @@ class Compass1dKOr : public Compass1dK<dist_t, attr_t> {
 
   // For ranking clusters using IVF.
   vector<priority_queue<pair<dist_t, labeltype>>> SearchKnn(
-      const dist_t *query,
+      const void *query,
       const int nq,
       const int k,
       const attr_t *attrs,
@@ -32,7 +32,7 @@ class Compass1dKOr : public Compass1dK<dist_t, attr_t> {
 
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
-    VisitedList* vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
+    VisitedList *vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
@@ -74,7 +74,9 @@ class Compass1dKOr : public Compass1dK<dist_t, attr_t> {
             visited[tableid] = visited_tag;
 
             auto vect = this->hnsw_.getDataByInternalId(tableid);
-            auto dist = this->hnsw_.fstdistfunc_((float *)query + q * this->d_, vect, this->hnsw_.dist_func_param_);
+            auto dist = this->hnsw_.fstdistfunc_(
+                (char *)query + this->hnsw_.data_size_ * q, vect, this->hnsw_.dist_func_param_
+            );
             bm.qmetrics[q].ncomp++;
             bm.qmetrics[q].is_ivf_ppsl[tableid] = true;
             crel++;
@@ -92,7 +94,7 @@ class Compass1dKOr : public Compass1dK<dist_t, attr_t> {
         }
 
         this->hnsw_.ReentrantSearchKnn(
-            (float *)query + q * this->d_,
+            (char *)query + this->hnsw_.data_size_ * q,
             k,
             -1,
             top_candidates,

@@ -150,7 +150,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassF1d<dist_t, attr_t>::Sear
     }
 
     hnsw_.ReentrantSearchKnnV2(
-        (float *)query + q * ivf_->d,
+        (char *)query + hnsw_.data_size_ * q,
         k,
         -1,
         top_candidates,
@@ -174,7 +174,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassF1d<dist_t, attr_t>::Sear
             auto tableid = (*itr_begs[c]).second;
             visited[tableid] = true;
             auto vect = hnsw_.getDataByInternalId(tableid);
-            auto dist = hnsw_.fstdistfunc_((float *)query + q * ivf_->d, vect, hnsw_.dist_func_param_);
+            auto dist = hnsw_.fstdistfunc_((char *)query + hnsw_.data_size_ * q, vect, hnsw_.dist_func_param_);
             // auto upper_bound =
             //     top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
             // if (top_candidates.size() < efs || dist < upper_bound) {
@@ -197,7 +197,7 @@ vector<vector<pair<float, hnswlib::labeltype>>> CompassF1d<dist_t, attr_t>::Sear
         break;
       }
       hnsw_.ReentrantSearchKnnV2(
-          (float *)query + q * ivf_->d,
+          (char *)query + hnsw_.data_size_ * q,
           k,
           -1,
           top_candidates,

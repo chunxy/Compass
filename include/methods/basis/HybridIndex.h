@@ -29,8 +29,6 @@ class HybridIndex {
   dist_t *distances_;                 // pre-allocated for query
   int n_, d_, M_, efc_, nlist_;
 
-  // _GetClusters(const dist_t* query, const int nq, const int nprobe);
-
  public:
   HybridIndex(size_t n, size_t d, size_t M, size_t efc, size_t nlist)
       : n_(n),
@@ -43,14 +41,14 @@ class HybridIndex {
         query_cluster_rank_(new faiss::idx_t[10000 * 1000]),
         distances_(new dist_t[10000 * 1000]) {}
 
-  virtual void TrainIvf(size_t n, const dist_t *data) { ivf_->train(n, (float *)data); }
-  virtual void AddPointsToGraph(const size_t n, const dist_t *data, const labeltype *labels) {
+  virtual void TrainIvf(size_t n, const void *data) { ivf_->train(n, (float *)data); }
+  virtual void AddPointsToGraph(const size_t n, const void *data, const labeltype *labels) {
     for (int i = 0; i < n; i++) {
-      this->hnsw_.addPoint(data + i * this->d_, labels[i], -1);
+      this->hnsw_.addPoint((char *)data + i * this->hnsw_.data_size_, labels[i], -1);
     }
   }
 
-  virtual void AddPointsToIvf(const size_t n, const dist_t *data, const labeltype *labels, const attr_t *attrs) = 0;
+  virtual void AddPointsToIvf(const size_t n, const void *data, const labeltype *labels, const attr_t *attrs) = 0;
 
   virtual void SaveGraph(fs::path path) {
     fs::create_directories(path.parent_path());
@@ -78,7 +76,7 @@ class HybridIndex {
   virtual void LoadRanking(fs::path path, attr_t *attrs) = 0;
 
   virtual vector<priority_queue<pair<dist_t, labeltype>>> SearchKnn(
-      const std::variant<const dist_t *, pair<const dist_t *, const dist_t *>> &var,
+      const std::variant<const void *, pair<const void *, const void *>> &var,
       const int nq,
       const int k,
       const attr_t *attrs,

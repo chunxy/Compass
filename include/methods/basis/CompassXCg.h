@@ -16,7 +16,7 @@ class CompassXCg : public CompassCg<dist_t, attr_t> {
 
   void SearchClusters(
       const size_t n,
-      const dist_t *data,
+      const void *data,
       const int k,
       faiss::idx_t *assigned_clusters,
       BatchMetric &bm,
@@ -25,7 +25,7 @@ class CompassXCg : public CompassCg<dist_t, attr_t> {
     int count_beg = this->cgraph_->metric_distance_computations;
     auto search_beg = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < n; i++) {
-      auto clusters = this->cgraph_->searchKnnCloserFirst(&data[i * dx_], k);
+      auto clusters = this->cgraph_->searchKnnCloserFirst((char *)data + i * this->cgraph_->data_size_, k);
       for (int j = 0; j < k; j++) {
         assigned_clusters[i * k + j] = clusters[j].second;
       }

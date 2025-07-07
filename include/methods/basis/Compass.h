@@ -20,7 +20,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
   // Called during index building.
   virtual void AssignPoints(
       const size_t n,
-      const dist_t *data,
+      const void *data,
       const int k,
       faiss::idx_t *assigned_clusters,
       float *distances = nullptr
@@ -30,7 +30,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
   // as well as profile the initial search process.
   virtual void SearchClusters(
       const size_t n,
-      const dist_t *data,
+      const void *data,
       const int k,
       faiss::idx_t *assigned_clusters,
       BatchMetric &bm,
@@ -48,7 +48,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
         btrees_(nlist, vector<btree::btree_map<attr_t, labeltype>>(da)),
         da_(da) {}
 
-  void AddPointsToIvf(const size_t n, const dist_t *data, const labeltype *labels, const attr_t *attrs) override {
+  void AddPointsToIvf(const size_t n, const void *data, const labeltype *labels, const attr_t *attrs) override {
     AssignPoints(n, data, 1, this->base_cluster_rank_);
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < da_; j++) {
@@ -70,7 +70,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
 
   // By default, we will not use the distances to centroids.
   vector<priority_queue<pair<dist_t, labeltype>>> SearchKnn(
-      const std::variant<const dist_t *, pair<const dist_t *, const dist_t *>> &var,
+      const std::variant<const void *, pair<const void *, const void *>> &var,
       const int nq,
       const int k,
       const attr_t *attrs,
@@ -85,19 +85,19 @@ class Compass : public HybridIndex<dist_t, attr_t> {
     this->hnsw_.setEf(efs_);
     int nprobe = this->nlist_ / 20;
 
-    const dist_t *query, *xquery;
-    if (std::holds_alternative<const dist_t *>(var)) {
-      query = std::get<const dist_t *>(var);
+    const void *query, *xquery;
+    if (std::holds_alternative<const void *>(var)) {
+      query = std::get<const void *>(var);
       xquery = query;
     } else {
-      query = std::get<pair<const dist_t *, const dist_t *>>(var).first;
-      xquery = std::get<pair<const dist_t *, const dist_t *>>(var).second;
+      query = std::get<pair<const void *, const void *>>(var).first;
+      xquery = std::get<pair<const void *, const void *>>(var).second;
     }
     SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_, bm);
 
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);
-    VisitedList* vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
+    VisitedList *vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
@@ -183,7 +183,9 @@ class Compass : public HybridIndex<dist_t, attr_t> {
             if (visited[tableid] == visited_tag) continue;
 
             auto vect = this->hnsw_.getDataByInternalId(tableid);
-            auto dist = this->hnsw_.fstdistfunc_((float *)query + q * this->d_, vect, this->hnsw_.dist_func_param_);
+            auto dist = this->hnsw_.fstdistfunc_(
+                (char *)query + this->hnsw_.data_size_ * q, vect, this->hnsw_.dist_func_param_
+            );
             bm.qmetrics[q].ncomp++;
             crel++;
 
@@ -205,7 +207,7 @@ class Compass : public HybridIndex<dist_t, attr_t> {
         }
 
         this->hnsw_.ReentrantSearchKnnBounded(
-            (float *)query + q * this->d_,
+            (char *)query + this->hnsw_.data_size_ * q,
             k,
             -recycle_set.top().first,  // cause infinite loop?
             // distances[curr_ci],

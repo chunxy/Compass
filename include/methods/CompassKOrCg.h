@@ -11,7 +11,7 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
       : CompassKCg<dist_t, attr_t>(n, d, da, M, efc, nlist, M_cg) {}
 
   vector<priority_queue<pair<dist_t, labeltype>>> SearchKnn(
-      const dist_t *query,
+      const void *query,
       const int nq,
       const int k,
       const attr_t *attrs,
@@ -115,7 +115,9 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
             visited[tableid] = visited_tag;
 
             auto vect = this->hnsw_.getDataByInternalId(tableid);
-            auto dist = this->hnsw_.fstdistfunc_((float *)query + q * this->d_, vect, this->hnsw_.dist_func_param_);
+            auto dist = this->hnsw_.fstdistfunc_(
+                (char *)query + this->hnsw_.data_size_ * q, vect, this->hnsw_.dist_func_param_
+            );
             bm.qmetrics[q].ncomp++;
             crel++;
 
@@ -137,7 +139,7 @@ class CompassKOrCg : public CompassKCg<dist_t, attr_t> {
         }
 
         this->hnsw_.ReentrantSearchKnn(
-            (float *)query + q * this->d_,
+            (char *)query + this->hnsw_.data_size_ * q,
             k,
             -1,
             top_candidates,

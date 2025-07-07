@@ -75,8 +75,8 @@ class CompassIvf {
         while (rel_beg != rel_end) {
           auto j = (*rel_beg).second;
           metrics[q].is_ivf_ppsl[j] = true;
-          const dist_t *vect = xb_ + j * quantizer_.d;
-          auto dist = space_.get_dist_func()((dist_t *)query + q * ivf_->d, vect, space_.get_dist_func_param());
+          const float *vect = xb_ + j * quantizer_.d;
+          auto dist = space_.get_dist_func()((float *)query + q * ivf_->d, vect, space_.get_dist_func_param());
           metrics[q].ncomp++;
           top_candidates.emplace(dist, j);
           rel_beg++;

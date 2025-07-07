@@ -32,7 +32,7 @@ class CompassPca : public CompassX<dist_t, attr_t> {
     this->ivf_ = pca_ivf;
   }
 
-  void AssignPoints(const size_t n, const dist_t *data, const int k, faiss::idx_t *assigned_clusters, float *distances)
+  void AssignPoints(const size_t n, const void *data, const int k, faiss::idx_t *assigned_clusters, float *distances)
       override {
     auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
     auto xdata = ivf_trans->apply_chain(n, (float *)data);

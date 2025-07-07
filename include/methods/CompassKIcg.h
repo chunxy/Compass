@@ -25,7 +25,7 @@ class CompassKIcg : public CompassIcg<dist_t, attr_t> {
 
   void AssignPoints(
       const size_t n,
-      const dist_t *data,
+      const void *data,
       const int k,
       faiss::idx_t *assigned_clusters,
       float *distances = nullptr
