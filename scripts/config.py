@@ -177,7 +177,7 @@ compass_args = {
   "dx": [64, 128, 256, 512],
   "M_cg": [4],
   "batch_k": [10],
-  "delta_efs": [200],
+  "delta_efs": [100, 200],
 }
 irangegraph_args = {
   "M": [16, 32],
@@ -248,6 +248,9 @@ M_STYLE = {
   "CompassKIcg": {
     "marker": "o", "edgecolor": "red"
   },
+  "CompassPcaIcg": {
+    "marker": "d", "edgecolor": "red"
+  },
   "CompassBikmeansIcg": {
     "marker": "s", "edgecolor": "red"
   },
@@ -258,10 +261,3 @@ M_STYLE = {
     "marker": "p"
   }
 }
-
-# b_marker = {
-#   "M_16_efc_200_nlist_10000": "o",
-#   "M_16_efc_200_nlist_20000": "s",
-#   "M_32_efc_200_nlist_10000": "x",
-#   "M_32_efc_200_nlist_20000": "d",
-# }

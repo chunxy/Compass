@@ -123,10 +123,10 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
       data = df[selector]
       sel = float(data["selectivity"].unique()[0])
       fig, axs = plt.subplots(1, 4, layout='constrained')
-      for m in methods:
+      for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+          data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
           if m.startswith("Compass"):
             for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -176,7 +176,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
           axs[3].set_ylabel('Initial / Racing')
           axs[3].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
 
-      fig.set_size_inches(15, 5)
+      fig.set_size_inches(15, 3)
       unique_labels = {}
       for ax in axs.flat:
         ax.set_xlim(xlim)
@@ -203,10 +203,10 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
 
       data = df[selector]
       sel = float(data["selectivity"].unique()[0])
-      for m in methods:
+      for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+          data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
           if m.startswith("Compass"):
             for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -280,10 +280,10 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
       fig, axs = plt.subplots(1, 2, layout='constrained')
 
       data = df[df["dataset"] == d]
-      for m in methods:
+      for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+          data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
           if m.startswith("Compass"):
             for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -335,10 +335,10 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
 
     for i, d in enumerate(datasets):
       data = df[df["dataset"] == d]
-      for m in methods:
+      for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+          data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
           if m.startswith("Compass"):
             for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
