@@ -35,8 +35,8 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   int M = 4, efc = 200;
   int k = 500;
-  int batch_k = 100;
-  vector<int> delta_efs_s = {20};
+  int batch_k = 10;
+  vector<int> delta_efs_s = {100, 200};
 
   po::options_description optional_configs("Optional");
   optional_configs.add_options()("k", po::value<decltype(k)>(&k));
@@ -85,7 +85,11 @@ int main(int argc, char **argv) {
   if (fs::exists(ckp_path)) {
     comp = new IterativeSearch<float>(nb, d, ckp_path.string(), new L2Space(d));
   } else {
-    throw std::runtime_error("Index file not found.");
+    comp = new IterativeSearch<float>(nb, d, new L2Space(d), M);
+    for (int i = 0; i < nb; i++) {
+      comp->hnsw_->addPoint(xb + i * d, i);
+    }
+    comp->hnsw_->saveIndex(ckp_path.string());
   }
   fmt::print("Finished loading/building index\n");
 

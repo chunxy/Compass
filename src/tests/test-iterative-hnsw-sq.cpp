@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   int M = 4, efc = 200;
   int k = 500;
-  int batch_k = 100;
+  int batch_k = 10;
   vector<int> delta_efs_s = {100, 200};
 
   po::options_description optional_configs("Optional");
@@ -52,8 +52,8 @@ int main(int argc, char **argv) {
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-  fs::path log_root("/home/chunxy/repos/Compass/scratches/test-iterative-hnsw");
-  fs::path ckp_root("/home/chunxy/repos/Compass/scratches/test-reentrant-hnsw");
+  fs::path log_root("/home/chunxy/repos/Compass/scratches/test-iterative-hnsw-sq");
+  fs::path ckp_root("/home/chunxy/repos/Compass/scratches/test-iterative-hnsw-sq");
   fmt::print("Saving to {}.\n", (log_root / out_json).string());
 
   // Load data.
