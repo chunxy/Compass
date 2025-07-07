@@ -184,7 +184,7 @@ compass_args = {
   "dx": [64, 128, 256, 512],
   "M_cg": [4],
   "batch_k": [10],
-  "delta_efs": [100, 200],
+  "delta_efs": [100],
 }
 irangegraph_args = {
   "M": [16, 32],
