@@ -381,6 +381,7 @@ nlohmann::json collate_stat(
       {"num_clusters", (double)sum_of_num_cluster / nq},
       {"num_rounds", (double)sum_of_num_round / nq},
       {"num_recycled", (double)sum_of_num_recycled / nq},
+      {"batchsz", nq / nbatch},
       {"latency_in_s", (double)sum_of_latency / 1000000 / nbatch},
       {"cluster_search_time_in_s", (double)sum_of_cluster_search_time / 1000000 / nbatch},
       {"cluster_search_ncomp", (double)sum_of_cluster_search_ncomp / nbatch},

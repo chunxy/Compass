@@ -83,7 +83,7 @@ def summarize():
       ], index="path"
     )
 
-    rec, qps, tqps, ncomp, prop = [], [], [], [], []
+    rec, qps, tqps, ncomp, prop, initial_ncomp = [], [], [], [], [], []
     for e in entries:
       jsons = list(e[0].glob("*.json"))
       if len(jsons) == 0:
@@ -101,12 +101,20 @@ def summarize():
           prop.append(stat["aggregated"]["cluster_search_time_in_s"] / stat["aggregated"]["latency_in_s"])
         else:
           prop.append(0)
-    # df["selectivity"] = sel
+        if "cluster_search_ncomp" in stat["aggregated"]:
+          if "batchsz" in stat["aggregated"]:
+            initial_ncomp.append(stat["aggregated"]["cluster_search_ncomp"] / stat["aggregated"]["batchsz"])
+          else:
+            initial_ncomp.append(stat["aggregated"]["cluster_search_ncomp"] / 100)
+        else:
+          initial_ncomp.append(0)
+
     df["recall"] = rec
     df["qps"] = qps
     df["tqps"] = tqps
     df["ncomp"] = ncomp
     df["prop"] = prop
+    df["initial_ncomp"] = initial_ncomp
 
     df.to_csv(f"stats-{da}d.csv")
 
@@ -139,6 +147,10 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
               recall_comp = recall_comp[recall_comp["recall"].gt(xlim[0])].to_numpy()
               axs[1].plot(recall_comp[:, 0], recall_comp[:, 1])
               axs[1].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+              recall_i_comp = data_by_m_b_nrel[["recall", "initial_ncomp"]].sort_values(["recall", "initial_ncomp"], ascending=[True, True])
+              recall_i_comp = recall_i_comp[recall_i_comp["recall"].gt(xlim[0])].to_numpy()
+              axs[1].plot(recall_i_comp[:, 0], recall_i_comp[:, 1] + recall_comp[:, 1], linestyle="--")
+              axs[1].scatter(recall_i_comp[:, 0], recall_i_comp[:, 1] + recall_comp[:, 1], label=f"total-{m}-{b}-nrel_{nrel}", **marker)
 
               recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
               recall_tqps = recall_tqps[recall_tqps["recall"].gt(xlim[0])].to_numpy()
@@ -219,6 +231,10 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
               recall_comp = recall_comp[recall_comp["recall"].gt(xlim[0])].to_numpy()
               axs[1][i].plot(recall_comp[:, 0], recall_comp[:, 1])
               axs[1][i].scatter(recall_comp[:, 0], recall_comp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+              recall_i_comp = data_by_m_b_nrel[["recall", "initial_ncomp"]].sort_values(["recall", "initial_ncomp"], ascending=[True, True])
+              recall_i_comp = recall_i_comp[recall_i_comp["recall"].gt(xlim[0])].to_numpy()
+              axs[1][i].plot(recall_i_comp[:, 0], recall_i_comp[:, 1] + recall_comp[:, 1], linestyle="--")
+              axs[1][i].scatter(recall_i_comp[:, 0], recall_i_comp[:, 1] + recall_comp[:, 1], label=f"total-{m}-{b}-nrel_{nrel}", **marker)
 
               recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
               recall_tqps = recall_tqps[recall_tqps["recall"].gt(xlim[0])].to_numpy()
