@@ -111,7 +111,11 @@ int main(int argc, char **argv) {
     for (int j = 0; j < nq; j++) {
       std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
 
+      auto open_beg = high_resolution_clock::system_clock::now();
       IterativeSearchState<int> *state = comp->Open((quantized_xq + j * sq.code_size), k);
+      auto open_end = high_resolution_clock::system_clock::now();
+      search_time += duration_cast<microseconds>(open_end - open_beg).count();
+
       while (rz_indices.size() < k) {
         auto search_beg = high_resolution_clock::system_clock::now();
         auto pair = comp->Next(state);
