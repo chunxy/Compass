@@ -4,10 +4,10 @@
 #include "faiss/MetricType.h"
 #include "methods/basis/IterativeSearch.h"
 
-template <typename dist_t, typename attr_t>
+template <typename dist_t, typename attr_t, typename cg_dist_t = dist_t>
 class CompassIcg : public Compass<dist_t, attr_t> {
  protected:
-  IterativeSearch<dist_t> *isearch_;
+  IterativeSearch<cg_dist_t> *isearch_;
 
  protected:
   void SearchClusters(
@@ -19,7 +19,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       float *distances = nullptr
   ) override {}  // dummy implementation
 
-  virtual IterativeSearchState<dist_t> *Open(const void *query, int idx, int nprobe) {
+  virtual IterativeSearchState<cg_dist_t> *Open(const void *query, int idx, int nprobe) {
     const void *target = ((char *)query) + this->isearch_->hnsw_->data_size_ * idx;
     return this->isearch_->Open(target, nprobe);
   }
@@ -28,7 +28,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
   CompassIcg(
       size_t n,
       size_t d,
-      SpaceInterface<dist_t> *s,
+      SpaceInterface<cg_dist_t> *s,
       size_t da,
       size_t M,
       size_t efc,
@@ -38,7 +38,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       size_t delta_efs
   )
       : Compass<dist_t, attr_t>(n, d, da, M, efc, nlist) {
-    this->isearch_ = new IterativeSearch<dist_t>(n, d, s, M_cg);
+    this->isearch_ = new IterativeSearch<cg_dist_t>(n, d, s, M_cg);
     this->isearch_->SetSearchParam(batch_k, delta_efs);
   }
 

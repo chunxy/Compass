@@ -6,8 +6,8 @@ using std::pair;
 using std::priority_queue;
 using std::vector;
 
-template <typename dist_t, typename attr_t>
-class CompassXIcg : public CompassIcg<dist_t, attr_t> {
+template <typename dist_t, typename attr_t, typename cg_dist_t = dist_t>
+class CompassXIcg : public CompassIcg<dist_t, attr_t, cg_dist_t> {
  protected:
   int dx_;
 
@@ -17,7 +17,7 @@ class CompassXIcg : public CompassIcg<dist_t, attr_t> {
       size_t n,
       size_t d,
       size_t dx,
-      SpaceInterface<dist_t> *s,
+      SpaceInterface<cg_dist_t> *s,
       size_t da,
       size_t M,
       size_t efc,
@@ -26,9 +26,9 @@ class CompassXIcg : public CompassIcg<dist_t, attr_t> {
       size_t batch_k,
       size_t delta_efs
   )
-      : CompassIcg<dist_t, attr_t>(n, d, s, da, M, efc, nlist, M_cg, batch_k, delta_efs), dx_(dx) {
+      : CompassIcg<dist_t, attr_t, cg_dist_t>(n, d, s, da, M, efc, nlist, M_cg, batch_k, delta_efs), dx_(dx) {
     // NOTE: double allocation
-    this->isearch_ = new IterativeSearch<dist_t>(n, dx, s, M_cg);
+    this->isearch_ = new IterativeSearch<cg_dist_t>(n, dx, s, M_cg);
     this->isearch_->SetSearchParam(batch_k, delta_efs);
   }
 

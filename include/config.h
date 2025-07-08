@@ -33,6 +33,7 @@ const std::string COMPASS_IVF_IMI_RANK_CHECKPOINT_TMPL = "{}_{}_{}.rank";   // {
 const std::string COMPASS_RANK_CHECKPOINT_TMPL = "{}_{}.rank";              // {nb}_{nlist}
 const std::string COMPASS_GRAPH_CHECKPOINT_TMPL = "{}_{}.hnsw";             // {M}_{efc}
 const std::string COMPASS_CGRAPH_CHECKPOINT_TMPL = "{}-{}-{}.hnsw";         // {nlist}-{M}-{efc}
+const std::string COMPASS_QCGRAPH_CHECKPOINT_TMPL = "{}-{}-{}-{}.hnsw";     // {nlist}-{M}-{efc}-{nbits}
 const std::string COMPASS_X_IVF_CHECKPOINT_TMPL = "{}-{}.x.ivf";            // {nlist}-{dx}
 const std::string COMPASS_X_RANK_CHECKPOINT_TMPL = "{}-{}-{}.x.rank";       // {nb}-{nlist}-{dx}
 const std::string COMPASS_X_CGRAPH_CHECKPOINT_TMPL = "{}-{}-{}-{}.x.hnsw";  // {nlist}-{M}-{efc}-{dx}
