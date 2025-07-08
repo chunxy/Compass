@@ -13,9 +13,15 @@ from summarize import (
   draw_qps_comp_wrt_recall_by_selectivity,
 )
 
-nrel_100 = [100]
-nrel_100_200 = [100, 200]
-nrel_50_100_200 = [50, 100, 200]
+nrel_100 = {d: {} for d in DATASETS}
+nrel_100_200 = {d: {} for d in DATASETS}
+nrel_50_100_200 = {d: {} for d in DATASETS}
+
+for d in DATASETS:
+  for m in COMPASS_METHODS:
+    nrel_100[d][m] = {"nrel": [100]}
+    nrel_100_200[d][m] = {"nrel": [100, 200]}
+    nrel_50_100_200[d][m] = {"nrel": [50, 100, 200]}
 
 
 # Compare clustering methods.
@@ -38,7 +44,7 @@ def pick_clustering_methods():
       methods=clus_methods,
       anno="CoC",
       d_m_b=d_m_b,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10/varying-clus",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
@@ -47,7 +53,7 @@ def pick_clustering_methods():
       methods=clus_methods,
       anno="CoC",
       d_m_b=d_m_b,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10/varying-clus",
     )
 
@@ -70,7 +76,7 @@ def pick_cluster_search_methods():
       methods=clus_search_methods,
       anno="SoS",
       d_m_b=d_m_b,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10/varying-clus-search",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
@@ -79,7 +85,7 @@ def pick_cluster_search_methods():
       methods=clus_search_methods,
       anno="SoS",
       d_m_b=d_m_b,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10/varying-clus-search",
     )
 
@@ -101,7 +107,7 @@ def pick_nrel():
       methods=methods,
       anno="nrel",
       d_m_b=d_m_b,
-      nrel_s=nrel_50_100_200,
+      d_m_s=nrel_50_100_200,
       prefix=f"cherrypick{da}d-10/varying-nrel",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
@@ -110,7 +116,7 @@ def pick_nrel():
       methods=methods,
       anno="nrel",
       d_m_b=d_m_b,
-      nrel_s=nrel_50_100_200,
+      d_m_s=nrel_50_100_200,
       prefix=f"cherrypick{da}d-10/varying-nrel",
     )
 
@@ -132,7 +138,7 @@ def pick_M():
       methods=methods,
       anno="M",
       d_m_b=d_m_b_M,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10/varying-M",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
@@ -141,7 +147,7 @@ def pick_M():
       methods=methods,
       anno="M",
       d_m_b=d_m_b_M,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10/varying-M",
     )
 
@@ -163,7 +169,7 @@ def pick_nlist():
       methods=methods,
       anno="nlist",
       d_m_b=d_m_b_nlist,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10/varying-nlist",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
@@ -172,7 +178,7 @@ def pick_nlist():
       methods=methods,
       anno="nlist",
       d_m_b=d_m_b_nlist,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10/varying-nlist",
     )
 
@@ -201,7 +207,7 @@ def compare_with_sotas():
       methods=METHODS,
       anno="MoM",
       d_m_b=d_m_b,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10",
     )
     draw_qps_comp_wrt_recall_by_selectivity(
@@ -210,7 +216,7 @@ def compare_with_sotas():
       methods=METHODS,
       anno="MoM",
       d_m_b=d_m_b,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10",
     )
     draw_qps_comp_fixing_recall_by_dataset_selectivity(
@@ -219,7 +225,7 @@ def compare_with_sotas():
       methods=METHODS,
       anno="MoM",
       d_m_b=d_m_b,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
@@ -228,7 +234,7 @@ def compare_with_sotas():
       methods=METHODS,
       anno="MoM",
       d_m_b=d_m_b,
-      nrel_s=nrel_100,
+      d_m_s=nrel_100,
       prefix=f"cherrypick{da}d-10",
     )
 
@@ -252,7 +258,7 @@ def compare_best_with_sotas():
       methods=METHODS,
       anno="MoM",
       d_m_b=d_m_b,
-      nrel_s=nrel_50_100_200,
+      d_m_s=nrel_50_100_200,
       prefix=f"cherrypick{da}d-10/best",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
@@ -261,17 +267,16 @@ def compare_best_with_sotas():
       methods=METHODS,
       anno="MoM",
       d_m_b=d_m_b,
-      nrel_s=nrel_50_100_200,
+      d_m_s=nrel_50_100_200,
       prefix=f"cherrypick{da}d-10/best",
     )
 
 
 if __name__ == "__main__":
-  pick_clustering_methods()
-  pick_cluster_search_methods()
-  pick_nrel()
-  pick_M()
-  pick_nlist()
+  # pick_clustering_methods()
+  # pick_cluster_search_methods()
+  # pick_nrel()
+  # pick_M()
+  # pick_nlist()
   compare_with_sotas()
   compare_best_with_sotas()
-

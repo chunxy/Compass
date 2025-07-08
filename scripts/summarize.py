@@ -119,7 +119,7 @@ def summarize():
     df.to_csv(f"stats-{da}d.csv")
 
 
-def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
+def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
 
   for d in datasets:
@@ -136,7 +136,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
           if m.startswith("Compass"):
-            for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
+            for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
               recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
               recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
@@ -203,7 +203,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
       plt.close()
 
 
-def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
+def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
 
   for rg in DA_RANGE[da]:
@@ -220,7 +220,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
           if m.startswith("Compass"):
-            for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
+            for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
               recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
               recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
@@ -286,7 +286,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
       plt.close()
 
 
-def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
+def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   recall_thresholds = [0.8, 0.9, 0.95]
   selectivities = DA_SEL[da]
@@ -301,7 +301,7 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
           if m.startswith("Compass"):
-            for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
+            for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
               rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
               grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
@@ -341,7 +341,7 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
       plt.close()
 
 
-def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, nrel_s=[], prefix="figures"):
+def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   recall_thresholds = [0.8, 0.9, 0.95]
   selectivities = DA_SEL[da]
@@ -356,7 +356,7 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
           if m.startswith("Compass"):
-            for nrel in (compass_args["nrel"] if len(nrel_s) == 0 else nrel_s):
+            for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
               rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
               grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
