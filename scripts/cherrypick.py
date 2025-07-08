@@ -233,6 +233,39 @@ def compare_with_sotas():
     )
 
 
+def compare_best_with_sotas():
+  d_m_b = {d: {} for d in DATASETS}
+  for d in ("sift", "audio"):
+    d_m_b[d]["CompassKIcg"] = ["M_16_efc_200_nlist_5000"]
+  d_m_b["gist"]["CompassPcaCg"] = ["M_16_efc_200_nlist_10000_dx_512"]
+  d_m_b["video"]["CompassPcaCg"] = ["M_16_efc_200_nlist_10000_dx_512"]
+  d_m_b["crawl"]["CompassPcaCg"] = ["M_16_efc_200_nlist_10000_dx_128"]
+  d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000"]
+  for d in DATASETS:
+    d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
+    d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
+
+  for da in DA_S:
+    draw_qps_comp_wrt_recall_by_selectivity(
+      da=da,
+      datasets=DATASETS,
+      methods=METHODS,
+      anno="MoM",
+      d_m_b=d_m_b,
+      nrel_s=nrel_50_100_200,
+      prefix=f"cherrypick{da}d-10/best",
+    )
+    draw_qps_comp_fixing_recall_by_selectivity(
+      da=da,
+      datasets=DATASETS,
+      methods=METHODS,
+      anno="MoM",
+      d_m_b=d_m_b,
+      nrel_s=nrel_50_100_200,
+      prefix=f"cherrypick{da}d-10/best",
+    )
+
+
 if __name__ == "__main__":
   pick_clustering_methods()
   pick_cluster_search_methods()
@@ -240,4 +273,5 @@ if __name__ == "__main__":
   pick_M()
   pick_nlist()
   compare_with_sotas()
+  compare_best_with_sotas()
 
