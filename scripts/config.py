@@ -262,9 +262,9 @@ M_STYLE = {
     "marker": "s", "edgecolor": "red"
   },
   "iRangeGraph": {
-    "marker": "^"
+    "marker": "^", "color": "black"
   },
   "SeRF": {
-    "marker": "p"
+    "marker": "p", "color": "gray"
   }
 }
