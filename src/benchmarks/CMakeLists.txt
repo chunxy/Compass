@@ -34,8 +34,11 @@ add_executable(bench-compass-1d-idec bench-compass-1d-idec.cpp)
 
 # Iterative cluster graph
 add_executable(bench-compass-1d-k-icg bench-compass-1d-k-icg.cpp)
+add_executable(bench-compass-1d-k-qicg bench-compass-1d-k-qicg.cpp)
 add_executable(bench-compass-1d-bikmeans-icg bench-compass-1d-bikmeans-icg.cpp)
+add_executable(bench-compass-1d-bikmeans-qicg bench-compass-1d-bikmeans-qicg.cpp)
 add_executable(bench-compass-1d-pca-icg bench-compass-1d-pca-icg.cpp)
+add_executable(bench-compass-1d-pca-qicg bench-compass-1d-pca-qicg.cpp)
 
 # Baseline
 add_executable(bench-compass-ivf bench-compass-ivf.cpp)
@@ -57,5 +60,8 @@ add_executable(bench-compass-pca-cg bench-compass-pca-cg.cpp)
 
 # Iterative cluster graph
 add_executable(bench-compass-k-icg bench-compass-k-icg.cpp)
+add_executable(bench-compass-k-qicg bench-compass-k-qicg.cpp)
 add_executable(bench-compass-bikmeans-icg bench-compass-bikmeans-icg.cpp)
+add_executable(bench-compass-bikmeans-qicg bench-compass-bikmeans-qicg.cpp)
 add_executable(bench-compass-pca-icg bench-compass-pca-icg.cpp)
+add_executable(bench-compass-pca-qicg bench-compass-pca-qicg.cpp)

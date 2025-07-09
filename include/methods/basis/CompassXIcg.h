@@ -1,12 +1,15 @@
 #include <cstddef>
+#include <type_traits>
 #include "CompassIcg.h"
 
 using hnswlib::labeltype;
+using hnswlib::L2Space;
+using hnswlib::L2SpaceB;
 using std::pair;
 using std::priority_queue;
 using std::vector;
 
-template <typename dist_t, typename attr_t, typename cg_dist_t = dist_t>
+template <typename dist_t, typename attr_t, typename cg_dist_t = float>
 class CompassXIcg : public CompassIcg<dist_t, attr_t, cg_dist_t> {
  protected:
   int dx_;
@@ -32,5 +35,8 @@ class CompassXIcg : public CompassIcg<dist_t, attr_t, cg_dist_t> {
     this->isearch_->SetSearchParam(batch_k, delta_efs);
   }
 
-  void LoadClusterGraph(fs::path path) override { this->isearch_->hnsw_->loadIndex(path.string(), new L2Space(dx_)); }
+  void LoadClusterGraph(fs::path path) override {
+    using SpaceType = typename std::conditional<std::is_same<cg_dist_t, int>::value, L2SpaceB, L2Space>::type;
+    this->isearch_->hnsw_->loadIndex(path.string(), new SpaceType(dx_));
+  }
 };

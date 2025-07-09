@@ -79,12 +79,12 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
   }
 
-  IterativeSearchState<dist_t> *Open(const void *query, int k) {
+  IterativeSearchState<dist_t> Open(const void *query, int k) {
     hnsw_->setEf(this->initial_efs_);
-    IterativeSearchState<dist_t> *state = new IterativeSearchState<dist_t>(query, k);
-    state->visited_.resize(n_, false);
-    state->ncomp_ = 0;
-    state->total_ = 0;
+    IterativeSearchState<dist_t> state(query, k);
+    state.visited_.resize(n_, false);
+    state.ncomp_ = 0;
+    state.total_ = 0;
     {
       tableint curr_obj = this->hnsw_->enterpoint_node_;
       dist_t curr_dist =
@@ -106,7 +106,7 @@ class IterativeSearch {
             if (cand < 0 || cand > this->hnsw_->max_elements_) throw std::runtime_error("cand error");
             dist_t d =
                 this->hnsw_->fstdistfunc_(query, this->hnsw_->getDataByInternalId(cand), this->hnsw_->dist_func_param_);
-            state->ncomp_++;
+            state.ncomp_++;
 
             if (d < curr_dist) {
               curr_dist = d;
@@ -116,14 +116,14 @@ class IterativeSearch {
           }
         }
       }
-      state->visited_[curr_obj] = true;
-      state->candidate_set_.emplace(-curr_dist, curr_obj);
-      state->result_set_.emplace(-curr_dist, curr_obj);
-      state->top_candidates_.emplace(curr_dist, curr_obj);
+      state.visited_[curr_obj] = true;
+      state.candidate_set_.emplace(-curr_dist, curr_obj);
+      state.result_set_.emplace(-curr_dist, curr_obj);
+      state.top_candidates_.emplace(curr_dist, curr_obj);
 
-      UpdateNext(state);
+      UpdateNext(&state);
     }
-    return state;
+    return std::move(state);
   }
 
   pair<dist_t, labeltype> Next(IterativeSearchState<dist_t> *state) {
@@ -144,10 +144,7 @@ class IterativeSearch {
     return Next(state);
   }
 
-  void Close(IterativeSearchState<dist_t> *state) {
-    delete state;
-    hnsw_->setEf(this->initial_efs_);
-  }
+  void Close(IterativeSearchState<dist_t> *state) { hnsw_->setEf(this->initial_efs_); }
 
   int GetNcomp(IterativeSearchState<dist_t> *state) { return state->ncomp_; }
 

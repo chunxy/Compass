@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   int M = 4, efc = 200;
   int k = 500;
   int batch_k = 10;
-  vector<int> delta_efs_s = {100, 200};
+  vector<int> delta_efs_s = {50, 100, 200};
 
   po::options_description optional_configs("Optional");
   optional_configs.add_options()("k", po::value<decltype(k)>(&k));
@@ -112,13 +112,13 @@ int main(int argc, char **argv) {
       std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
 
       auto open_beg = high_resolution_clock::system_clock::now();
-      IterativeSearchState<int> *state = comp->Open((quantized_xq + j * sq.code_size), k);
+      IterativeSearchState<int> state = std::move(comp->Open((quantized_xq + j * sq.code_size), k));
       auto open_end = high_resolution_clock::system_clock::now();
       search_time += duration_cast<microseconds>(open_end - open_beg).count();
 
       while (rz_indices.size() < k) {
         auto search_beg = high_resolution_clock::system_clock::now();
-        auto pair = comp->Next(state);
+        auto pair = comp->Next(&state);
         auto search_end = high_resolution_clock::system_clock::now();
         search_time += duration_cast<microseconds>(search_end - search_beg).count();
 
@@ -130,8 +130,8 @@ int main(int argc, char **argv) {
         rz_indices.insert(i);
       }
 
-      ncomp += comp->GetNcomp(state);
-      comp->Close(state);
+      ncomp += comp->GetNcomp(&state);
+      comp->Close(&state);
 
       for (int i = 0; i < k; i++) {
         gt_indices.insert(hybrid_topks[j][i]);

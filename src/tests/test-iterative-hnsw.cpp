@@ -103,13 +103,13 @@ int main(int argc, char **argv) {
       std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
 
       auto open_beg = high_resolution_clock::system_clock::now();
-      IterativeSearchState<float> *state = comp->Open(xq + j * d, k);
+      IterativeSearchState<float> state = std::move(comp->Open(xq + j * d, k));
       auto open_end = high_resolution_clock::system_clock::now();
       search_time += duration_cast<microseconds>(open_end - open_beg).count();
 
       while (rz_indices.size() < k) {
         auto search_beg = high_resolution_clock::system_clock::now();
-        auto pair = comp->Next(state);
+        auto pair = comp->Next(&state);
         auto search_end = high_resolution_clock::system_clock::now();
         search_time += duration_cast<microseconds>(search_end - search_beg).count();
 
@@ -121,8 +121,8 @@ int main(int argc, char **argv) {
         rz_indices.insert(i);
       }
 
-      ncomp += comp->GetNcomp(state);
-      comp->Close(state);
+      ncomp += comp->GetNcomp(&state);
+      comp->Close(&state);
 
       for (int i = 0; i < k; i++) {
         gt_indices.insert(hybrid_topks[j][i]);

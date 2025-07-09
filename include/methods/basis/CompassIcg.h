@@ -1,10 +1,14 @@
 #pragma once
 
+#include <type_traits>
 #include "Compass.h"
 #include "faiss/MetricType.h"
 #include "methods/basis/IterativeSearch.h"
 
-template <typename dist_t, typename attr_t, typename cg_dist_t = dist_t>
+using hnswlib::L2Space;
+using hnswlib::L2SpaceB;
+
+template <typename dist_t, typename attr_t, typename cg_dist_t = float>
 class CompassIcg : public Compass<dist_t, attr_t> {
  protected:
   IterativeSearch<cg_dist_t> *isearch_;
@@ -19,7 +23,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       float *distances = nullptr
   ) override {}  // dummy implementation
 
-  virtual IterativeSearchState<cg_dist_t> *Open(const void *query, int idx, int nprobe) {
+  virtual IterativeSearchState<cg_dist_t> Open(const void *query, int idx, int nprobe) {
     const void *target = ((char *)query) + this->isearch_->hnsw_->data_size_ * idx;
     return this->isearch_->Open(target, nprobe);
   }
@@ -84,9 +88,9 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       vl_type visited_tag = vl->curV;
       // vector<bool> visited(this->n_, false);
 
-      auto state = Open(xquery, q, nprobe);
+      auto state = std::move(Open(xquery, q, nprobe));
 
-      auto next = isearch_->Next(state);
+      auto next = isearch_->Next(&state);
       int clus = next.second, clus_cnt = 1;
 
       std::vector<std::unordered_set<labeltype>> candidates_per_dim(this->da_);
@@ -119,7 +123,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
         if (candidate_set.empty() || (clus != -1)) {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
-              auto _next = isearch_->Next(state);
+              auto _next = isearch_->Next(&state);
               clus = _next.second;
               clus_cnt++;
               if (clus == -1)
@@ -218,8 +222,8 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
 
-      bm.cluster_search_ncomp += isearch_->GetNcomp(state);
-      isearch_->Close(state);
+      bm.cluster_search_ncomp += isearch_->GetNcomp(&state);
+      isearch_->Close(&state);
     }
 
     return results;
@@ -233,6 +237,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
   }
 
   virtual void LoadClusterGraph(fs::path path) {
-    this->isearch_->hnsw_->loadIndex(path.string(), new L2Space(this->d_));
+    using SpaceType = typename std::conditional<std::is_same<cg_dist_t, int>::value, L2SpaceB, L2Space>::type;
+    this->isearch_->hnsw_->loadIndex(path.string(), new SpaceType(this->d_));
   }
 };

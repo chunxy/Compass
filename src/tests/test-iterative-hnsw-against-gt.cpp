@@ -90,13 +90,13 @@ int main(int argc, char **argv) {
       std::set<labeltype> graph_rz, ivf_rz, rz_interse;
 
       auto open_beg = high_resolution_clock::system_clock::now();
-      IterativeSearchState<float> *state = comp->Open(xq + j * d, k);
+      IterativeSearchState<float> state = comp->Open(xq + j * d, k);
       auto open_end = high_resolution_clock::system_clock::now();
       search_time += duration_cast<microseconds>(open_end - open_beg).count();
 
       while (graph_rz.size() < k) {
         auto search_beg = high_resolution_clock::system_clock::now();
-        auto pair = comp->Next(state);
+        auto pair = comp->Next(&state);
         auto search_end = high_resolution_clock::system_clock::now();
         search_time += duration_cast<microseconds>(search_end - search_beg).count();
 
@@ -108,8 +108,8 @@ int main(int argc, char **argv) {
         graph_rz.insert(i);
       }
 
-      ncomp += comp->GetNcomp(state);
-      comp->Close(state);
+      ncomp += comp->GetNcomp(&state);
+      comp->Close(&state);
 
       auto label = new faiss::idx_t[k];
       ivf->quantizer->assign(1, xq + j * d, label, k);
