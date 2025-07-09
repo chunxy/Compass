@@ -18,7 +18,7 @@ class Compass1dPcaQicg : public Compass1dXIcg<dist_t, attr_t, int> {
     const void *target = ((char *)query) + idx * this->hnsw_.data_size_;
     auto xquery = ivf_trans->apply_chain(1, (float *)target);
     sq_->sa_encode(1, (float *)xquery, query_code_);
-    delete[] xquery;
+    // delete[] xquery;
     return this->isearch_->Open(query_code_, nprobe);
   }
 
