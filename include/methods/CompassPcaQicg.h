@@ -14,22 +14,22 @@ class CompassPcaQicg : public CompassXIcg<dist_t, attr_t, int> {
   uint8_t *query_code_;
 
  protected:
- IterativeSearchState<int> Open(const void *query, int idx, int nprobe) override {
-  // auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
-  // const void *target = ((char *)query) + idx * this->hnsw_.data_size_;
-  // auto xquery = ivf_trans->apply_chain(1, (float *)target);
-  // sq_->sa_encode(1, (float *)xquery, query_code_);
-  // return this->isearch_->Open(query_code_, nprobe);
-  return this->isearch_->Open((char *)query + idx * sq_->code_size, nprobe);
-}
+  IterativeSearchState<int> Open(const void *query, int idx, int nprobe) override {
+    // auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
+    // const void *target = ((char *)query) + idx * this->hnsw_.data_size_;
+    // auto xquery = ivf_trans->apply_chain(1, (float *)target);
+    // sq_->sa_encode(1, (float *)xquery, query_code_);
+    // return this->isearch_->Open(query_code_, nprobe);
+    return this->isearch_->Open((char *)query + idx * sq_->code_size, nprobe);
+  }
 
-const void *quantize_query(const void *query, int nq) override {
-  auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
-  auto xquery = ivf_trans->apply_chain(nq, (float *)query);
-  sq_->sa_encode(nq, (float *)xquery, query_code_);
-  delete[] xquery;
-  return query_code_;
-}
+  const void *quantize_query(const void *query, int nq) override {
+    auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
+    auto xquery = ivf_trans->apply_chain(nq, (float *)query);
+    sq_->sa_encode(nq, (float *)xquery, query_code_);
+    delete[] xquery;
+    return query_code_;
+  }
 
  public:
   CompassPcaQicg(
@@ -43,9 +43,10 @@ const void *quantize_query(const void *query, int nq) override {
       size_t nlist,
       size_t M_cg,
       size_t batch_k,
+      size_t initial_efs,
       size_t delta_efs
   )
-      : CompassXIcg<dist_t, attr_t, int>(n, d, dx, s, da, M, efc, nlist, M_cg, batch_k, delta_efs) {
+      : CompassXIcg<dist_t, attr_t, int>(n, d, dx, s, da, M, efc, nlist, M_cg, batch_k, initial_efs, delta_efs) {
     auto xivf = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
     auto pca = new faiss::PCAMatrix(d, dx);
     // pca->eigen_power = -0.5;

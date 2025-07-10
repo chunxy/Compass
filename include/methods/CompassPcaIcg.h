@@ -29,9 +29,10 @@ class CompassPcaIcg : public CompassXIcg<dist_t, attr_t> {
       size_t nlist,
       size_t M_cg,
       size_t batch_k,
+      size_t initial_efs,
       size_t delta_efs
   )
-      : CompassXIcg<dist_t, attr_t>(n, d, dx, s, da, M, efc, nlist, M_cg, batch_k, delta_efs) {
+      : CompassXIcg<dist_t, attr_t>(n, d, dx, s, da, M, efc, nlist, M_cg, batch_k, initial_efs, delta_efs) {
     auto xivf = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(dx), dx, nlist);
     auto pca = new faiss::PCAMatrix(d, dx);
     // pca->eigen_power = -0.5;

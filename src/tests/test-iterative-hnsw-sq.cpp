@@ -38,12 +38,14 @@ int main(int argc, char **argv) {
   int M = 4, efc = 200;
   int k = 500;
   int batch_k = 10;
-  vector<int> delta_efs_s = {50, 100, 200};
+  int initial_efs = 50;
+  vector<int> delta_efs_s = {20, 50, 100, 200};
 
   po::options_description optional_configs("Optional");
   optional_configs.add_options()("k", po::value<decltype(k)>(&k));
   optional_configs.add_options()("M", po::value<decltype(M)>(&M));
   optional_configs.add_options()("batch_k", po::value<decltype(batch_k)>(&batch_k));
+  optional_configs.add_options()("initial_efs", po::value<decltype(initial_efs)>(&initial_efs));
   optional_configs.add_options()("delta_efs", po::value<decltype(delta_efs_s)>(&delta_efs_s)->multitoken());
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, optional_configs), vm);
@@ -103,8 +105,8 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading/building index\n");
 
   nlohmann::json json;
-  for (auto efs : delta_efs_s) {
-    comp->SetSearchParam(batch_k, efs);
+  for (auto delta : delta_efs_s) {
+    comp->SetSearchParam(batch_k, initial_efs, delta);
 
     double recall = 0;
     double ncomp = 0;
@@ -113,8 +115,7 @@ int main(int argc, char **argv) {
       std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
 
       auto open_beg = high_resolution_clock::system_clock::now();
-      sq.sa_encode(1, xq + j * d, quantized);
-      IterativeSearchState<int> state = std::move(comp->Open(quantized, k));
+      IterativeSearchState<int> state = std::move(comp->Open((quantized_xq + j * sq.code_size), k));
       auto open_end = high_resolution_clock::system_clock::now();
       search_time += duration_cast<microseconds>(open_end - open_beg).count();
 
@@ -148,9 +149,9 @@ int main(int argc, char **argv) {
 
       recall += (double)rz_gt_interse.size() / k;
     }
-    json[fmt::to_string(efs)]["recall"] = recall / nq;
-    json[fmt::to_string(efs)]["qps"] = nq * 1000000. / search_time;
-    json[fmt::to_string(efs)]["ncomp"] = ncomp / nq;
+    json[fmt::to_string(delta)]["recall"] = recall / nq;
+    json[fmt::to_string(delta)]["qps"] = nq * 1000000. / search_time;
+    json[fmt::to_string(delta)]["ncomp"] = ncomp / nq;
     json["M"] = M;
     json["k"] = k;
     json["batch_k"] = batch_k;

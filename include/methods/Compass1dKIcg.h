@@ -17,9 +17,10 @@ class Compass1dKIcg : public Compass1dIcg<dist_t, attr_t> {
       size_t nlist,
       size_t M_cg,
       size_t batch_k,
+      size_t initial_efs,
       size_t delta_efs
   )
-      : Compass1dIcg<dist_t, attr_t>(n, d, s, M, efc, nlist, M_cg, batch_k, delta_efs) {
+      : Compass1dIcg<dist_t, attr_t>(n, d, s, M, efc, nlist, M_cg, batch_k, initial_efs, delta_efs) {
     this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist);
   }
 

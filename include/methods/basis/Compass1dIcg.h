@@ -42,11 +42,12 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       size_t nlist,
       size_t M_cg,
       size_t batch_k,
+      size_t initial_efs,
       size_t delta_efs
   )
       : Compass1d<dist_t, attr_t>(n, d, M, efc, nlist) {
     this->isearch_ = new IterativeSearch<cg_dist_t>(n, d, s, M_cg);
-    this->isearch_->SetSearchParam(batch_k, delta_efs);
+    this->isearch_->SetSearchParam(batch_k, initial_efs, delta_efs);
   }
 
   // By default, we will not use the distances to centroids.
