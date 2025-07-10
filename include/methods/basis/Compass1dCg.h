@@ -50,7 +50,5 @@ class Compass1dCg : public Compass1d<dist_t, attr_t> {
     this->cgraph_->saveIndex(path.string());
   }
 
-  virtual void LoadClusterGraph(fs::path path) {
-    this->cgraph_ = new HierarchicalNSW<dist_t>(new L2Space(this->d_), path.string());
-  }
+  virtual void LoadClusterGraph(fs::path path) { this->cgraph_->loadIndex(path.string(), new L2Space(this->d_)); }
 };

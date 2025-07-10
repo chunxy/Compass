@@ -2,9 +2,9 @@
 #include <type_traits>
 #include "Compass1dIcg.h"
 
-using hnswlib::labeltype;
 using hnswlib::L2Space;
 using hnswlib::L2SpaceB;
+using hnswlib::labeltype;
 using std::pair;
 using std::priority_queue;
 using std::vector;
@@ -29,7 +29,7 @@ class Compass1dXIcg : public Compass1dIcg<dist_t, attr_t, cg_dist_t> {
       size_t delta_efs
   )
       : Compass1dIcg<dist_t, attr_t, cg_dist_t>(n, d, s, M, efc, nlist, M_cg, batch_k, delta_efs), dx_(dx) {
-    // NOTE: double allocation
+    if (this->isearch_) delete this->isearch_;
     this->isearch_ = new IterativeSearch<cg_dist_t>(n, dx, s, M_cg);
     this->isearch_->SetSearchParam(batch_k, delta_efs);
   }
