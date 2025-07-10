@@ -15,9 +15,8 @@ class CompassKQicg : public CompassIcg<dist_t, attr_t, int> {
  protected:
   IterativeSearchState<int> Open(const void *query, int idx, int nprobe) override {
     void *target = ((char *)query) + this->hnsw_.data_size_ * idx;
-    uint8_t *query_code = new uint8_t[sq_->code_size];  // potential leakage
-    sq_->sa_encode(1, (float *)target, query_code);
-    return this->isearch_->Open(query_code, nprobe);
+    sq_->sa_encode(1, (float *)target, query_code_);
+    return this->isearch_->Open(query_code_, nprobe);
   }
 
  public:

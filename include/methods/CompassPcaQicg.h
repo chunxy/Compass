@@ -70,8 +70,12 @@ class CompassPcaQicg : public CompassXIcg<dist_t, attr_t, int> {
     auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
     auto ivf_flat = dynamic_cast<faiss::IndexIVFFlat *>(ivf_trans->index);
     auto centroids = ((faiss::IndexFlatL2 *)ivf_flat->quantizer)->get_xb();
+
+    uint8_t *codes = new uint8_t[ivf_flat->nlist * sq_->code_size];
+    sq_->train(ivf_flat->nlist, centroids);
+    sq_->sa_encode(ivf_flat->nlist, centroids, codes);
     for (int i = 0; i < ivf_flat->nlist; i++) {
-      this->isearch_->hnsw_->addPoint(centroids + i * ivf_flat->d, i);
+      this->isearch_->hnsw_->addPoint(codes + i * sq_->code_size, i);
     }
   }
 
