@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
 
   // Load groundtruth for hybrid search.
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, {args.l_bounds}, vector<float>{args.u_bounds}, args.k, hybrid_topks);
+  load_hybrid_query_gt(c, args.l_bounds, args.u_bounds, args.k, hybrid_topks);
   fmt::print("Finished loading groundtruth.\n");
 
   // Compute selectivity.

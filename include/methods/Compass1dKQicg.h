@@ -14,10 +14,15 @@ class Compass1dKQicg : public Compass1dIcg<dist_t, attr_t, int> {
 
  protected:
   IterativeSearchState<int> Open(const void *query, int idx, int nprobe) override {
-    void *target = ((char *)query) + this->hnsw_.data_size_ * idx;
-    // uint8_t *query_code = new uint8_t[sq_->code_size];  // potential leakage
-    sq_->sa_encode(1, (float *)target, query_code_);
-    return this->isearch_->Open(query_code_, nprobe);
+    // void *target = ((char *)query) + this->hnsw_.data_size_ * idx;
+    // sq_->sa_encode(1, (float *)target, query_code_);
+    // return this->isearch_->Open(query_code_, nprobe);
+    return this->isearch_->Open((char *)query + idx * sq_->code_size, nprobe);
+  }
+
+  const void *quantize_query(const void *query, int nq) override {
+    sq_->sa_encode(nq, (float *)query, query_code_);
+    return query_code_;
   }
 
  public:
@@ -35,7 +40,7 @@ class Compass1dKQicg : public Compass1dIcg<dist_t, attr_t, int> {
       : Compass1dIcg<dist_t, attr_t, int>(n, d, s, M, efc, nlist, M_cg, batch_k, delta_efs) {
     this->ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist);
     sq_ = new faiss::IndexScalarQuantizer(d, faiss::ScalarQuantizer::QT_8bit_uniform);
-    query_code_ = new uint8_t[sq_->code_size];
+    query_code_ = new uint8_t[1000 * sq_->code_size];
   }
 
   void AssignPoints(

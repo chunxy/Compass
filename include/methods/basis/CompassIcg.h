@@ -28,6 +28,8 @@ class CompassIcg : public Compass<dist_t, attr_t> {
     return this->isearch_->Open(target, nprobe);
   }
 
+  virtual const void *quantize_query(const void *query, int nq) { return query; }
+
  public:
   CompassIcg(
       size_t n,
@@ -72,6 +74,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       xquery = std::get<pair<const void *, const void *>>(var).second;
     }
     // SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_, bm);
+    xquery = this->quantize_query(xquery, nq);
 
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);

@@ -85,6 +85,7 @@ int main(int argc, char **argv) {
   sq.sa_encode(nb, xb, quantized_xb);
   uint8_t *quantized_xq = new uint8_t[nq * sq.code_size];
   sq.sa_encode(nq, xq, quantized_xq);
+  uint8_t *quantized = new uint8_t[sq.code_size];
 
   IterativeSearch<int> *comp;
 
@@ -112,7 +113,8 @@ int main(int argc, char **argv) {
       std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
 
       auto open_beg = high_resolution_clock::system_clock::now();
-      IterativeSearchState<int> state = std::move(comp->Open((quantized_xq + j * sq.code_size), k));
+      sq.sa_encode(1, xq + j * d, quantized);
+      IterativeSearchState<int> state = std::move(comp->Open(quantized, k));
       auto open_end = high_resolution_clock::system_clock::now();
       search_time += duration_cast<microseconds>(open_end - open_beg).count();
 

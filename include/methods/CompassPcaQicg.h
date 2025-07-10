@@ -14,14 +14,22 @@ class CompassPcaQicg : public CompassXIcg<dist_t, attr_t, int> {
   uint8_t *query_code_;
 
  protected:
-  IterativeSearchState<int> Open(const void *query, int idx, int nprobe) override {
-    auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
-    const void *target = ((char *)query) + idx * this->hnsw_.data_size_;
-    auto xquery = ivf_trans->apply_chain(1, (float *)target);
-    sq_->sa_encode(1, (float *)xquery, query_code_);
-    // delete[] xquery;
-    return this->isearch_->Open(query_code_, nprobe);
-  }
+ IterativeSearchState<int> Open(const void *query, int idx, int nprobe) override {
+  // auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
+  // const void *target = ((char *)query) + idx * this->hnsw_.data_size_;
+  // auto xquery = ivf_trans->apply_chain(1, (float *)target);
+  // sq_->sa_encode(1, (float *)xquery, query_code_);
+  // return this->isearch_->Open(query_code_, nprobe);
+  return this->isearch_->Open((char *)query + idx * sq_->code_size, nprobe);
+}
+
+const void *quantize_query(const void *query, int nq) override {
+  auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
+  auto xquery = ivf_trans->apply_chain(nq, (float *)query);
+  sq_->sa_encode(nq, (float *)xquery, query_code_);
+  delete[] xquery;
+  return query_code_;
+}
 
  public:
   CompassPcaQicg(
@@ -46,7 +54,7 @@ class CompassPcaQicg : public CompassXIcg<dist_t, attr_t, int> {
     pca_ivf->prepend_transform(new faiss::CenteringTransform(d));
     this->ivf_ = pca_ivf;
     sq_ = new faiss::IndexScalarQuantizer(dx, faiss::ScalarQuantizer::QT_8bit_uniform);
-    query_code_ = new uint8_t[sq_->code_size];
+    query_code_ = new uint8_t[1000 * sq_->code_size];
   }
 
   void AssignPoints(
