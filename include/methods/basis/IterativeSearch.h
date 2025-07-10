@@ -154,4 +154,11 @@ class IterativeSearch {
     this->initial_efs_ = std::max(batch_k, delta_efs);
     hnsw_->setEf(this->initial_efs_);
   }
+
+  void SetSearchParam(int batch_k, int initial_efs, int delta_efs) {
+    this->batch_k_ = batch_k;
+    this->delta_efs_ = delta_efs;
+    this->initial_efs_ = initial_efs;
+    hnsw_->setEf(this->initial_efs_);
+  }
 };
