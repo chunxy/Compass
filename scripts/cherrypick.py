@@ -60,20 +60,24 @@ def pick_clustering_methods():
 
 # Compare cluster search methods.
 def pick_cluster_search_methods():
-  clus_search_methods = ["CompassK", "CompassKCg", "CompassKIcg"]
+  k_search_methods = ["CompassK", "CompassKCg", "CompassKIcg", "CompassKQicg"]
+  pca_search_methods = ["CompassPca", "CompassPcaCg", "CompassPcaIcg", "CompassPcaQicg"]
   d_m_b = {d: {} for d in DATASETS}
   for d in ("sift", "audio"):
-    for m in clus_search_methods:
-      d_m_b[d][m] = ["M_16_efc_200_nlist_10000"]
-  for d in ("gist", "video", "crawl", "glove100"):
-    for m in clus_search_methods:
-      d_m_b[d][m] = ["M_16_efc_200_nlist_20000"]
+    for m in k_search_methods:
+      d_m_b[d][m] = ["M_16_efc_200_nlist_5000"]
+  for m in k_search_methods:
+    d_m_b["glove100"][m] = ["M_16_efc_200_nlist_10000"]
+  for m in pca_search_methods:
+    d_m_b["gist"][m] = ["M_16_efc_200_nlist_10000_dx_512"]
+    d_m_b["video"][m] = ["M_16_efc_200_nlist_10000_dx_512"]
+    d_m_b["crawl"][m] = ["M_16_efc_200_nlist_10000_dx_128"]
 
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_selectivity(
       da=da,
       datasets=DATASETS,
-      methods=clus_search_methods,
+      methods=k_search_methods,
       anno="SoS",
       d_m_b=d_m_b,
       d_m_s=nrel_100,
@@ -82,7 +86,7 @@ def pick_cluster_search_methods():
     draw_qps_comp_fixing_recall_by_selectivity(
       da=da,
       datasets=DATASETS,
-      methods=clus_search_methods,
+      methods=k_search_methods,
       anno="SoS",
       d_m_b=d_m_b,
       d_m_s=nrel_100,
@@ -284,10 +288,10 @@ def compare_best_with_sotas():
 
 
 if __name__ == "__main__":
-  # pick_clustering_methods()
-  # pick_cluster_search_methods()
-  # pick_nrel()
-  # pick_M()
-  # pick_nlist()
+  pick_clustering_methods()
+  pick_cluster_search_methods()
+  pick_nrel()
+  pick_M()
+  pick_nlist()
   compare_with_sotas()
   compare_best_with_sotas()

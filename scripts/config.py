@@ -74,6 +74,9 @@ COMPASS_METHODS = [
   "CompassKIcg",
   "CompassBikmeansIcg",
   "CompassPcaIcg",
+  "CompassKQicg",
+  "CompassBikmeansQicg",
+  "CompassPcaQicg",
 ]
 COMPASSX_METHODS = [
   "CompassPca",
@@ -145,7 +148,7 @@ compass_cg_parameters = {
 }
 compass_icg_parameters = {
   "build": ["M", "efc", "nlist", "M_cg"],
-  "search": ["efs", "nrel", "batch_k", "delta_efs"],
+  "search": ["efs", "nrel", "batch_k", "initial_efs", "delta_efs"],
 }
 compass_x_parameters = {
   "build": ["M", "efc", "nlist", "dx"],
@@ -157,7 +160,7 @@ compass_x_cg_parameters = {
 }
 compass_x_icg_parameters = {
   "build": ["M", "efc", "nlist", "dx", "M_cg"],
-  "search": ["efs", "nrel", "batch_k", "delta_efs"],
+  "search": ["efs", "nrel", "batch_k", "initial_efs", "delta_efs"],
 }
 
 # method - parameter
@@ -168,9 +171,12 @@ M_PARAM = {
   "CompassBikmeansCg": compass_cg_parameters,
   "CompassKIcg": compass_icg_parameters,
   "CompassBikmeansIcg": compass_icg_parameters,
+  "CompassKQicg": compass_icg_parameters,
+  "CompassBikmeansQicg": compass_icg_parameters,
   "CompassPca": compass_x_parameters,
   "CompassPcaCg": compass_x_cg_parameters,
   "CompassPcaIcg": compass_x_icg_parameters,
+  "CompassPcaQicg": compass_x_icg_parameters,
   "iRangeGraph": irangegraph_parameters,
   "SeRF": serf_parameters,
 }
@@ -184,6 +190,7 @@ compass_args = {
   "dx": [64, 128, 256, 512],
   "M_cg": [4],
   "batch_k": [10],
+  "initial_efs": [50],
   "delta_efs": [100],
 }
 irangegraph_args = {
@@ -260,6 +267,15 @@ M_STYLE = {
   },
   "CompassBikmeansIcg": {
     "marker": "s", "edgecolor": "red"
+  },
+  "CompassKQicg": {
+    "marker": "o", "edgecolor": "yellow"
+  },
+  "CompassPcaQicg": {
+    "marker": "d", "edgecolor": "yellow"
+  },
+  "CompassBikmeansQicg": {
+    "marker": "s", "edgecolor": "yellow"
   },
   "iRangeGraph": {
     "marker": "^", "color": "black"
