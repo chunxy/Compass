@@ -155,6 +155,7 @@ int main(int argc, char **argv) {
     json["M"] = M;
     json["k"] = k;
     json["batch_k"] = batch_k;
+    json["initial_efs"] = initial_efs;
   }
 
   std::ofstream ofs((log_root / out_json).c_str());
