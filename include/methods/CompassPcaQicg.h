@@ -6,6 +6,7 @@
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/IndexPreTransform.h"
 #include "faiss/IndexScalarQuantizer.h"
+#include "fmt/core.h"
 
 template <typename dist_t, typename attr_t>
 class CompassPcaQicg : public CompassXIcg<dist_t, attr_t, int> {
@@ -20,14 +21,17 @@ class CompassPcaQicg : public CompassXIcg<dist_t, attr_t, int> {
     // auto xquery = ivf_trans->apply_chain(1, (float *)target);
     // sq_->sa_encode(1, (float *)xquery, query_code_);
     // return this->isearch_->Open(query_code_, nprobe);
+    if (sq_->code_size != this->isearch_->hnsw_->data_size_) {
+      fmt::print("Scalar quantizer code size does not match HNSW data size.");
+      exit(-1);
+    }
     return this->isearch_->Open((char *)query + idx * sq_->code_size, nprobe);
   }
 
-  const void *quantize_query(const void *query, int nq) override {
+  const void *icg_transform(const void *query, int nq) override {
     auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
     auto xquery = ivf_trans->apply_chain(nq, (float *)query);
     sq_->sa_encode(nq, (float *)xquery, query_code_);
-    delete[] xquery;
     return query_code_;
   }
 

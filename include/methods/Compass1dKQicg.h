@@ -5,6 +5,7 @@
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
 #include "faiss/IndexScalarQuantizer.h"
+#include "fmt/core.h"
 
 template <typename dist_t, typename attr_t>
 class Compass1dKQicg : public Compass1dIcg<dist_t, attr_t, int> {
@@ -17,10 +18,14 @@ class Compass1dKQicg : public Compass1dIcg<dist_t, attr_t, int> {
     // void *target = ((char *)query) + this->hnsw_.data_size_ * idx;
     // sq_->sa_encode(1, (float *)target, query_code_);
     // return this->isearch_->Open(query_code_, nprobe);
+    if (sq_->code_size != this->isearch_->hnsw_->data_size_) {
+      fmt::print("Scalar quantizer code size does not match HNSW data size.");
+      exit(-1);
+    }
     return this->isearch_->Open((char *)query + idx * sq_->code_size, nprobe);
   }
 
-  const void *quantize_query(const void *query, int nq) override {
+  const void *icg_transform(const void *query, int nq) override {
     sq_->sa_encode(nq, (float *)query, query_code_);
     return query_code_;
   }

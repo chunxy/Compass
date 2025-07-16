@@ -29,7 +29,7 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
     return this->isearch_->Open(target, nprobe);
   }
 
-  virtual const void *quantize_query(const void *query, int nq) { return query; }
+  virtual const void *icg_transform(const void *query, int nq) { return query; }
 
  public:
   // This index only loads the ReentrantHnsw but does not build it.
@@ -70,12 +70,11 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
     const void *query, *xquery;
     if (std::holds_alternative<const void *>(var)) {
       query = std::get<const void *>(var);
-      xquery = query;
+      xquery = icg_transform(query, nq);
     } else {
       query = std::get<pair<const void *, const void *>>(var).first;
       xquery = std::get<pair<const void *, const void *>>(var).second;
     }
-    xquery = quantize_query(xquery, nq);
 
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);

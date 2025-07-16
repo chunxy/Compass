@@ -20,7 +20,7 @@ class CompassKQicg : public CompassIcg<dist_t, attr_t, int> {
     return this->isearch_->Open((char *)query + idx * sq_->code_size, nprobe);
   }
 
-  const void *quantize_query(const void *query, int nq) override {
+  const void *icg_transform(const void *query, int nq) override {
     sq_->sa_encode(nq, (float *)query, query_code_);
     return query_code_;
   }

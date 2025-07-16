@@ -9,13 +9,19 @@
 template <typename dist_t, typename attr_t>
 class CompassPcaIcg : public CompassXIcg<dist_t, attr_t> {
  protected:
-  IterativeSearchState<dist_t> Open(const void *query, int idx, int nprobe) override {
+  const void *icg_transform(const void *query, int nq) override {
     auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
-    const void *target = ((char *)query) + idx * this->hnsw_.data_size_;
-    auto xquery = ivf_trans->apply_chain(1, (float *)target);
-    auto ret = this->isearch_->Open(xquery, nprobe);
-    return ret;
+    auto xquery = ivf_trans->apply_chain(nq, (float *)query);
+    return xquery;
   }
+
+  // IterativeSearchState<dist_t> Open(const void *query, int idx, int nprobe) override {
+  //   auto ivf_trans = dynamic_cast<faiss::IndexPreTransform *>(this->ivf_);
+  //   const void *target = ((char *)query) + idx * this->hnsw_.data_size_;
+  //   auto xquery = ivf_trans->apply_chain(1, (float *)target);
+  //   auto ret = this->isearch_->Open(xquery, nprobe);
+  //   return ret;
+  // }
 
  public:
   CompassPcaIcg(
