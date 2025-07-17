@@ -77,7 +77,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
     // SearchClusters(nq, xquery, nprobe, this->query_cluster_rank_, bm);
 
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
-    RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
+    RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);
     VisitedList *vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
