@@ -405,6 +405,92 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
     plt.close()
 
 
+def draw_qps_comp_fixing_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
+  sel_s = [0.01, 0.6]
+  interval = {
+    0.01: ["0.01", "0.01", "0.008", "0.0081"],
+    0.6: ["0.6", "0.64", "0.729", "0.65"],
+  }
+
+  for rec in [0.8, 0.9, 0.95]:
+    d_m_sel = {}
+    for d in d_m_b.keys():
+      d_m_sel[d] = {}
+      for m in d_m_b[d].keys():
+        d_m_sel[d][m] = {}
+        for sel in sel_s:
+          d_m_sel[d][m][sel] = {}
+
+    for da in DA_S:
+      df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
+      for i, d in enumerate(DATASETS):
+        data = df[df["dataset"] == d]
+        for sel in sel_s:
+          for m in d_m_b[d].keys():
+            for b in d_m_b[d][m]:
+              data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
+              if m.startswith("Compass"):
+                for nrel in d_m_s[d][m]["nrel"]:
+                  data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
+                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
+                  grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
+                  grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
+                  pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
+                  label = f"{m}-{b}-{nrel}-{rec}"
+                  if label not in d_m_sel[d][m][sel]: # a list by dimension
+                    d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
+                  if pos < 0:
+                    continue
+                  d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else -100)
+                  d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else -100)
+              else:
+                rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
+                grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
+                grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
+                pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
+                label = f"{m}-{b}-{rec}"
+                if label not in d_m_sel[d][m][sel]:
+                  d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
+                if pos < 0:
+                  continue
+                d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else -100)
+                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else -100)
+
+    for sel in sel_s:
+      fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
+      for i, d in enumerate(DATASETS):
+        for m in d_m_b[d].keys():
+          marker = M_STYLE[m]
+          for label in d_m_sel[d][m][sel].keys():
+            das = DA_S[:len(d_m_sel[d][m][sel][label]["qps"])]
+            sc = axs[0][i].scatter(das, d_m_sel[d][m][sel][label]["qps"], label=label, **marker)
+            axs[0][i].plot(das, d_m_sel[d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
+            axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["ncomp"], label=label, **marker)
+            axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
+
+          axs[0][i].set_xlabel('Dimension')
+          axs[0][i].set_xticks(DA_S)
+          axs[0][i].set_ylabel('QPS')
+          axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+          axs[1][i].set_xlabel('Dimension')
+          axs[1][i].set_xticks(DA_S)
+          axs[1][i].set_ylabel('# Comp')
+          axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+
+      fig.set_size_inches(26, 7)
+      unique_labels = {}
+      for ax in axs.flat:
+        handles, labels = ax.get_legend_handles_labels()
+        for handle, label in zip(handles, labels):
+          if label not in unique_labels:
+            unique_labels[label] = handle
+      fig.legend(unique_labels.values(), unique_labels.keys(), loc="outside right upper")
+      path = Path(f"{prefix}/Sel-{sel:.3g}-Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
+      path.parent.mkdir(parents=True, exist_ok=True)
+      fig.savefig(path, dpi=200)
+      plt.close()
+
+
 if __name__ == "__main__":
   summarize()
   for da in DA_S:
