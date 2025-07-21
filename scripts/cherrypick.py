@@ -162,10 +162,10 @@ def pick_nlist():
   d_m_b_nlist = {d: {} for d in DATASETS}
   for d in ("sift", "audio"):
     for m in methods:
-      d_m_b_nlist[d][m] = [f"M_16_efc_200_nlist_{nlist}" for nlist in [5000, 10000]]
+      d_m_b_nlist[d][m] = [f"M_16_efc_200_nlist_{nlist}" for nlist in [1000, 2000, 5000, 10000]]
   for d in ("gist", "video", "crawl", "glove100"):
     for m in methods:
-      d_m_b_nlist[d][m] = [f"M_16_efc_200_nlist_{nlist}" for nlist in [10000, 20000]]
+      d_m_b_nlist[d][m] = [f"M_16_efc_200_nlist_{nlist}" for nlist in [1000, 2000, 5000, 10000, 20000]]
 
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_selectivity(

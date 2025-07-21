@@ -34,6 +34,15 @@ sota_da_interval = {
   1: [*[(1, ), (2, ), (3, ), (5, )], *[(i, ) for i in range(10, 100, 10)]],
   2: [(pcnt, pcnt) for pcnt in (10, 30, 50, 80, 90)],
 }
+serf_post_da_interval = {
+  2: [(pcnt, pcnt) for pcnt in (10, 30, 50, 80, 90)],
+  3: [(pcnt, pcnt, pcnt) for pcnt in (20, 60, 80, 90)],
+  4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 50, 80, 90)],
+}
+irangegraph_post_da_interval = {
+  3: [(pcnt, pcnt, pcnt) for pcnt in (20, 60, 80, 90)],
+  4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 50, 80, 90)],
+}
 
 # attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
 DA_RANGE = {
@@ -85,6 +94,7 @@ COMPASSX_METHODS = [
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
 METHODS = COMPASS_METHODS + SOTA_METHODS
+POSTFILTERING_METHOD = ["SeRF+Post", "iRangeGraph+Post"]
 
 # method - workload template, accompanied with M_DA_RUN
 M_WORKLOAD = {
@@ -95,6 +105,10 @@ M_WORKLOAD = {
   **{
     m: "{}_{}_10"
     for m in SOTA_METHODS
+  },
+  **{
+    m: "{}_{}_10"
+    for m in POSTFILTERING_METHOD
   },
 }
 
@@ -107,6 +121,8 @@ M_DA_RUN = {
     m: sota_da_interval
     for m in SOTA_METHODS
   },
+  "SeRF+Post": serf_post_da_interval,
+  "iRangeGraph+Post": irangegraph_post_da_interval,
 }
 
 compass_group_dataset = {
@@ -179,6 +195,8 @@ M_PARAM = {
   "CompassPcaQicg": compass_x_icg_parameters,
   "iRangeGraph": irangegraph_parameters,
   "SeRF": serf_parameters,
+  "iRangeGraph+Post": irangegraph_parameters,
+  "SeRF+Post": serf_parameters,
 }
 
 compass_args = {
@@ -204,6 +222,7 @@ serf_args = {
   "efmax": [500],
   "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 1000],
 }
+MULTIPLES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 M_ARGS = {
   **{
     m: compass_args
@@ -211,6 +230,8 @@ M_ARGS = {
   },
   "iRangeGraph": irangegraph_args,
   "SeRF": serf_args,
+  "iRangeGraph+Post": irangegraph_args,
+  "SeRF+Post": serf_args,
 }
 
 D_ARGS = {
@@ -281,6 +302,12 @@ M_STYLE = {
     "marker": "^", "color": "black"
   },
   "SeRF": {
+    "marker": "p", "color": "gray"
+  },
+  "iRangeGraph+Post": {
+    "marker": "^", "color": "black"
+  },
+  "SeRF+Post": {
     "marker": "p", "color": "gray"
   }
 }

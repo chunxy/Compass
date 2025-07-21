@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 from config import (
   COMPASS_METHODS,
+  POSTFILTERING_METHOD,
   DA_RANGE,
   DA_S,
   DA_SEL,
@@ -18,6 +19,7 @@ from config import (
   M_STYLE,
   M_PARAM,
   M_WORKLOAD,
+  MULTIPLES,
   METHODS,
   compass_args,
   D_ARGS,
@@ -55,21 +57,55 @@ def summarize():
             w = M_WORKLOAD[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
           else:
             w = M_WORKLOAD[m].format(d, "-".join(map(str, itvl)))
+          if m in COMPASS_METHODS:
+            nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
+            sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
+          else:
+            nrg = "-".join(map(str, itvl))
+            sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.3g}"
           bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
           st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
           for ba in product(*[D_ARGS[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]):
             b = bt.format(*ba)
             for sa in product(*[D_ARGS[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]):
               s = st.format(*sa)
-              if m in COMPASS_METHODS:
-                nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
-                sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
-              else:
-                nrg = "-".join(map(str, itvl))
-                sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.3g}"
               path = LOG_ROOT / m / w / b / s
               if path.exists():
                 entries.append((path, m, w, d, nrg, sel, b, s))
+
+    for m in POSTFILTERING_METHOD:
+      for d in DATASETS:
+        if da not in M_DA_RUN[m]: continue  # noqa: E701
+        for itvl in M_DA_RUN[m][da]:
+          nrg = "-".join(map(str, itvl))
+          sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.3g}"
+          w = M_WORKLOAD[m].format(d, nrg)
+          bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
+          st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
+          for ba in product(*[D_ARGS[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]):
+            b = bt.format(*ba)
+            final_mul = -1
+            for mul in MULTIPLES:
+              efs = M_ARGS[m]["efs"][-1]
+              run = LOG_ROOT / m / w / b / f"k_{mul*10}_efs_{efs}"
+              jsons = list(run.glob("*.json"))
+              if len(jsons) == 0:
+                continue
+              jsons.sort()
+              with open(jsons[-1]) as f:
+                stat = json.load(f)
+                max_rec_prec = stat["aggregated"]["recall"]
+                if max_rec_prec >= 0.95:
+                  final_mul = mul
+                  break
+            if final_mul == -1:
+              final_mul = MULTIPLES[-1]
+            for sa in product(*[D_ARGS[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]):
+              s = st.format(*sa)
+              path = LOG_ROOT / m / w / b / (f"k_{final_mul*10}_" + s)
+              if path.exists():
+                entries.append((path, m, w, d, nrg, sel, b, s))
+
     df = pd.DataFrame.from_records(
       entries, columns=[
         "path",
@@ -428,7 +464,7 @@ def draw_qps_comp_fixing_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
         for sel in sel_s:
           for m in d_m_b[d].keys():
             for b in d_m_b[d][m]:
-              data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
+              data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"].str.contains(b))]
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -437,10 +473,8 @@ def draw_qps_comp_fixing_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
                   grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
                   pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
                   label = f"{m}-{b}-{nrel}-{rec}"
-                  if label not in d_m_sel[d][m][sel]: # a list by dimension
+                  if label not in d_m_sel[d][m][sel]:  # a list by dimension
                     d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
-                  if pos < 0:
-                    continue
                   d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else -100)
                   d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else -100)
               else:
@@ -451,8 +485,6 @@ def draw_qps_comp_fixing_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
                 label = f"{m}-{b}-{rec}"
                 if label not in d_m_sel[d][m][sel]:
                   d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
-                if pos < 0:
-                  continue
                 d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else -100)
                 d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else -100)
 
@@ -493,8 +525,8 @@ def draw_qps_comp_fixing_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
 
 if __name__ == "__main__":
   summarize()
-  for da in DA_S:
-    draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
-    draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
-    draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
-    draw_qps_comp_fixing_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+  # for da in DA_S:
+  #   draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+  #   draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+  #   draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+  #   draw_qps_comp_fixing_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
