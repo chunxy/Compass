@@ -18,7 +18,7 @@ template <typename dist_t>
 class IterativeSearchState {
   friend class IterativeSearch<dist_t>;
   const void *query_;
-  const int k_;
+  const size_t k_;
   priority_queue<pair<dist_t, labeltype>> recycled_candidates_;  // min heap
   priority_queue<pair<dist_t, labeltype>> top_candidates_;       // max heap
   priority_queue<pair<dist_t, labeltype>> candidate_set_;        // min heap
@@ -28,7 +28,7 @@ class IterativeSearchState {
   int ncomp_;
   int total_;
 
-  IterativeSearchState(const void *query, int k) : query_(query), k_(k) {}
+  IterativeSearchState(const void *query, size_t k) : query_(query), k_(k) {}
 };
 
 template <typename dist_t>
@@ -61,7 +61,7 @@ class IterativeSearch {
       state->batch_rz_.emplace(top.first, top.second);
       cnt++;
     }
-    hnsw_->setEf(hnsw_->ef_ + this->delta_efs_);  // expand the efs for next batch search
+    hnsw_->setEf(std::min(hnsw_->ef_ + this->delta_efs_, state->k_));  // expand the efs for next batch search
     // Remember to reset the ef of hnsw_ to the initial value when closing the state.
     return cnt;
   }
