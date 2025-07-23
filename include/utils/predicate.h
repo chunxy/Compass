@@ -21,7 +21,7 @@ class RangeQuery : public hnswlib::BaseFilterFunctor {
   bool operator()(hnswlib::labeltype label) override {
     if (label < n_) {
       for (int i = 0; i < d_; i++) {
-        if (l_bound_[i] >= attrs_[label * d_ + i] || attrs_[label * d_ + i] >= u_bound_[i]) {
+        if (l_bound_[i] > attrs_[label * d_ + i] || attrs_[label * d_ + i] > u_bound_[i]) {
           return false;
         }
       }

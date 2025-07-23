@@ -115,26 +115,38 @@ class Compass : public HybridIndex<dist_t, attr_t> {
 
       int curr_ci = q * nprobe;
 
-      std::vector<std::unordered_set<labeltype>> candidates_per_dim(da_);
-      for (int j = 0; j < da_; ++j) {
-        auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
-        auto beg = btree.lower_bound(l_bound[j]);
-        auto end = btree.upper_bound(u_bound[j]);
-        for (auto itr = beg; itr != end; ++itr) {
-          candidates_per_dim[j].insert(itr->second);
-        }
-      }
-      // Intersect all sets in candidates_per_dim
+      // std::vector<std::unordered_set<labeltype>> candidates_per_dim(da_);
+      // for (int j = 0; j < da_; ++j) {
+      //   auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
+      //   auto beg = btree.lower_bound(l_bound[j]);
+      //   auto end = btree.upper_bound(u_bound[j]);
+      //   for (auto itr = beg; itr != end; ++itr) {
+      //     candidates_per_dim[j].insert(itr->second);
+      //   }
+      // }
+      // // Intersect all sets in candidates_per_dim
+      // std::unordered_set<labeltype> intersection;
+      // if (da_ > 0) intersection = candidates_per_dim[0];
+      // for (int j = 1; j < da_; ++j) {
+      //   std::unordered_set<labeltype> temp;
+      //   for (const auto &id : intersection) {
+      //     if (candidates_per_dim[j].count(id)) {
+      //       temp.insert(id);
+      //     }
+      //   }
+      //   intersection = std::move(temp);
+      // }
+
       std::unordered_set<labeltype> intersection;
-      if (da_ > 0) intersection = candidates_per_dim[0];
-      for (int j = 1; j < da_; ++j) {
-        std::unordered_set<labeltype> temp;
-        for (const auto &id : intersection) {
-          if (candidates_per_dim[j].count(id)) {
-            temp.insert(id);
+      {
+        auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][0];
+        auto beg = btree.lower_bound(l_bound[0]);
+        auto end = btree.upper_bound(u_bound[0]);
+        for (auto itr = beg; itr != end; ++itr) {
+          if (pred(itr->second)) {
+            intersection.insert(itr->second);
           }
         }
-        intersection = std::move(temp);
       }
 
       auto itr_beg = intersection.begin();
@@ -149,26 +161,38 @@ class Compass : public HybridIndex<dist_t, attr_t> {
               if (curr_ci >= (q + 1) * nprobe)
                 break;
               else {
-                std::vector<std::unordered_set<labeltype>> _candidates_per_dim(da_);
-                for (int j = 0; j < da_; ++j) {
-                  auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
-                  auto beg = btree.lower_bound(l_bound[j]);
-                  auto end = btree.upper_bound(u_bound[j]);
+                // std::vector<std::unordered_set<labeltype>> _candidates_per_dim(da_);
+                // for (int j = 0; j < da_; ++j) {
+                //   auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
+                //   auto beg = btree.lower_bound(l_bound[j]);
+                //   auto end = btree.upper_bound(u_bound[j]);
+                //   for (auto itr = beg; itr != end; ++itr) {
+                //     _candidates_per_dim[j].insert(itr->second);
+                //   }
+                // }
+                // // Intersect all sets in candidates_per_dim
+                // if (da_ > 0) intersection = _candidates_per_dim[0];
+                // for (int j = 1; j < da_; ++j) {
+                //   std::unordered_set<labeltype> temp;
+                //   for (const auto &id : intersection) {
+                //     if (_candidates_per_dim[j].count(id)) {
+                //       temp.insert(id);
+                //     }
+                //   }
+                //   intersection = std::move(temp);
+                // }
+                std::unordered_set<labeltype> _intersection;
+                {
+                  auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][0];
+                  auto beg = btree.lower_bound(l_bound[0]);
+                  auto end = btree.upper_bound(u_bound[0]);
                   for (auto itr = beg; itr != end; ++itr) {
-                    _candidates_per_dim[j].insert(itr->second);
-                  }
-                }
-                // Intersect all sets in candidates_per_dim
-                if (da_ > 0) intersection = _candidates_per_dim[0];
-                for (int j = 1; j < da_; ++j) {
-                  std::unordered_set<labeltype> temp;
-                  for (const auto &id : intersection) {
-                    if (_candidates_per_dim[j].count(id)) {
-                      temp.insert(id);
+                    if (pred(itr->second)) {
+                      _intersection.insert(itr->second);
                     }
                   }
-                  intersection = std::move(temp);
                 }
+                intersection = std::move(_intersection);
                 itr_beg = intersection.begin();
                 itr_end = intersection.end();
                 continue;
