@@ -13,35 +13,35 @@ compass_da_interval = {
   ],
   2: [
     *[((100, 200), (r1, r2)) for r1, r2 in \
-      zip([1100, 3100, 5100, 8100, 9100], \
-          [1200, 3200, 5200, 8200, 9200])],
+      zip([1100, 2100, 3100, 4100, 5100, 6100, 7100, 8100, 9100], \
+          [1200, 2200, 3200, 4200, 5200, 6200, 7200, 8200, 9200])],
   ],
   3: [
     *[((100, 200, 300), (r1, r2, r3)) for r1, r2, r3 in \
-      zip([2100, 6100, 8100, 9100], \
-          [2200, 6200, 8200, 9200], \
-          [2300, 6300, 8300, 9300])],
+      zip([2100, 3100, 4100, 5100, 6100, 7100, 8100, 9100], \
+          [2200, 3200, 4200, 5200, 6200, 7200, 8200, 9200], \
+          [2300, 3300, 4300, 5300, 6300, 7300, 8300, 9300])],
   ],
   4: [
     *[((100, 200, 300, 400), (r1, r2, r3, r4)) for r1, r2, r3, r4 in \
-      zip([3100, 5600, 8100, 9100], \
-          [3200, 5700, 8200, 9200], \
-          [3300, 5800, 8300, 9300], \
-          [3400, 5900, 8400, 9400])],
+      zip([3100, 4100, 5100, 6100, 7100, 8100, 9100], \
+          [3200, 4200, 5200, 6200, 7200, 8200, 9200], \
+          [3300, 4300, 5300, 6300, 7300, 8300, 9300], \
+          [3400, 4400, 5400, 6400, 7400, 8400, 9400])],
   ],
 }
 sota_da_interval = {
   1: [*[(1, ), (2, ), (3, ), (5, )], *[(i, ) for i in range(10, 100, 10)]],
-  2: [(pcnt, pcnt) for pcnt in (10, 30, 50, 80, 90)],
+  2: [(pcnt, pcnt) for pcnt in (10, 20, 30, 40, 50, 60, 70, 80, 90)],
 }
 serf_post_da_interval = {
-  2: [(pcnt, pcnt) for pcnt in (10, 30, 50, 80, 90)],
-  3: [(pcnt, pcnt, pcnt) for pcnt in (20, 60, 80, 90)],
-  4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 50, 80, 90)],
+  2: [(pcnt, pcnt) for pcnt in (10, 20, 30, 40, 50, 60, 70, 80, 90)],
+  3: [(pcnt, pcnt, pcnt) for pcnt in (20, 30, 40, 50, 60, 70, 80, 90)],
+  4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 40, 50, 60, 70, 80, 90)],
 }
 irangegraph_post_da_interval = {
-  3: [(pcnt, pcnt, pcnt) for pcnt in (20, 60, 80, 90)],
-  4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 50, 80, 90)],
+  3: [(pcnt, pcnt, pcnt) for pcnt in (20, 30, 40, 50, 60, 70, 80, 90)],
+  4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 40, 50, 60, 70, 80, 90)],
 }
 
 # attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
@@ -94,7 +94,7 @@ COMPASSX_METHODS = [
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
 METHODS = COMPASS_METHODS + SOTA_METHODS
-POSTFILTERING_METHOD = ["SeRF+Post", "iRangeGraph+Post"]
+POSTFILTERING_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
 
 # method - workload template, accompanied with M_DA_RUN
 M_WORKLOAD = {
@@ -108,7 +108,7 @@ M_WORKLOAD = {
   },
   **{
     m: "{}_{}_10"
-    for m in POSTFILTERING_METHOD
+    for m in POSTFILTERING_METHODS
   },
 }
 
@@ -132,8 +132,8 @@ compass_group_dataset = {
 }
 compassx_group_dataset = {
   "1": ["crawl", "audio"],
-  "2": ["video", "gist"],
-  "3": ["sift", "glove100"],
+  "2": ["video", "glove100"],
+  "3": ["sift", "gist"],
 }
 M_GROUP_DATASET = {
   **{
@@ -204,12 +204,12 @@ compass_args = {
   "efc": [200],
   "nlist": [1000, 2000, 5000, 10000, 20000],
   "efs": [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300],
-  "nrel": [50, 100, 200],
+  "nrel": [50, 100],
   "dx": [64, 128, 256, 512],
   "M_cg": [4],
   "batch_k": [10],
   "initial_efs": [50],
-  "delta_efs": [100],
+  "delta_efs": [50], # 100 for old exps
 }
 irangegraph_args = {
   "M": [16, 32],

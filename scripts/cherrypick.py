@@ -34,9 +34,13 @@ def pick_clustering_methods():
   for d in ("sift", "audio"):
     for m in clus_methods:
       d_m_b[d][m] = ["M_16_efc_200_nlist_10000"]
+      if m in COMPASSX_METHODS:
+        d_m_b[d][m] = [f"M_16_efc_200_nlist_20000_dx_{dx}" for dx in D_ARGS[d]["dx"]]
   for d in ("gist", "video", "crawl", "glove100"):
     for m in clus_methods:
       d_m_b[d][m] = ["M_16_efc_200_nlist_20000"]
+      if m in COMPASSX_METHODS:
+        d_m_b[d][m] = [f"M_16_efc_200_nlist_20000_dx_{dx}" for dx in D_ARGS[d]["dx"]]
 
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_selectivity(
@@ -67,12 +71,21 @@ def pick_cluster_search_methods():
   for d in ("sift", "audio"):
     for m in k_search_methods:
       d_m_b[d][m] = ["M_16_efc_200_nlist_5000"]
+      if m.endswith("cg") or m.endswith("Cg"):
+        for i in range(len(d_m_b[d][m])):
+          d_m_b[d][m][i] += "_M_cg_4"
   for m in k_search_methods:
     d_m_b["glove100"][m] = ["M_16_efc_200_nlist_10000"]
+    if m.endswith("cg") or m.endswith("Cg"):
+      for i in range(len(d_m_b["glove100"][m])):
+        d_m_b["glove100"][m][i] += "_M_cg_4"
   for m in pca_search_methods:
     d_m_b["gist"][m] = ["M_16_efc_200_nlist_10000_dx_512"]
     d_m_b["video"][m] = ["M_16_efc_200_nlist_10000_dx_512"]
     d_m_b["crawl"][m] = ["M_16_efc_200_nlist_10000_dx_128"]
+    if m.endswith("cg") or m.endswith("Cg"):
+      for i in range(len(d_m_b["crawl"][m])):
+        d_m_b["crawl"][m][i] += "_M_cg_4"
 
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_selectivity(
@@ -158,34 +171,64 @@ def pick_M():
 
 
 def pick_nlist():
-  methods = ["CompassK"]
-  d_m_b_nlist = {d: {} for d in DATASETS}
-  for d in ("sift", "audio"):
-    for m in methods:
-      d_m_b_nlist[d][m] = [f"M_16_efc_200_nlist_{nlist}" for nlist in [1000, 2000, 5000, 10000]]
-  for d in ("gist", "video", "crawl", "glove100"):
-    for m in methods:
-      d_m_b_nlist[d][m] = [f"M_16_efc_200_nlist_{nlist}" for nlist in [1000, 2000, 5000, 10000, 20000]]
+  methods = ["CompassK", "CompassKIcg", "CompassKQicg", \
+             "CompassBikmeans", "CompassBikmeansIcg", "CompassBikmeansQicg"]
+  #  "CompassPca", "CompassPcaIcg", "CompassPcaQicg"]
+  for m in methods:
+    d_m_b_nlist = {d: {} for d in DATASETS}
+    for d in ("sift", "audio"):
+      d_m_b_nlist[d][m] = [(f"M_16_efc_200_nlist_{nlist}" + ("_M_cg_4" if m.endswith("cg") else "")) for nlist in [1000, 2000, 5000, 10000]]
+    for d in ("gist", "video", "crawl", "glove100"):
+      d_m_b_nlist[d][m] = [(f"M_16_efc_200_nlist_{nlist}" + ("_M_cg_4" if m.endswith("cg") else "")) for nlist in [1000, 2000, 5000, 10000, 20000]]
 
-  for da in DA_S:
-    draw_qps_comp_wrt_recall_by_selectivity(
-      da=da,
-      datasets=DATASETS,
-      methods=methods,
-      anno="nlist",
-      d_m_b=d_m_b_nlist,
-      d_m_s=nrel_100,
-      prefix=f"cherrypick{da}d-10/varying-nlist",
-    )
-    draw_qps_comp_fixing_recall_by_selectivity(
-      da=da,
-      datasets=DATASETS,
-      methods=methods,
-      anno="nlist",
-      d_m_b=d_m_b_nlist,
-      d_m_s=nrel_100,
-      prefix=f"cherrypick{da}d-10/varying-nlist",
-    )
+    for da in DA_S:
+      draw_qps_comp_wrt_recall_by_selectivity(
+        da=da,
+        datasets=DATASETS,
+        methods=methods,
+        anno="nlist",
+        d_m_b=d_m_b_nlist,
+        d_m_s=nrel_100,
+        prefix=f"cherrypick{da}d-10/varying-nlist/{m}",
+      )
+      draw_qps_comp_fixing_recall_by_selectivity(
+        da=da,
+        datasets=DATASETS,
+        methods=methods,
+        anno="nlist",
+        d_m_b=d_m_b_nlist,
+        d_m_s=nrel_100,
+        prefix=f"cherrypick{da}d-10/varying-nlist/{m}",
+      )
+
+
+def pick_dx():
+  methods = ["CompassPca", "CompassPcaIcg", "CompassPcaQicg"]
+  for m in methods:
+    d_m_b_dx = {d: {} for d in DATASETS}
+    for d in ("gist", "video"):
+      d_m_b_dx[d][m] = [(f"M_16_efc_200_nlist_2000_dx_{dx}" + ("_M_cg_4" if m.endswith("cg") else "")) for dx in [256, 512]]
+    d_m_b_dx["crawl"][m] = [(f"M_16_efc_200_nlist_2000_dx_{dx}" + ("_M_cg_4" if m.endswith("cg") else "")) for dx in [128, 256]]
+
+    for da in DA_S:
+      draw_qps_comp_wrt_recall_by_selectivity(
+        da=da,
+        datasets=DATASETS,
+        methods=methods,
+        anno="dx",
+        d_m_b=d_m_b_dx,
+        d_m_s=nrel_100,
+        prefix=f"cherrypick{da}d-10/varying-dx/{m}",
+      )
+      draw_qps_comp_fixing_recall_by_selectivity(
+        da=da,
+        datasets=DATASETS,
+        methods=methods,
+        anno="dx",
+        d_m_b=d_m_b_dx,
+        d_m_s=nrel_100,
+        prefix=f"cherrypick{da}d-10/varying-dx/{m}",
+      )
 
 
 # Compare with iRangeGraph and SeRF.
@@ -193,14 +236,20 @@ def compare_with_sotas():
   d_m_b = {d: {} for d in DATASETS}
   for d in ("sift", "audio"):
     for m in COMPASS_METHODS:
-      d_m_b[d][m] = ["M_16_efc_200_nlist_10000"]
-    for m in COMPASSX_METHODS:
-      d_m_b[d][m] = [f"M_16_efc_200_nlist_10000_dx_{dx}" for dx in D_ARGS[d]["dx"]]
+      d_m_b[d][m] = ["M_16_efc_200_nlist_1000"]
+      if m in COMPASSX_METHODS:
+        d_m_b[d][m] = [f"M_16_efc_200_nlist_1000_dx_{dx}" for dx in D_ARGS[d]["dx"]]
+      if m.endswith("cg") or m.endswith("Cg"):
+        for i in range(len(d_m_b[d][m])):
+          d_m_b[d][m][i] += "_M_cg_4"
   for d in ("gist", "video", "crawl", "glove100"):
     for m in COMPASS_METHODS:
-      d_m_b[d][m] = ["M_16_efc_200_nlist_20000"]
-    for m in COMPASSX_METHODS:
-      d_m_b[d][m] = [f"M_16_efc_200_nlist_20000_dx_{dx}" for dx in D_ARGS[d]["dx"]]
+      d_m_b[d][m] = [f"M_16_efc_200_nlist_{nlist}" for nlist in [2000, 5000]]
+      if m in COMPASSX_METHODS:
+        d_m_b[d][m] = [f"M_16_efc_200_nlist_{nlist}_dx_{dx}" for nlist in [2000, 5000] for dx in D_ARGS[d]["dx"]]
+      if m.endswith("cg") or m.endswith("Cg"):
+        for i in range(len(d_m_b[d][m])):
+          d_m_b[d][m][i] += "_M_cg_4"
   for d in DATASETS:
     d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
     d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
@@ -247,15 +296,16 @@ def compare_with_sotas():
 def compare_best_with_sotas():
   d_m_b = {d: {} for d in DATASETS}
   for d in ("sift", "audio"):
-    d_m_b[d]["CompassKIcg"] = ["M_16_efc_200_nlist_5000"]
-    d_m_b[d]["CompassKQicg"] = ["M_16_efc_200_nlist_5000"]
-  d_m_b["gist"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_512"]
-  d_m_b["gist"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_10000_dx_512"]
-  d_m_b["video"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_512"]
-  d_m_b["video"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_10000_dx_512"]
-  d_m_b["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_128"]
-  d_m_b["crawl"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_10000_dx_128"]
-  d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000"]
+    d_m_b[d]["CompassKIcg"] = ["M_16_efc_200_nlist_1000_M_cg_4"]
+    d_m_b[d]["CompassKQicg"] = ["M_16_efc_200_nlist_1000_M_cg_4"]
+  d_m_b["gist"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_2000_dx_512_M_cg_4"]
+  d_m_b["gist"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_2000_dx_512_M_cg_4"]
+  d_m_b["video"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_2000_dx_512_M_cg_4"]
+  d_m_b["video"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_2000_dx_512_M_cg_4"]
+  d_m_b["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_2000_dx_128_M_cg_4"]
+  d_m_b["crawl"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_2000_dx_128_M_cg_4"]
+  d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_2000_M_cg_4"]
+  d_m_b["glove100"]["CompassKQicg"] = ["M_16_efc_200_nlist_2000_M_cg_4"]
   for d in DATASETS:
     d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
     d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
@@ -268,7 +318,6 @@ def compare_best_with_sotas():
     nrel["crawl"][m] = {"nrel": [200]}
     nrel["video"][m] = {"nrel": [200]}
     nrel["gist"][m] = {"nrel": [100, 200]}
-
 
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_selectivity(
@@ -290,18 +339,20 @@ def compare_best_with_sotas():
       prefix=f"cherrypick{da}d-10/best",
     )
 
+
 def compare_best_with_sotas_by_dimension():
   d_m_b = {d: {} for d in DATASETS}
   for d in ("sift", "audio"):
-    d_m_b[d]["CompassKIcg"] = ["M_16_efc_200_nlist_5000"]
-    d_m_b[d]["CompassKQicg"] = ["M_16_efc_200_nlist_5000"]
-  d_m_b["gist"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_512"]
-  d_m_b["gist"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_10000_dx_512"]
-  d_m_b["video"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_512"]
-  d_m_b["video"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_10000_dx_512"]
-  d_m_b["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_128"]
-  d_m_b["crawl"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_10000_dx_128"]
-  d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000"]
+    d_m_b[d]["CompassKIcg"] = ["M_16_efc_200_nlist_1000_M_cg_4"]
+    d_m_b[d]["CompassKQicg"] = ["M_16_efc_200_nlist_1000_M_cg_4"]
+  d_m_b["gist"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_2000_dx_512_M_cg_4"]
+  d_m_b["gist"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_2000_dx_512_M_cg_4"]
+  d_m_b["video"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_2000_dx_512_M_cg_4"]
+  d_m_b["video"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_2000_dx_512_M_cg_4"]
+  d_m_b["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_2000_dx_128_M_cg_4"]
+  d_m_b["crawl"]["CompassPcaQicg"] = ["M_16_efc_200_nlist_2000_dx_128_M_cg_4"]
+  d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_2000_M_cg_4"]
+  d_m_b["glove100"]["CompassKQicg"] = ["M_16_efc_200_nlist_2000_M_cg_4"]
   for d in DATASETS:
     d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
     d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
@@ -324,6 +375,7 @@ if __name__ == "__main__":
   # pick_nrel()
   # pick_M()
   # pick_nlist()
-  compare_with_sotas()
+  # pick_dx()
+  compare_with_sotas() # slow?
   compare_best_with_sotas()
   compare_best_with_sotas_by_dimension()

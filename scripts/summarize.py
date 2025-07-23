@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from config import (
   COMPASS_METHODS,
-  POSTFILTERING_METHOD,
+  POSTFILTERING_METHODS,
   DA_RANGE,
   DA_S,
   DA_SEL,
@@ -19,7 +19,6 @@ from config import (
   M_STYLE,
   M_PARAM,
   M_WORKLOAD,
-  MULTIPLES,
   METHODS,
   compass_args,
   D_ARGS,
@@ -49,18 +48,16 @@ xlim = [0.6, 1]
 def summarize():
   for da in DA_S:
     entries = []
-    for m in METHODS:
+    for m in POSTFILTERING_METHODS + METHODS:
       if da not in M_DA_RUN[m]: continue  # noqa: E701
       for d in DATASETS:
         for itvl in M_DA_RUN[m][da]:
           if m in COMPASS_METHODS:
             w = M_WORKLOAD[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
-          else:
-            w = M_WORKLOAD[m].format(d, "-".join(map(str, itvl)))
-          if m in COMPASS_METHODS:
             nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
             sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
           else:
+            w = M_WORKLOAD[m].format(d, "-".join(map(str, itvl)))
             nrg = "-".join(map(str, itvl))
             sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.3g}"
           bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
@@ -73,38 +70,6 @@ def summarize():
               if path.exists():
                 entries.append((path, m, w, d, nrg, sel, b, s))
 
-    for m in POSTFILTERING_METHOD:
-      for d in DATASETS:
-        if da not in M_DA_RUN[m]: continue  # noqa: E701
-        for itvl in M_DA_RUN[m][da]:
-          nrg = "-".join(map(str, itvl))
-          sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.3g}"
-          w = M_WORKLOAD[m].format(d, nrg)
-          bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
-          st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
-          for ba in product(*[D_ARGS[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]):
-            b = bt.format(*ba)
-            final_mul = -1
-            for mul in MULTIPLES:
-              efs = M_ARGS[m]["efs"][-1]
-              run = LOG_ROOT / m / w / b / f"k_{mul*10}_efs_{efs}"
-              jsons = list(run.glob("*.json"))
-              if len(jsons) == 0:
-                continue
-              jsons.sort()
-              with open(jsons[-1]) as f:
-                stat = json.load(f)
-                max_rec_prec = stat["aggregated"]["recall"]
-                if max_rec_prec >= 0.95:
-                  final_mul = mul
-                  break
-            if final_mul == -1:
-              final_mul = MULTIPLES[-1]
-            for sa in product(*[D_ARGS[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]):
-              s = st.format(*sa)
-              path = LOG_ROOT / m / w / b / (f"k_{final_mul*10}_" + s)
-              if path.exists():
-                entries.append((path, m, w, d, nrg, sel, b, s))
 
     df = pd.DataFrame.from_records(
       entries, columns=[
@@ -170,7 +135,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
+          data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -181,10 +146,10 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
 
               recall_ncomp = data_by_m_b_nrel[["recall", "ncomp", "initial_ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
               recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
-              axs[1].plot(recall_ncomp[:, 0], recall_ncomp[:, 1])
+              p = axs[1].plot(recall_ncomp[:, 0], recall_ncomp[:, 1])
               axs[1].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
-              axs[1].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], linestyle="--")
-              axs[1].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], label=f"total-{m}-{b}-nrel_{nrel}", **marker)
+              axs[1].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], color=p[0].get_color(), linestyle="--")
+              axs[1].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], **marker)
 
               recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
               recall_tqps = recall_tqps[recall_tqps["recall"].gt(xlim[0])].to_numpy()
@@ -252,7 +217,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
+          data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -263,10 +228,10 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
 
               recall_ncomp = data_by_m_b_nrel[["recall", "ncomp", "initial_ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
               recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
-              axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1])
+              p = axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1])
               axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
-              axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], linestyle="--")
-              axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], label=f"total-{m}-{b}-nrel_{nrel}", **marker)
+              axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], color=p[0].get_color(), linestyle="--")
+              axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], **marker)
 
               recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
               recall_tqps = recall_tqps[recall_tqps["recall"].gt(xlim[0])].to_numpy()
@@ -331,7 +296,7 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
+          data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -343,10 +308,10 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
               pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
               axs[0].plot(pos_s, grouped_qps["qps"])
               axs[0].scatter(pos_s, grouped_qps["qps"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
-              axs[1].plot(pos_s, grouped_ncomp["ncomp"])
+              p = axs[1].plot(pos_s, grouped_ncomp["ncomp"])
               axs[1].scatter(pos_s, grouped_ncomp["ncomp"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
-              axs[1].plot(pos_s, grouped_total_ncomp["total_ncomp"], linestyle="--")
-              axs[1].scatter(pos_s, grouped_total_ncomp["total_ncomp"], label=f"total-{m}-{b}-{rec}-{nrel}", **marker)
+              axs[1].plot(pos_s, grouped_total_ncomp["total_ncomp"], color=p[0].get_color(), linestyle="--")
+              axs[1].scatter(pos_s, grouped_total_ncomp["total_ncomp"], **marker)
           else:
             rec_sel_qps_ncomp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
             grouped_qps = rec_sel_qps_ncomp[rec_sel_qps_ncomp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
@@ -390,7 +355,7 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"] == m) & (data["build"].str.contains(b))]
+          data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -402,10 +367,10 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
               pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
               axs[0][i].plot(pos_s, grouped_qps["qps"])
               axs[0][i].scatter(pos_s, grouped_qps["qps"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
-              axs[1][i].plot(pos_s, grouped_ncomp["ncomp"])
+              p = axs[1][i].plot(pos_s, grouped_ncomp["ncomp"])
               axs[1][i].scatter(pos_s, grouped_ncomp["ncomp"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
-              axs[1][i].plot(pos_s, grouped_total_ncomp["total_ncomp"], linestyle="--")
-              axs[1][i].scatter(pos_s, grouped_total_ncomp["total_ncomp"], label=f"total-{m}-{b}-{rec}-{nrel}", **marker)
+              axs[1][i].plot(pos_s, grouped_total_ncomp["total_ncomp"], color=p[0].get_color(), linestyle="--")
+              axs[1][i].scatter(pos_s, grouped_total_ncomp["total_ncomp"], **marker)
           else:
             rec_sel_qps_ncomp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
             grouped_qps = rec_sel_qps_ncomp[rec_sel_qps_ncomp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
@@ -445,7 +410,7 @@ def draw_qps_comp_fixing_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
   sel_s = [0.01, 0.6]
   interval = {
     0.01: ["0.01", "0.01", "0.008", "0.0081"],
-    0.6: ["0.6", "0.64", "0.729", "0.65"],
+    0.6: ["0.6", "0.64", "0.512", "0.6561"],
   }
 
   for rec in [0.8, 0.9, 0.95]:
@@ -464,7 +429,7 @@ def draw_qps_comp_fixing_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
         for sel in sel_s:
           for m in d_m_b[d].keys():
             for b in d_m_b[d][m]:
-              data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"].str.contains(b))]
+              data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -525,8 +490,8 @@ def draw_qps_comp_fixing_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
 
 if __name__ == "__main__":
   summarize()
-  # for da in DA_S:
-  #   draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
-  #   draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
-  #   draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
-  #   draw_qps_comp_fixing_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+  for da in DA_S:
+    draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+    draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+    draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+    draw_qps_comp_fixing_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
