@@ -91,6 +91,48 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 
   void ReentrantSearchKnn(
       const void *query_data,
+      const size_t k,
+      std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
+      std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
+      std::vector<bool> &visited,
+      int &ncomp
+  ) {
+    while (!candidate_set.empty()) {
+      auto curr_obj = candidate_set.top().second;
+      auto curr_dist = -candidate_set.top().first;
+      candidate_set.pop();
+      result_set.emplace(-curr_dist, curr_obj);
+
+      unsigned int *cand_info = this->get_linklist0(curr_obj);
+      int size = this->getListCount(cand_info);
+      tableint *cand_nbrs = (tableint *)(cand_info + 1);
+#ifdef USE_SSE
+      _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
+      _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
+#endif
+
+      for (int i = 0; i < size; i++) {
+        tableint cand_nbr = cand_nbrs[i];
+#ifdef USE_SSE
+        _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
+#endif
+        if (visited[cand_nbr]) continue;
+        visited[cand_nbr] = true;
+        ncomp++;
+        dist_t cand_nbr_dist =
+            this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+
+        candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+// #ifdef USE_SSE
+//         _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+// #endif
+      }
+      break;
+    }
+  }
+
+  void ReentrantSearchKnn(
+      const void *query_data,
       size_t k,
       int nhops,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
@@ -302,7 +344,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     size_t efs = std::max(k, this->ef_);
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
 
-    while (!candidate_set.empty() && -candidate_set.top().first <= stop_bound) {
+    while (!candidate_set.empty()) {
       auto curr_obj = candidate_set.top().second;
       auto curr_dist = -candidate_set.top().first;
       candidate_set.pop();
@@ -358,7 +400,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     size_t efs = std::max(k, this->ef_);
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
 
-    while (!candidate_set.empty() && -candidate_set.top().first <= stop_bound) {
+    while (!candidate_set.empty()) {
       auto curr_obj = candidate_set.top().second;
       auto curr_dist = -candidate_set.top().first;
       candidate_set.pop();
