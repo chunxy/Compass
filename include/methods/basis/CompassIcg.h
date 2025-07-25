@@ -118,20 +118,26 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       //   intersection = std::move(temp);
       // }
 
-      std::unordered_set<labeltype> intersection;
-      {
-        auto &btree = this->btrees_[clus][0];
-        auto beg = btree.lower_bound(l_bound[0]);
-        auto end = btree.upper_bound(u_bound[0]);
-        for (auto itr = beg; itr != end; ++itr) {
-          if (pred(itr->second)) {
-            intersection.insert(itr->second);
-          }
-        }
-      }
+      // std::unordered_set<labeltype> intersection;
+      // {
+      //   auto &btree = this->btrees_[clus][0];
+      //   auto beg = btree.lower_bound(l_bound[0]);
+      //   auto end = btree.upper_bound(u_bound[0]);
+      //   for (auto itr = beg; itr != end; ++itr) {
+      //     if (pred(itr->second)) {
+      //       intersection.insert(itr->second);
+      //     }
+      //   }
+      // }
 
-      auto itr_beg = intersection.begin();
-      auto itr_end = intersection.end();
+      // auto itr_beg = intersection.begin();
+      // auto itr_end = intersection.end();
+
+      auto itr_beg = this->btrees_[clus][0].lower_bound(l_bound[0]);
+      auto itr_end = this->btrees_[clus][0].upper_bound(u_bound[0]);
+      while (itr_beg != itr_end && !pred(itr_beg->second)) {
+        itr_beg++;
+      }
 
       while (true) {
         int crel = 0;
@@ -165,29 +171,37 @@ class CompassIcg : public Compass<dist_t, attr_t> {
                 //   intersection = std::move(temp);
                 // }
 
-                std::unordered_set<labeltype> _intersection;
-                {
-                  auto &btree = this->btrees_[clus][0];
-                  auto beg = btree.lower_bound(l_bound[0]);
-                  auto end = btree.upper_bound(u_bound[0]);
-                  for (auto itr = beg; itr != end; ++itr) {
-                    if (pred(itr->second)) {
-                      _intersection.insert(itr->second);
-                    }
-                  }
-                }
-                intersection = std::move(_intersection);
+                // std::unordered_set<labeltype> _intersection;
+                // {
+                //   auto &btree = this->btrees_[clus][0];
+                //   auto beg = btree.lower_bound(l_bound[0]);
+                //   auto end = btree.upper_bound(u_bound[0]);
+                //   for (auto itr = beg; itr != end; ++itr) {
+                //     if (pred(itr->second)) {
+                //       _intersection.insert(itr->second);
+                //     }
+                //   }
+                // }
+                // intersection = std::move(_intersection);
 
-                itr_beg = intersection.begin();
-                itr_end = intersection.end();
+                // itr_beg = intersection.begin();
+                // itr_end = intersection.end();
+
+                itr_beg = this->btrees_[clus][0].lower_bound(l_bound[0]);
+                itr_end = this->btrees_[clus][0].upper_bound(u_bound[0]);
+                while (itr_beg != itr_end && !pred(itr_beg->second)) {
+                  itr_beg++;
+                }
                 continue;
               }
             }
 
-            auto tableid = *itr_beg;
-            itr_beg++;
+            auto tableid = itr_beg->second;
+            do {
+              itr_beg++;
+            } while (itr_beg != itr_end && !pred(itr_beg->second));
 #ifdef USE_SSE
-            if (itr_beg != itr_end) _mm_prefetch(this->hnsw_.getDataByInternalId(*itr_beg), _MM_HINT_T0);
+            if (itr_beg != itr_end) _mm_prefetch(this->hnsw_.getDataByInternalId(itr_beg->second), _MM_HINT_T0);
 #endif
             if (visited[tableid] == visited_tag) continue;
 
