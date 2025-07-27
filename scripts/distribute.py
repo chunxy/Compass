@@ -134,48 +134,30 @@ EXP_GROUP_PCA = [
 EXP_GROUP_ICG = [
   "1d-k-icg-exp",
   "1d-bikmeans-icg-exp",
-  "1d-pca-icg-exp",
   "2d-k-icg-exp",
   "2d-bikmeans-icg-exp",
-  "2d-pca-icg-exp",
+  "3d-k-icg-exp",
+  "3d-bikmeans-icg-exp",
 ]
 
+# QICG turns out to be helpless.
 EXP_GROUP_QICG = [
   "1d-k-qicg-exp",
   "1d-bikmeans-qicg-exp",
-  "1d-pca-qicg-exp",
   "2d-k-qicg-exp",
   "2d-bikmeans-qicg-exp",
-  "2d-pca-qicg-exp",
-]
-
-EXP_GROUP_2D_ICG = [
-  "2d-k-icg-exp",
-  "2d-bikmeans-icg-exp",
-  "2d-pca-icg-exp",
-  "2d-k-qicg-exp",
-  "2d-bikmeans-qicg-exp",
-  "2d-pca-qicg-exp",
-]
-
-EXP_GROUP_3D_ICG = [
-  "3d-k-icg-exp",
-  "3d-bikmeans-icg-exp",
-  "3d-pca-icg-exp",
   "3d-k-qicg-exp",
   "3d-bikmeans-qicg-exp",
-  "3d-pca-qicg-exp",
 ]
 
-EXP_GROUP_4D_ICG = [
-  "4d-k-icg-exp",
-  "4d-k-qicg-exp",
-  "4d-bikmeans-icg-exp",
-  "4d-bikmeans-qicg-exp",
+EXP_GROUP_RES_ICG = [
+  "1d-pca-icg-exp",
+  "2d-pca-icg-exp",
+  "3d-pca-icg-exp",
   "4d-pca-icg-exp",
-  "4d-pca-qicg-exp",
+  "4d-k-icg-exp",
+  "4d-bikmeans-icg-exp",
 ]
-
 
 # ==============================================================================
 # 2. REMOTE EXECUTION FUNCTION - This function runs on each remote machine
@@ -358,13 +340,11 @@ if __name__ == '__main__':
   # run_grouped_exp(THREED_EXPS)
   # run_grouped_exp(FOURD_EXPS)
 
-  run_grouped_exp(EXP_GROUP_1)
-  run_grouped_exp(EXP_GROUP_2)
-  run_grouped_exp(EXP_GROUP_PCA)
-  run_grouped_exp(FOURD_EXPS)
+  # run_grouped_exp(EXP_GROUP_1)
+  # run_grouped_exp(EXP_GROUP_2)
+  # run_grouped_exp(EXP_GROUP_PCA)
+  # run_grouped_exp(FOURD_EXPS)
 
   run_grouped_exp(EXP_GROUP_ICG)
-  run_grouped_exp(EXP_GROUP_QICG)
-  run_grouped_exp(EXP_GROUP_3D_ICG)
-  run_grouped_exp(EXP_GROUP_4D_ICG)
+  run_grouped_exp(EXP_GROUP_RES_ICG)
   post_process()
