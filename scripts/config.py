@@ -40,6 +40,7 @@ serf_post_da_interval = {
   4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 40, 50, 60, 70, 80, 90)],
 }
 irangegraph_post_da_interval = {
+  2: [(pcnt, pcnt) for pcnt in (10, 20, 30, 40, 50, 60, 70, 80, 90)],
   3: [(pcnt, pcnt, pcnt) for pcnt in (20, 30, 40, 50, 60, 70, 80, 90)],
   4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 40, 50, 60, 70, 80, 90)],
 }
@@ -91,6 +92,7 @@ COMPASSX_METHODS = [
   "CompassPca",
   "CompassPcaCg",
   "CompassPcaIcg",
+  "CompassPcaQicg",
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
 METHODS = COMPASS_METHODS + SOTA_METHODS
