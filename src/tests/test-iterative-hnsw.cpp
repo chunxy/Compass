@@ -35,13 +35,14 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   int M = 4, efc = 200;
   int k = 500;
-  int batch_k = 10;
+  int batch_k = 10, initial_efs = 50;
   vector<int> delta_efs_s = {100, 200};
 
   po::options_description optional_configs("Optional");
   optional_configs.add_options()("k", po::value<decltype(k)>(&k));
   optional_configs.add_options()("M", po::value<decltype(M)>(&M));
   optional_configs.add_options()("batch_k", po::value<decltype(batch_k)>(&batch_k));
+  optional_configs.add_options()("initial_efs", po::value<decltype(initial_efs)>(&initial_efs));
   optional_configs.add_options()("delta_efs", po::value<decltype(delta_efs_s)>(&delta_efs_s)->multitoken());
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, optional_configs), vm);
@@ -93,9 +94,9 @@ int main(int argc, char **argv) {
   }
   fmt::print("Finished loading/building index\n");
 
-  nlohmann::json json;
+  nlohmann::json json, json_neo;
   for (auto efs : delta_efs_s) {
-    comp->SetSearchParam(batch_k, efs);
+    comp->SetSearchParam(batch_k, initial_efs, efs);
     double recall = 0;
     double ncomp = 0;
     double search_time = 0;
@@ -143,6 +144,7 @@ int main(int argc, char **argv) {
     json["M"] = M;
     json["k"] = k;
     json["batch_k"] = batch_k;
+    json["initial_efs"] = initial_efs;
   }
 
   std::ofstream ofs((log_root / out_json).c_str());

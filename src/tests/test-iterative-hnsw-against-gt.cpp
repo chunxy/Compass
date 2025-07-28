@@ -39,14 +39,15 @@ int main(int argc, char **argv) {
   int nlist = 10000;
   int M = 4, efc = 200;
   int k = 500;
-  int batch_k = 100;
-  vector<int> delta_efs_s = {20};
+  int batch_k = 50, initial_efs = 50;
+  vector<int> delta_efs_s = {50, 100, 200};
 
   po::options_description optional_configs("Optional");
   optional_configs.add_options()("nlist", po::value<decltype(nlist)>(&nlist));
   optional_configs.add_options()("k", po::value<decltype(k)>(&k));
   optional_configs.add_options()("M", po::value<decltype(M)>(&M));
   optional_configs.add_options()("batch_k", po::value<decltype(batch_k)>(&batch_k));
+  optional_configs.add_options()("initial_efs", po::value<decltype(initial_efs)>(&initial_efs));
   optional_configs.add_options()("delta_efs", po::value<decltype(delta_efs_s)>(&delta_efs_s)->multitoken());
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, optional_configs), vm);
@@ -128,6 +129,7 @@ int main(int argc, char **argv) {
     json["M"] = M;
     json["k"] = k;
     json["batch_k"] = batch_k;
+    json["initial_efs"] = initial_efs;
   }
 
   std::ofstream ofs((log_root / out_json).c_str());
