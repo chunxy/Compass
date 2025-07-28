@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include "avl.h"
 #include "hnswlib/hnswlib.h"
 
 using namespace hnswlib;
@@ -70,11 +71,11 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
 
         result_set.emplace(-cand_nbr_dist, cand_nbr);
-        if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
-          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+        candidate_set.emplace(-cand_nbr_dist, cand_nbr);
 #ifdef USE_SSE
-          _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+        _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
 #endif
+        if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
           top_candidates.emplace(cand_nbr_dist, cand_nbr);
           if (top_candidates.size() > efs) {
             auto top = top_candidates.top();
@@ -93,15 +94,26 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       const void *query_data,
       const size_t k,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
+      AVL::Tree<std::pair<dist_t, labeltype>> &otree,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
       std::vector<bool> &visited,
       int &ncomp
   ) {
+    size_t efs = std::max(k, this->ef_);
+    float upper_bound = std::numeric_limits<dist_t>::max();
+    if (otree.size() != 0) {
+      int idx = otree.size() < efs ? otree.size() : efs;
+      upper_bound = otree.getValueGivenIndex(idx)->el.first;
+    }
+
     while (!candidate_set.empty()) {
       auto curr_obj = candidate_set.top().second;
       auto curr_dist = -candidate_set.top().first;
       candidate_set.pop();
-      result_set.emplace(-curr_dist, curr_obj);
+
+      if (curr_dist > upper_bound) {
+        break;
+      }
 
       unsigned int *cand_info = this->get_linklist0(curr_obj);
       int size = this->getListCount(cand_info);
@@ -121,13 +133,21 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         ncomp++;
         dist_t cand_nbr_dist =
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+        result_set.emplace(-cand_nbr_dist, cand_nbr);
 
-        candidate_set.emplace(-cand_nbr_dist, cand_nbr);
-// #ifdef USE_SSE
-//         _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
-// #endif
+        if (otree.size() < efs || cand_nbr_dist < upper_bound) {
+          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+        }
+#ifdef USE_SSE
+        _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+#endif
+        otree.insert(std::make_pair(cand_nbr_dist, cand_nbr));
+        if (otree.size() >= efs) {
+          upper_bound = otree.getValueGivenIndex(efs)->el.first;
+        } else {
+          upper_bound = otree.getValueGivenIndex(otree.size())->el.first;
+        }
       }
-      break;
     }
   }
 
