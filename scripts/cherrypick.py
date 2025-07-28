@@ -15,6 +15,7 @@ from summarize import (
 )
 
 nrel_100 = {d: {} for d in DATASETS}
+nrel_50_100 = {d: {} for d in DATASETS}
 nrel_100_200 = {d: {} for d in DATASETS}
 nrel_50_100_200 = {d: {} for d in DATASETS}
 
@@ -26,7 +27,7 @@ for d in DATASETS:
 
 best_d_m_b = {d: {} for d in DATASETS}
 for d in ("sift", "audio"):
-  best_d_m_b[d]["CompassBikmeansIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["CompassBikmeansIcg"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
 best_d_m_b["gist"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_512_M_cg_4"]
 best_d_m_b["video"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_512_M_cg_4"]
 best_d_m_b["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_128_M_cg_4"]
@@ -49,18 +50,20 @@ for m in COMPASS_METHODS:
 # Choose one clustering method according to these figures,
 # potentially one for each dataset.
 def pick_clustering_methods():
-  clus_methods = ["CompassK", "CompassBikmeans", "CompassPca"]
+  clus_methods = ["CompassKIcg", "CompassBikmeansIcg", "CompassPcaIcg"]
   d_m_b = {d: {} for d in DATASETS}
   for d in ("sift", "audio"):
     for m in clus_methods:
-      d_m_b[d][m] = ["M_16_efc_200_nlist_10000"]
       if m in COMPASSX_METHODS:
-        d_m_b[d][m] = [f"M_16_efc_200_nlist_10000_dx_{dx}" for dx in D_ARGS[d]["dx"]]
+        d_m_b[d][m] = [f"M_16_efc_200_nlist_10000_dx_{dx}_M_cg_4" for dx in D_ARGS[d]["dx"]]
+      else:
+        d_m_b[d][m] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   for d in ("gist", "video", "crawl", "glove100"):
     for m in clus_methods:
-      d_m_b[d][m] = ["M_16_efc_200_nlist_10000"]
       if m in COMPASSX_METHODS:
-        d_m_b[d][m] = [f"M_16_efc_200_nlist_10000_dx_{dx}" for dx in D_ARGS[d]["dx"]]
+        d_m_b[d][m] = [f"M_16_efc_200_nlist_10000_dx_{dx}_M_cg_4" for dx in D_ARGS[d]["dx"]]
+      else:
+        d_m_b[d][m] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_selectivity(
@@ -133,7 +136,7 @@ def pick_cluster_search_methods():
 
 
 def pick_nrel():
-  methods = ["CompassK"]
+  methods = ["CompassK", "CompassBikmeans", "CompassPca"]
   d_m_b = {d: {} for d in DATASETS}
   for d in ("sift", "audio"):
     for m in methods:
@@ -149,7 +152,7 @@ def pick_nrel():
       methods=methods,
       anno="nrel",
       d_m_b=d_m_b,
-      d_m_s=nrel_50_100_200,
+      d_m_s=nrel_50_100,
       prefix=f"cherrypick{da}d-10/varying-nrel",
     )
     draw_qps_comp_fixing_recall_by_selectivity(
@@ -164,20 +167,19 @@ def pick_nrel():
 
 
 def pick_M():
-  methods = ["CompassK"]
   d_m_b_M = {d: {} for d in DATASETS}
   for d in ("sift", "audio"):
-    for m in methods:
-      d_m_b_M[d][m] = ["M_16_efc_200_nlist_10000", "M_32_efc_200_nlist_10000"]
-  for d in ("gist", "video", "crawl", "glove100"):
-    for m in methods:
-      d_m_b_M[d][m] = ["M_16_efc_200_nlist_20000", "M_32_efc_200_nlist_20000"]
+    d_m_b_M[d]["CompassKIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4", "M_32_efc_200_nlist_10000_M_cg_4"]
+  for d in ("gist", "video"):
+    d_m_b_M[d]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_512_M_cg_4", "M_32_efc_200_nlist_20000_dx_512_M_cg_4"]
+  d_m_b_M["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_128_M_cg_4", "M_32_efc_200_nlist_20000_dx_128_M_cg_4"]
+  d_m_b_M["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_20000_M_cg_4", "M_32_efc_200_nlist_20000_M_cg_4"]
 
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_selectivity(
       da=da,
       datasets=DATASETS,
-      methods=methods,
+      methods=[],
       anno="M",
       d_m_b=d_m_b_M,
       d_m_s=nrel_100,
@@ -186,7 +188,7 @@ def pick_M():
     draw_qps_comp_fixing_recall_by_selectivity(
       da=da,
       datasets=DATASETS,
-      methods=methods,
+      methods=[],
       anno="M",
       d_m_b=d_m_b_M,
       d_m_s=nrel_100,
@@ -322,7 +324,6 @@ def compare_with_sotas():
 
 
 def compare_best_with_sotas():
-
   for da in DA_S:
     draw_qps_comp_wrt_recall_by_selectivity(
       da=da,
@@ -345,16 +346,15 @@ def compare_best_with_sotas():
 
 
 def compare_best_with_sotas_by_dimension():
-
   draw_qps_comp_fixing_selectivity_by_dimension(best_d_m_b, best_d_m_s, "dim", "by-dimension")
 
 
 if __name__ == "__main__":
-  # pick_clustering_methods()
-  # pick_cluster_search_methods()
-  # pick_nrel()
-  # pick_M()
-  # pick_nlist()
+  pick_clustering_methods()
+  pick_cluster_search_methods()
+  pick_nrel()
+  pick_M()
+  pick_nlist()
   # pick_dx()
   compare_with_sotas() # slow?
   compare_best_with_sotas()
