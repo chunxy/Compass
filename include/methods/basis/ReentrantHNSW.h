@@ -350,61 +350,61 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     }
   }
 
-  void ReentrantSearchKnnBounded(
-      const void *query_data,
-      size_t k,
-      float stop_bound,
-      std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
-      std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
-      std::vector<bool> &visited,
-      BaseFilterFunctor *is_id_allowed,
-      int &ncomp,
-      std::vector<bool> &is_graph_ppsl
-  ) {
-    size_t efs = std::max(k, this->ef_);
-    auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+//   void ReentrantSearchKnnBounded(
+//       const void *query_data,
+//       size_t k,
+//       float stop_bound,
+//       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
+//       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
+//       std::vector<bool> &visited,
+//       BaseFilterFunctor *is_id_allowed,
+//       int &ncomp,
+//       std::vector<bool> &is_graph_ppsl
+//   ) {
+//     size_t efs = std::max(k, this->ef_);
+//     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
 
-    while (!candidate_set.empty()) {
-      auto curr_obj = candidate_set.top().second;
-      auto curr_dist = -candidate_set.top().first;
-      candidate_set.pop();
+//     while (!candidate_set.empty()) {
+//       auto curr_obj = candidate_set.top().second;
+//       auto curr_dist = -candidate_set.top().first;
+//       candidate_set.pop();
 
-      if (curr_dist > upper_bound) {
-        break;
-      }
+//       if (curr_dist > upper_bound) {
+//         break;
+//       }
 
-      unsigned int *cand_info = this->get_linklist0(curr_obj);
-      int size = this->getListCount(cand_info);
-      tableint *cand_nbrs = (tableint *)(cand_info + 1);
-#ifdef USE_SSE
-      _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
-      _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
-#endif
+//       unsigned int *cand_info = this->get_linklist0(curr_obj);
+//       int size = this->getListCount(cand_info);
+//       tableint *cand_nbrs = (tableint *)(cand_info + 1);
+// #ifdef USE_SSE
+//       _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
+//       _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
+// #endif
 
-      for (int i = 0; i < size; i++) {
-        tableint cand_nbr = cand_nbrs[i];
-#ifdef USE_SSE
-        _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
-#endif
-        if (visited[cand_nbr]) continue;
-        visited[cand_nbr] = true;
-        if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) continue;
-        ncomp++;
-        is_graph_ppsl[cand_nbr] = true;
-        dist_t cand_nbr_dist =
-            this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
-        if (cand_nbr_dist < upper_bound) {
-          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
-#ifdef USE_SSE
-          _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
-#endif
-          top_candidates.emplace(cand_nbr_dist, cand_nbr);
-          if (top_candidates.size() > efs) top_candidates.pop();
-          upper_bound = top_candidates.top().first;
-        }
-      }
-    }
-  }
+//       for (int i = 0; i < size; i++) {
+//         tableint cand_nbr = cand_nbrs[i];
+// #ifdef USE_SSE
+//         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
+// #endif
+//         if (visited[cand_nbr]) continue;
+//         visited[cand_nbr] = true;
+//         if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) continue;
+//         ncomp++;
+//         is_graph_ppsl[cand_nbr] = true;
+//         dist_t cand_nbr_dist =
+//             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+//         if (cand_nbr_dist < upper_bound) {
+//           candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+// #ifdef USE_SSE
+//           _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+// #endif
+//           top_candidates.emplace(cand_nbr_dist, cand_nbr);
+//           if (top_candidates.size() > efs) top_candidates.pop();
+//           upper_bound = top_candidates.top().first;
+//         }
+//       }
+//     }
+//   }
 
   void ReentrantSearchKnnBounded(
       const void *query_data,
@@ -440,6 +440,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       for (int i = 0; i < size; i++) {
         tableint cand_nbr = cand_nbrs[i];
 #ifdef USE_SSE
+        _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
         if (vl->mass[cand_nbr] == vl->curV) continue;
