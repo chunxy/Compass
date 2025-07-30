@@ -97,7 +97,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
       AVL::Tree<std::pair<dist_t, labeltype>> &otree,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
-      std::vector<bool> &visited,
+      VisitedList *vl,
       int &ncomp
   ) {
     size_t efs = std::max(k, this->ef_);
@@ -129,8 +129,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #ifdef USE_SSE
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
-        if (visited[cand_nbr]) continue;
-        visited[cand_nbr] = true;
+        if (vl->mass[cand_nbr] == vl->curV) continue;
+        vl->mass[cand_nbr] = vl->curV;
         ncomp++;
         dist_t cand_nbr_dist =
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);

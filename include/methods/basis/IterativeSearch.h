@@ -25,7 +25,6 @@ class IterativeSearchState {
   priority_queue<pair<dist_t, labeltype>> result_set_;           // min heap
   priority_queue<pair<dist_t, labeltype>> batch_rz_;             // min heap
   AVL::Tree<std::pair<dist_t, labeltype>> otree_;                // top candidates alternative
-  vector<bool> visited_;
   VisitedList *vl_;
   int ncomp_;
   int total_;
@@ -39,8 +38,8 @@ class IterativeSearch {
   const int n_;
   int batch_k_, delta_efs_, initial_efs_;  // a decent combo of batch_k and delta_efs for search
   ReentrantHNSW<dist_t> *hnsw_;
+  VisitedList *vl_;
 
-  // Old Open won't work with current UpdateNext.
   int UpdateNext(IterativeSearchState<dist_t> *state) {
     while (!state->recycled_candidates_.empty() && state->top_candidates_.size() < hnsw_->ef_) {
       auto top = state->recycled_candidates_.top();
@@ -76,7 +75,7 @@ class IterativeSearch {
         state->candidate_set_,
         state->otree_,
         state->result_set_,
-        state->visited_,
+        state->vl_,
         state->ncomp_
     );
     int cnt = 0;
@@ -104,11 +103,10 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
   }
 
-  // no longer works
   IterativeSearchState<dist_t> Open(const void *query, int k) {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
-    state.visited_.resize(n_, false);
+    state.vl_ = hnsw_->visited_list_pool_->getFreeVisitedList();
     state.ncomp_ = 0;
     state.total_ = 0;
     {
@@ -142,7 +140,7 @@ class IterativeSearch {
           }
         }
       }
-      state.visited_[curr_obj] = true;
+      state.vl_->mass[curr_obj] = state.vl_->curV;
       state.candidate_set_.emplace(-curr_dist, curr_obj);
       state.result_set_.emplace(-curr_dist, curr_obj);
       state.top_candidates_.emplace(curr_dist, curr_obj);
@@ -152,6 +150,7 @@ class IterativeSearch {
     return std::move(state);
   }
 
+  // VistedList is provided outside in this version.
   IterativeSearchState<dist_t> Open(const void *query, int k, VisitedList *vl) {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
@@ -202,7 +201,7 @@ class IterativeSearch {
   IterativeSearchState<dist_t> OpenNeo(const void *query, int k) {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
-    state.visited_.resize(n_, false);
+    state.vl_ = hnsw_->visited_list_pool_->getFreeVisitedList();
     state.ncomp_ = 0;
     state.total_ = 0;
     {
@@ -236,7 +235,7 @@ class IterativeSearch {
           }
         }
       }
-      state.visited_[curr_obj] = true;
+      state.vl_->mass[curr_obj] = state.vl_->curV;
       state.candidate_set_.emplace(-curr_dist, curr_obj);
       state.result_set_.emplace(-curr_dist, curr_obj);
       state.otree_.insert(std::make_pair(curr_dist, curr_obj));
