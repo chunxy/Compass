@@ -11,6 +11,7 @@ namespace po = boost::program_options;
 struct IvfGraph1dArgs {
   std::string datacard;
   float l_bound, u_bound;
+  vector<int> percents;
   int k = 100;
   int dx = 64;
   int M = 32;
@@ -35,8 +36,9 @@ struct IvfGraph1dArgs {
     // dataset parameter
     required_configs.add_options()("datacard", po::value<decltype(datacard)>(&datacard)->required());
     // search parameters
-    required_configs.add_options()("l", po::value<decltype(l_bound)>(&l_bound)->required());
-    required_configs.add_options()("r", po::value<decltype(u_bound)>(&u_bound)->required());
+    required_configs.add_options()("l", po::value<decltype(l_bound)>(&l_bound));
+    required_configs.add_options()("r", po::value<decltype(u_bound)>(&u_bound));
+    required_configs.add_options()("p", po::value<decltype(percents)>(&percents)->required()->multitoken());
     required_configs.add_options()("k", po::value<decltype(k)>(&k)->required());
     // index constrcution parameters
     optional_configs.add_options()("dx", po::value<decltype(dx)>(&dx));
@@ -69,6 +71,7 @@ struct IvfGraph1dArgs {
 struct IvfGraph2dArgs {
   std::string datacard;
   vector<float> l_bounds, u_bounds;
+  vector<int> percents;
   int k = 10;
   int dx = 64;
   int M = 32;
@@ -90,8 +93,9 @@ struct IvfGraph2dArgs {
     // dataset parameter
     required_configs.add_options()("datacard", po::value<decltype(datacard)>(&datacard)->required());
     // search parameters
-    required_configs.add_options()("l", po::value<decltype(l_bounds)>(&l_bounds)->required()->multitoken());
-    required_configs.add_options()("r", po::value<decltype(u_bounds)>(&u_bounds)->required()->multitoken());
+    required_configs.add_options()("l", po::value<decltype(l_bounds)>(&l_bounds)->multitoken());
+    required_configs.add_options()("r", po::value<decltype(u_bounds)>(&u_bounds)->multitoken());
+    required_configs.add_options()("p", po::value<decltype(percents)>(&percents)->required()->multitoken());
     required_configs.add_options()("k", po::value<decltype(k)>(&k)->required());
     // index constrcution parameters
     optional_configs.add_options()("dx", po::value<decltype(dx)>(&dx));

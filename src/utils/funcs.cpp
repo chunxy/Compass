@@ -111,6 +111,41 @@ void load_hybrid_query_gt(
   }
 }
 
+void load_hybrid_query_gt(
+    const DataCard &c,
+    const vector<int> &percents,
+    const int k,
+    vector<vector<labeltype>> &hybrid_topks,
+    float *&l_bounds,
+    float *&u_bounds
+) {
+  std::string gt_path = fmt::format(HYBRID_GT_PATH_TMPL_NEO, c.name, c.attr_range, percents, 100);
+  hybrid_topks.resize(c.n_queries);
+  int i = 0;
+  IVecItrReader groundtruth_it(gt_path);
+  while (!groundtruth_it.HasEnded()) {
+    auto topk = groundtruth_it.Next();
+    if (k > topk.size()) {
+      throw fmt::format("k ({}) is greater than the size of the ground truth ({})", k, topk.size());
+    }
+    hybrid_topks[i].resize(k);
+    for (int j = 0; j < k; j++) {
+      hybrid_topks[i][j] = topk[j];
+    }
+    i++;
+  }
+
+  l_bounds = new float[c.attr_dim * c.n_queries];
+  u_bounds = new float[c.attr_dim * c.n_queries];
+  std::string rg_path = fmt::format(HYBRID_RG_PATH_TMPL, c.name, c.attr_range, percents);
+  std::ifstream rg_file(rg_path);
+  if (!rg_file.good()) {
+    throw fmt::format("Failed to open file: {}", rg_path);
+  }
+  rg_file.read((char *)l_bounds, sizeof(float) * c.attr_dim * c.n_queries);
+  rg_file.read((char *)u_bounds, sizeof(float) * c.attr_dim * c.n_queries);
+}
+
 void load_filter_data(
     const DataCard &c,
     float *&xb,

@@ -27,6 +27,15 @@ void load_hybrid_query_gt(
     vector<vector<labeltype>> &hybrid_topks
 );
 
+void load_hybrid_query_gt(
+    const DataCard &c,
+    const vector<int> &percents,
+    const int k,
+    vector<vector<labeltype>> &hybrid_topks,
+    float *&l_bounds,
+    float *&u_bounds
+);
+
 void load_filter_data(
     const DataCard &c,
     float *&xb,

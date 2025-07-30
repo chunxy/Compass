@@ -225,16 +225,88 @@ void compute_groundtruth(
   fmt::print("Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count());
 }
 
+void compute_groundtruth(
+    const float *xb,
+    const int nb,
+    const float *xq,
+    const int nq,
+    const size_t d,
+    const size_t da,
+    const float *l_bounds,
+    const float *u_bounds,
+    const vector<vector<float>> &attrs,
+    const int k,
+    int &nsat,
+    vector<vector<pair<float, uint32_t>>> &hybrid_topks
+) {
+  vector<priority_queue<pair<float, uint32_t>>> pq_topks(nq);
+  hybrid_topks.resize(nq);
+
+  vector<btree::btree_map<float, uint32_t>> btrees(da);
+  auto btrees_start = high_resolution_clock::now();
+  for (int i = 0; i < nb; i++) {
+    for (int j = 0; j < da; j++) {
+      btrees[j].insert(pair<float, uint32_t>{attrs[i][j], i});
+    }
+  }
+  auto btrees_stop = high_resolution_clock::now();
+  fmt::print(
+      "B-trees construction took {} microseconds\n", duration_cast<microseconds>(btrees_stop - btrees_start).count()
+  );
+
+  hnswlib::L2Space space(d);
+  auto compute_start = high_resolution_clock::now();
+#pragma omp for schedule(static)
+  for (int i = 0; i < nq; i++) {
+    vector<uint32_t> targets;
+    auto beg = btrees[0].lower_bound(l_bounds[i * da]);
+    auto end = btrees[0].upper_bound(u_bounds[i * da]);
+    for (auto itr = beg; itr != end; ++itr) {
+      int idx = itr->second, j = 1;
+      while (j < da) {
+        if (attrs[idx][j] < l_bounds[i * da + j] || attrs[idx][j] > u_bounds[i * da + j]) {
+          break;
+        }
+        j++;
+      }
+      if (j == da) {
+        targets.push_back(idx);
+      }
+    }
+
+    const float *query = xq + i * d;
+    for (int j = 0; j < k; j++) {
+      auto idx = targets[j];
+      auto dist = space.get_dist_func()(query, xb + idx * d, &d);
+      pq_topks[i].emplace(dist, idx);
+    }
+    for (int j = k; j < targets.size(); j++) {
+      auto idx = targets[j];
+      auto dist = space.get_dist_func()(query, xb + idx * d, &d);
+      pq_topks[i].emplace(dist, idx);
+      pq_topks[i].pop();
+    }
+    hybrid_topks[i].resize(pq_topks[i].size());
+    int sz = pq_topks[i].size();
+    while (pq_topks[i].size() != 0) {
+      hybrid_topks[i][--sz] = pq_topks[i].top();
+      pq_topks[i].pop();
+    }
+  }
+  auto compute_end = high_resolution_clock::now();
+  fmt::print("Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count());
+}
+
 int main(int argc, char **argv) {
   std::string dataname;
   vector<float> l_bounds, u_bounds;
+  vector<int> percents;
 
   uint32_t k;
 
   po::options_description configs;
   configs.add_options()("datacard", po::value<decltype(dataname)>(&dataname)->required());
-  configs.add_options()("l", po::value<decltype(l_bounds)>(&l_bounds)->required()->multitoken());
-  configs.add_options()("r", po::value<decltype(u_bounds)>(&u_bounds)->required()->multitoken());
+  configs.add_options()("p", po::value<decltype(percents)>(&percents)->required()->multitoken()->required());
   configs.add_options()("k", po::value<decltype(k)>(&k)->required());
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, configs), vm);
@@ -248,27 +320,40 @@ int main(int argc, char **argv) {
   uint32_t *gt;
   vector<vector<float>> attrs;
   load_hybrid_data(c, xb, xq, gt, attrs);
-
+  std::mt19937 rng;
+  rng.seed(0);
+  std::uniform_real_distribution<float> distrib_real;
+  for (size_t i = 0; i < nq; i++) {
+    for (size_t j = 0; j < c.attr_dim; j++) {
+      float num = (distrib_real(rng) * (float)c.attr_range * (100 - percents[j]) / 100);
+      l_bounds.push_back(num);
+      u_bounds.push_back(num + (float)c.attr_range * percents[j] / 100);
+    }
+  }
   vector<vector<pair<float, uint32_t>>> hybrid_topks(nq);
   int nsat;
-  if (c.attr_dim == 1) {
-    vector<float> _attrs(attrs.size());
-    for (int i = 0; i < _attrs.size(); i++) _attrs[i] = attrs[i][0];
-    float l_bound = l_bounds[0], u_bound = u_bounds[0];
-    compute_groundtruth(xb, nb, xq, nq, d, l_bound, u_bound, _attrs, k, nsat, hybrid_topks);
-  } else if (c.attr_dim == 2) {
-    compute_groundtruth(xb, nb, xq, nq, d, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks);
-  } else {
-    compute_groundtruth(xb, nb, xq, nq, d, c.attr_dim, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks);
-  }
+  compute_groundtruth(xb, nb, xq, nq, d, c.attr_dim, l_bounds.data(), u_bounds.data(), attrs, k, nsat, hybrid_topks);
 
-  std::string path = fmt::format(HYBRID_GT_PATH_TMPL, c.name, c.attr_range, l_bounds, u_bounds, k);
-  std::ofstream ofs(path, std::ios_base::binary & std::ios_base::out);
+  std::string gt_path = fmt::format(HYBRID_GT_PATH_TMPL_NEO, c.name, c.attr_range, percents, k);
+  std::ofstream gt_ofs(gt_path, std::ios_base::binary & std::ios_base::out);
   for (int i = 0; i < nq; i++) {
     uint32_t size = hybrid_topks[i].size();
-    ofs.write((char *)&size, sizeof(size));
+    gt_ofs.write((char *)&size, sizeof(size));
     for (int j = 0; j < hybrid_topks[i].size(); j++) {
-      ofs.write((char *)&hybrid_topks[i][j].second, 4);
+      gt_ofs.write((char *)&hybrid_topks[i][j].second, 4);
+    }
+  }
+
+  std::string rg_path = fmt::format(HYBRID_RG_PATH_TMPL, c.name, c.attr_range, percents);
+  std::ofstream rg_ofs(rg_path, std::ios_base::binary & std::ios_base::out);
+  for (int i = 0; i < nq; i++) {
+    for (int j = 0; j < c.attr_dim; j++) {
+      rg_ofs.write((char *)&l_bounds[i * c.attr_dim + j], sizeof(float));
+    }
+  }
+  for (int i = 0; i < nq; i++) {
+    for (int j = 0; j < c.attr_dim; j++) {
+      rg_ofs.write((char *)&u_bounds[i * c.attr_dim + j], sizeof(float));
     }
   }
 
