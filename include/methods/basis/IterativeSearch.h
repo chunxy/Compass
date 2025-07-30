@@ -26,6 +26,7 @@ class IterativeSearchState {
   priority_queue<pair<dist_t, labeltype>> batch_rz_;             // min heap
   AVL::Tree<std::pair<dist_t, labeltype>> otree_;                // top candidates alternative
   vector<bool> visited_;
+  VisitedList *vl_;
   int ncomp_;
   int total_;
 
@@ -39,6 +40,7 @@ class IterativeSearch {
   int batch_k_, delta_efs_, initial_efs_;  // a decent combo of batch_k and delta_efs for search
   ReentrantHNSW<dist_t> *hnsw_;
 
+  // Old Open won't work with current UpdateNext.
   int UpdateNext(IterativeSearchState<dist_t> *state) {
     while (!state->recycled_candidates_.empty() && state->top_candidates_.size() < hnsw_->ef_) {
       auto top = state->recycled_candidates_.top();
@@ -52,7 +54,7 @@ class IterativeSearch {
         state->top_candidates_,
         state->candidate_set_,
         state->result_set_,
-        state->visited_,
+        state->vl_,
         state->ncomp_
     );
     int cnt = 0;
@@ -102,6 +104,7 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
   }
 
+  // no longer works
   IterativeSearchState<dist_t> Open(const void *query, int k) {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
@@ -140,6 +143,53 @@ class IterativeSearch {
         }
       }
       state.visited_[curr_obj] = true;
+      state.candidate_set_.emplace(-curr_dist, curr_obj);
+      state.result_set_.emplace(-curr_dist, curr_obj);
+      state.top_candidates_.emplace(curr_dist, curr_obj);
+
+      UpdateNext(&state);
+    }
+    return std::move(state);
+  }
+
+  IterativeSearchState<dist_t> Open(const void *query, int k, VisitedList *vl) {
+    hnsw_->setEf(this->initial_efs_);
+    IterativeSearchState<dist_t> state(query, k);
+    state.vl_ = vl;
+    state.ncomp_ = 0;
+    state.total_ = 0;
+    {
+      tableint curr_obj = this->hnsw_->enterpoint_node_;
+      dist_t curr_dist =
+          this->hnsw_->fstdistfunc_(query, this->hnsw_->getDataByInternalId(curr_obj), this->hnsw_->dist_func_param_);
+
+      for (int level = this->hnsw_->maxlevel_; level > 0; level--) {
+        bool changed = true;
+        while (changed) {
+          changed = false;
+          unsigned int *data;
+
+          data = (unsigned int *)this->hnsw_->get_linklist(curr_obj, level);
+          int size = this->hnsw_->getListCount(data);
+
+          tableint *datal = (tableint *)(data + 1);
+          for (int i = 0; i < size; i++) {
+            tableint cand = datal[i];
+
+            if (cand < 0 || cand > this->hnsw_->max_elements_) throw std::runtime_error("cand error");
+            dist_t d =
+                this->hnsw_->fstdistfunc_(query, this->hnsw_->getDataByInternalId(cand), this->hnsw_->dist_func_param_);
+            state.ncomp_++;
+
+            if (d < curr_dist) {
+              curr_dist = d;
+              curr_obj = cand;
+              changed = true;
+            }
+          }
+        }
+      }
+      state.vl_->mass[curr_obj] = state.vl_->curV;
       state.candidate_set_.emplace(-curr_dist, curr_obj);
       state.result_set_.emplace(-curr_dist, curr_obj);
       state.top_candidates_.emplace(curr_dist, curr_obj);

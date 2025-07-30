@@ -28,6 +28,11 @@ class CompassIcg : public Compass<dist_t, attr_t> {
     return this->isearch_->Open(target, nprobe);
   }
 
+  virtual IterativeSearchState<cg_dist_t> Open(const void *query, int idx, int nprobe, VisitedList *vl) {
+    const void *target = ((char *)query) + this->isearch_->hnsw_->data_size_ * idx;
+    return this->isearch_->Open(target, nprobe, vl);
+  }
+
   virtual const void *icg_transform(const void *query, int nq) { return query; }
 
  public:
@@ -79,6 +84,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);
     VisitedList *vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
+    VisitedList *vl_cg = this->isearch_->hnsw_->visited_list_pool_->getFreeVisitedList();
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
@@ -87,11 +93,12 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       priority_queue<pair<dist_t, labeltype>> recycle_set;
 
       vl->reset();
+      vl_cg->reset();
       vl_type *visited = vl->mass;
       vl_type visited_tag = vl->curV;
       // vector<bool> visited(this->n_, false);
 
-      auto state = std::move(Open(xquery, q, nprobe));
+      auto state = std::move(Open(xquery, q, nprobe, vl_cg));
 
       auto next = isearch_->Next(&state);
       int clus = next.second, clus_cnt = 1;
