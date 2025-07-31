@@ -34,15 +34,10 @@ sota_da_interval = {
   1: [*[(1, ), (2, ), (3, ), (5, )], *[(i, ) for i in range(10, 100, 10)]],
   2: [(pcnt, pcnt) for pcnt in (10, 20, 30, 40, 50, 60, 70, 80, 90)],
 }
-serf_post_da_interval = {
-  2: [(pcnt, pcnt) for pcnt in (10, 20, 30, 40, 50, 60, 70, 80, 90)],
-  3: [(pcnt, pcnt, pcnt) for pcnt in (20, 30, 40, 50, 60, 70, 80, 90)],
-  4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 40, 50, 60, 70, 80, 90)],
-}
-irangegraph_post_da_interval = {
-  2: [(pcnt, pcnt) for pcnt in (10, 20, 30, 40, 50, 60, 70, 80, 90)],
-  3: [(pcnt, pcnt, pcnt) for pcnt in (20, 30, 40, 50, 60, 70, 80, 90)],
-  4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (30, 40, 50, 60, 70, 80, 90)],
+post_da_interval = {
+  2: [(pcnt, pcnt) for pcnt in (10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95)],
+  3: [(pcnt, pcnt, pcnt) for pcnt in (10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95)],
+  4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95)],
 }
 
 # attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
@@ -123,8 +118,10 @@ M_DA_RUN = {
     m: sota_da_interval
     for m in SOTA_METHODS
   },
-  "SeRF+Post": serf_post_da_interval,
-  "iRangeGraph+Post": irangegraph_post_da_interval,
+  ** {
+    m: post_da_interval
+    for m in POSTFILTERING_METHODS
+  }
 }
 
 compass_group_dataset = {
