@@ -84,10 +84,10 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
     VisitedList *vl = this->hnsw_.visited_list_pool_->getFreeVisitedList();
     VisitedList *vl_cg = this->isearch_->hnsw_->visited_list_pool_->getFreeVisitedList();
+    RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
-      RangeQuery<attr_t> pred(l_bound + q, u_bound + q, attrs, this->n_, 1);
 
       priority_queue<pair<dist_t, labeltype>> top_candidates;
       priority_queue<pair<dist_t, labeltype>> candidate_set;
@@ -99,7 +99,7 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       vl_type visited_tag = vl->curV;
       // vector<bool> visited(this->n_, false);
 
-      auto state = std::move(Open(xquery, q, nprobe, vl_cg));
+      auto state = Open(xquery, q, nprobe, vl_cg);
 
       auto next = isearch_->Next(&state);
       int clus = next.second, clus_cnt = 1;
@@ -112,7 +112,7 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
           while (crel < nrel) {
             if (itr_beg == itr_end) {
               auto _next = isearch_->Next(&state);
-              clus = next.second;
+              clus = _next.second;
               clus_cnt++;
               if (clus == -1)
                 break;

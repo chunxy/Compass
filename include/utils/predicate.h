@@ -29,28 +29,33 @@ class RangeQuery : public hnswlib::BaseFilterFunctor {
     }
     return false;
   }
+
+  bool operator()(const std::array<attr_t, 4> &attrs) {
+    for (int i = 0; i < d_; i++) {
+      if (l_bound_[i] > attrs[i] || attrs[i] > u_bound_[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  const attr_t *prefetch(labeltype label) { return attrs_ + label * d_; }
 };
 
 template <typename attr_t>
 class WindowQuery : public hnswlib::BaseFilterFunctor {
  private:
-  const attr_t *l_bound_, *u_bound_;  // of dimension d
-  const attr_t *attrs_;               // index should be the labeltype
-  size_t n_, d_;
+  const attr_t *l_bound_, *u_bound_;  // of the same dimension as attrs
 
  public:
-  WindowQuery(const attr_t *l_bound, const attr_t *u_bound, const attr_t *attrs, size_t n, size_t d)
-      : l_bound_(l_bound), u_bound_(u_bound), attrs_(attrs), n_(n), d_(d) {}
-  bool operator()(hnswlib::labeltype label) {
-    if (label < n_) {
-      for (int i = 0; i < d_; i++) {
-        if (l_bound_[i] >= attrs_[label * d_ + i] || attrs_[label * d_ + i] >= u_bound_[i]) {
-          return false;
-        }
+  WindowQuery(const attr_t *l_bound, const attr_t *u_bound) : l_bound_(l_bound), u_bound_(u_bound) {}
+  bool operator()(const std::vector<attr_t> &attrs) {
+    for (int i = 0; i < attrs.size(); i++) {
+      if (l_bound_[i] > attrs[i] || attrs[i] > u_bound_[i]) {
+        return false;
       }
-      return true;
     }
-    return false;
+    return true;
   }
 };
 

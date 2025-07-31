@@ -6,6 +6,7 @@
 #include "utils/predicate.h"
 
 using hnswlib::labeltype;
+using std::array;
 using std::pair;
 using std::priority_queue;
 using std::vector;
@@ -13,7 +14,7 @@ using std::vector;
 template <typename dist_t, typename attr_t>
 class Compass : public HybridIndex<dist_t, attr_t> {
  protected:
-  vector<vector<btree::btree_map<attr_t, labeltype>>> btrees_;
+  vector<btree::btree_map<attr_t, pair<labeltype, array<attr_t, 4>>>> btrees_;
   int da_;
 
   // Assign original/transformed points to clusters.
@@ -45,15 +46,20 @@ class Compass : public HybridIndex<dist_t, attr_t> {
  public:
   Compass(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist)
       : HybridIndex<dist_t, attr_t>(n, d, M, efc, nlist),
-        btrees_(nlist, vector<btree::btree_map<attr_t, labeltype>>(da)),
+        btrees_(nlist, btree::btree_map<attr_t, pair<labeltype, array<attr_t, 4>>>()),
         da_(da) {}
 
   void AddPointsToIvf(const size_t n, const void *data, const labeltype *labels, const attr_t *attrs) override {
     AssignPoints(n, data, 1, this->base_cluster_rank_);
     for (int i = 0; i < n; i++) {
+      // vector<attr_t> arr(da_);
+      array<attr_t, 4> arr;
       for (int j = 0; j < da_; j++) {
-        btrees_[this->base_cluster_rank_[i]][j].insert(std::make_pair(attrs[i * da_ + j], labels[i]));
+        arr[j] = attrs[i * da_ + j];
       }
+      btrees_[this->base_cluster_rank_[i]].insert(
+          std::make_pair(attrs[i * da_], std::make_pair(labels[i], std::move(arr)))
+      );
     }
   }
 
@@ -62,9 +68,13 @@ class Compass : public HybridIndex<dist_t, attr_t> {
     faiss::idx_t assigned_cluster;
     for (int i = 0; i < this->n_; i++) {
       in.read((char *)(&assigned_cluster), sizeof(faiss::idx_t));
+      // vector<attr_t> arr(da_);
+      array<attr_t, 4> arr;
+      int a = sizeof(arr);
       for (int j = 0; j < da_; j++) {
-        btrees_[assigned_cluster][j].insert(std::make_pair(attrs[i * da_ + j], (labeltype)i));
+        arr[j] = attrs[i * da_ + j];
       }
+      btrees_[assigned_cluster].insert(std::make_pair(attrs[i * da_], std::make_pair(i, std::move(arr))));
     }
   }
 
@@ -115,28 +125,6 @@ class Compass : public HybridIndex<dist_t, attr_t> {
 
       int curr_ci = q * nprobe;
 
-      // std::vector<std::unordered_set<labeltype>> candidates_per_dim(da_);
-      // for (int j = 0; j < da_; ++j) {
-      //   auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
-      //   auto beg = btree.lower_bound(l_bound[j]);
-      //   auto end = btree.upper_bound(u_bound[j]);
-      //   for (auto itr = beg; itr != end; ++itr) {
-      //     candidates_per_dim[j].insert(itr->second);
-      //   }
-      // }
-      // // Intersect all sets in candidates_per_dim
-      // std::unordered_set<labeltype> intersection;
-      // if (da_ > 0) intersection = candidates_per_dim[0];
-      // for (int j = 1; j < da_; ++j) {
-      //   std::unordered_set<labeltype> temp;
-      //   for (const auto &id : intersection) {
-      //     if (candidates_per_dim[j].count(id)) {
-      //       temp.insert(id);
-      //     }
-      //   }
-      //   intersection = std::move(temp);
-      // }
-
       // std::unordered_set<labeltype> intersection;
       // {
       //   auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][0];
@@ -149,9 +137,9 @@ class Compass : public HybridIndex<dist_t, attr_t> {
       //   }
       // }
 
-      auto itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]][0].lower_bound(l_bound[0]);
-      auto itr_end = this->btrees_[this->query_cluster_rank_[curr_ci]][0].upper_bound(u_bound[0]);
-      while (itr_beg != itr_end && !pred(itr_beg->second)) {
+      auto itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]].lower_bound(l_bound[0]);
+      auto itr_end = this->btrees_[this->query_cluster_rank_[curr_ci]].upper_bound(u_bound[0]);
+      while (itr_beg != itr_end && !pred(itr_beg->second.second)) {
         itr_beg++;
       }
 
@@ -164,26 +152,6 @@ class Compass : public HybridIndex<dist_t, attr_t> {
               if (curr_ci >= (q + 1) * nprobe)
                 break;
               else {
-                // std::vector<std::unordered_set<labeltype>> _candidates_per_dim(da_);
-                // for (int j = 0; j < da_; ++j) {
-                //   auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][j];
-                //   auto beg = btree.lower_bound(l_bound[j]);
-                //   auto end = btree.upper_bound(u_bound[j]);
-                //   for (auto itr = beg; itr != end; ++itr) {
-                //     _candidates_per_dim[j].insert(itr->second);
-                //   }
-                // }
-                // // Intersect all sets in candidates_per_dim
-                // if (da_ > 0) intersection = _candidates_per_dim[0];
-                // for (int j = 1; j < da_; ++j) {
-                //   std::unordered_set<labeltype> temp;
-                //   for (const auto &id : intersection) {
-                //     if (_candidates_per_dim[j].count(id)) {
-                //       temp.insert(id);
-                //     }
-                //   }
-                //   intersection = std::move(temp);
-                // }
                 // std::unordered_set<labeltype> _intersection;
                 // {
                 //   auto &btree = this->btrees_[this->query_cluster_rank_[curr_ci]][0];
@@ -196,21 +164,21 @@ class Compass : public HybridIndex<dist_t, attr_t> {
                 //   }
                 // }
                 // intersection = std::move(_intersection);
-                itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]][0].lower_bound(l_bound[0]);
-                itr_end = this->btrees_[this->query_cluster_rank_[curr_ci]][0].upper_bound(u_bound[0]);
-                while (itr_beg != itr_end && !pred(itr_beg->second)) {
+                itr_beg = this->btrees_[this->query_cluster_rank_[curr_ci]].lower_bound(l_bound[0]);
+                itr_end = this->btrees_[this->query_cluster_rank_[curr_ci]].upper_bound(u_bound[0]);
+                while (itr_beg != itr_end && !pred(itr_beg->second.second)) {
                   itr_beg++;
                 }
                 continue;
               }
             }
 
-            auto tableid = itr_beg->second;
+            auto tableid = itr_beg->second.first;
             do {
               itr_beg++;
-            } while (itr_beg != itr_end && !pred(itr_beg->second));
+            } while (itr_beg != itr_end && !pred(itr_beg->second.second));
 #ifdef USE_SSE
-            if (itr_beg != itr_end) _mm_prefetch(this->hnsw_.getDataByInternalId(itr_beg->second), _MM_HINT_T0);
+            if (itr_beg != itr_end) _mm_prefetch(this->hnsw_.getDataByInternalId(itr_beg->second.first), _MM_HINT_T0);
 #endif
             if (visited[tableid] == visited_tag) continue;
 

@@ -38,7 +38,7 @@ struct IvfGraph1dArgs {
     // search parameters
     required_configs.add_options()("l", po::value<decltype(l_bound)>(&l_bound));
     required_configs.add_options()("r", po::value<decltype(u_bound)>(&u_bound));
-    required_configs.add_options()("p", po::value<decltype(percents)>(&percents)->required()->multitoken());
+    required_configs.add_options()("p", po::value<decltype(percents)>(&percents)->multitoken());
     required_configs.add_options()("k", po::value<decltype(k)>(&k)->required());
     // index constrcution parameters
     optional_configs.add_options()("dx", po::value<decltype(dx)>(&dx));
@@ -95,7 +95,7 @@ struct IvfGraph2dArgs {
     // search parameters
     required_configs.add_options()("l", po::value<decltype(l_bounds)>(&l_bounds)->multitoken());
     required_configs.add_options()("r", po::value<decltype(u_bounds)>(&u_bounds)->multitoken());
-    required_configs.add_options()("p", po::value<decltype(percents)>(&percents)->required()->multitoken());
+    required_configs.add_options()("p", po::value<decltype(percents)>(&percents)->multitoken());
     required_configs.add_options()("k", po::value<decltype(k)>(&k)->required());
     // index constrcution parameters
     optional_configs.add_options()("dx", po::value<decltype(dx)>(&dx));

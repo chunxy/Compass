@@ -4,6 +4,7 @@
 #include <cstddef>
 #include "avl.h"
 #include "hnswlib/hnswlib.h"
+#include "utils/predicate.h"
 
 using namespace hnswlib;
 
@@ -414,7 +415,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
       VisitedList *vl,
-      BaseFilterFunctor *is_id_allowed,
+      RangeQuery<float> *is_id_allowed,
       int &ncomp,
       std::vector<bool> &is_graph_ppsl
   ) {
@@ -434,6 +435,10 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       int size = this->getListCount(cand_info);
       tableint *cand_nbrs = (tableint *)(cand_info + 1);
 #ifdef USE_SSE
+      _mm_prefetch(is_id_allowed->prefetch(*cand_nbrs), _MM_HINT_T0);
+      _mm_prefetch(is_id_allowed->prefetch(*(cand_nbrs + 1)), _MM_HINT_T0);
+      _mm_prefetch((vl->mass + *(cand_nbrs + 1)), _MM_HINT_T0);
+      _mm_prefetch((vl->mass + *(cand_nbrs)), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
 #endif
@@ -442,6 +447,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         tableint cand_nbr = cand_nbrs[i];
 #ifdef USE_SSE
         _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
+        _mm_prefetch(is_id_allowed->prefetch(*(cand_nbrs + i + 1)), _MM_HINT_T0);
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
         if (vl->mass[cand_nbr] == vl->curV) continue;

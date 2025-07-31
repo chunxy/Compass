@@ -103,46 +103,9 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       auto next = isearch_->Next(&state);
       int clus = next.second, clus_cnt = 1;
 
-      // std::vector<std::unordered_set<labeltype>> candidates_per_dim(this->da_);
-      // for (int j = 0; j < this->da_; ++j) {
-      //   auto &btree = this->btrees_[clus][j];
-      //   auto beg = btree.lower_bound(l_bound[j]);
-      //   auto end = btree.upper_bound(u_bound[j]);
-      //   for (auto itr = beg; itr != end; ++itr) {
-      //     candidates_per_dim[j].insert(itr->second);
-      //   }
-      // }
-      // // Intersect all sets in candidates_per_dim
-      // std::unordered_set<labeltype> intersection;
-      // if (this->da_ > 0) intersection = candidates_per_dim[0];
-      // for (int j = 1; j < this->da_; ++j) {
-      //   std::unordered_set<labeltype> temp;
-      //   for (const auto &id : intersection) {
-      //     if (candidates_per_dim[j].count(id)) {
-      //       temp.insert(id);
-      //     }
-      //   }
-      //   intersection = std::move(temp);
-      // }
-
-      // std::unordered_set<labeltype> intersection;
-      // {
-      //   auto &btree = this->btrees_[clus][0];
-      //   auto beg = btree.lower_bound(l_bound[0]);
-      //   auto end = btree.upper_bound(u_bound[0]);
-      //   for (auto itr = beg; itr != end; ++itr) {
-      //     if (pred(itr->second)) {
-      //       intersection.insert(itr->second);
-      //     }
-      //   }
-      // }
-
-      // auto itr_beg = intersection.begin();
-      // auto itr_end = intersection.end();
-
-      auto itr_beg = this->btrees_[clus][0].lower_bound(l_bound[0]);
-      auto itr_end = this->btrees_[clus][0].upper_bound(u_bound[0]);
-      while (itr_beg != itr_end && !pred(itr_beg->second)) {
+      auto itr_beg = this->btrees_[clus].lower_bound(l_bound[0]);
+      auto itr_end = this->btrees_[clus].upper_bound(u_bound[0]);
+      while (itr_beg != itr_end && !pred(itr_beg->second.second)) {
         itr_beg++;
       }
 
@@ -157,58 +120,21 @@ class CompassIcg : public Compass<dist_t, attr_t> {
               if (clus == -1)
                 break;
               else {
-                // std::vector<std::unordered_set<labeltype>> _candidates_per_dim(this->da_);
-                // for (int j = 0; j < this->da_; ++j) {
-                //   auto &btree = this->btrees_[clus][j];
-                //   auto beg = btree.lower_bound(l_bound[j]);
-                //   auto end = btree.upper_bound(u_bound[j]);
-                //   for (auto itr = beg; itr != end; ++itr) {
-                //     _candidates_per_dim[j].insert(itr->second);
-                //   }
-                // }
-                // // Intersect all sets in candidates_per_dim
-                // if (this->da_ > 0) intersection = _candidates_per_dim[0];
-                // for (int j = 1; j < this->da_; ++j) {
-                //   std::unordered_set<labeltype> temp;
-                //   for (const auto &id : intersection) {
-                //     if (_candidates_per_dim[j].count(id)) {
-                //       temp.insert(id);
-                //     }
-                //   }
-                //   intersection = std::move(temp);
-                // }
-
-                // std::unordered_set<labeltype> _intersection;
-                // {
-                //   auto &btree = this->btrees_[clus][0];
-                //   auto beg = btree.lower_bound(l_bound[0]);
-                //   auto end = btree.upper_bound(u_bound[0]);
-                //   for (auto itr = beg; itr != end; ++itr) {
-                //     if (pred(itr->second)) {
-                //       _intersection.insert(itr->second);
-                //     }
-                //   }
-                // }
-                // intersection = std::move(_intersection);
-
-                // itr_beg = intersection.begin();
-                // itr_end = intersection.end();
-
-                itr_beg = this->btrees_[clus][0].lower_bound(l_bound[0]);
-                itr_end = this->btrees_[clus][0].upper_bound(u_bound[0]);
-                while (itr_beg != itr_end && !pred(itr_beg->second)) {
+                itr_beg = this->btrees_[clus].lower_bound(l_bound[0]);
+                itr_end = this->btrees_[clus].upper_bound(u_bound[0]);
+                while (itr_beg != itr_end && !pred(itr_beg->second.second)) {
                   itr_beg++;
                 }
                 continue;
               }
             }
 
-            auto tableid = itr_beg->second;
+            auto tableid = itr_beg->second.first;
             do {
               itr_beg++;
-            } while (itr_beg != itr_end && !pred(itr_beg->second));
+            } while (itr_beg != itr_end && !pred(itr_beg->second.second));
 #ifdef USE_SSE
-            if (itr_beg != itr_end) _mm_prefetch(this->hnsw_.getDataByInternalId(itr_beg->second), _MM_HINT_T0);
+            if (itr_beg != itr_end) _mm_prefetch(this->hnsw_.getDataByInternalId(itr_beg->second.first), _MM_HINT_T0);
 #endif
             if (visited[tableid] == visited_tag) continue;
 
