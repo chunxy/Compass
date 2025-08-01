@@ -591,8 +591,8 @@ def draw_qps_comp_fixing_selectivity_by_dimension_home(d_m_b, d_m_s, anno, prefi
 
 if __name__ == "__main__":
   summarize()
-  for da in DA_S:
-    draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
-    draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
-    draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
-    draw_qps_comp_fixing_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+  # for da in DA_S:
+  #   draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+  #   draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+  #   draw_qps_comp_fixing_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
+  #   draw_qps_comp_fixing_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
