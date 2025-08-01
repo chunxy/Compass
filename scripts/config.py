@@ -208,7 +208,7 @@ compass_args = {
   "M_cg": [4],
   "batch_k": [50],
   "initial_efs": [50],
-  "delta_efs": [30],  # 100 for old exps, # 50 for old iterative graph
+  "delta_efs": [30, 31],  # 100 for old exps, 50 for old iterative graph, 31 for grouped attributes
 }
 irangegraph_args = {
   "M": [16, 32],
