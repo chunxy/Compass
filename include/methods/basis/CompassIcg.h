@@ -152,6 +152,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
             recycle_set.pop();
+            if (visited[top.second] == visited_tag) continue;
             visited[top.second] = visited_tag;
             bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);

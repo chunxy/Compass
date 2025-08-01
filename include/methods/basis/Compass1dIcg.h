@@ -88,7 +88,6 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
 
     // #pragma omp parallel for num_threads(nthread) schedule(static)
     for (int q = 0; q < nq; q++) {
-
       priority_queue<pair<dist_t, labeltype>> top_candidates;
       priority_queue<pair<dist_t, labeltype>> candidate_set;
       priority_queue<pair<dist_t, labeltype>> recycle_set;
@@ -145,6 +144,7 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
           while (!recycle_set.empty() && cnt > 0) {
             auto top = recycle_set.top();
             recycle_set.pop();
+            if (visited[top.second] == visited_tag) continue;
             visited[top.second] = visited_tag;
             bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
             candidate_set.emplace(top.first, top.second);
