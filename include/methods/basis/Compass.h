@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/geometry.hpp>
 #include <variant>
 #include "HybridIndex.h"
 #include "btree_map.h"
@@ -11,10 +12,18 @@ using std::pair;
 using std::priority_queue;
 using std::vector;
 
+namespace geo = boost::geometry;
+using point = geo::model::point<float, 2, geo::cs::cartesian>;
+using box = geo::model::box<point>;
+using value = std::pair<point, labeltype>;
+using rtree = geo::index::rtree<value, geo::index::quadratic<16>>;
+
 template <typename dist_t, typename attr_t>
 class Compass : public HybridIndex<dist_t, attr_t> {
  protected:
   vector<btree::btree_map<attr_t, pair<labeltype, array<attr_t, 4>>>> btrees_;
+  vector<btree::btree_map<array<attr_t, 4>, labeltype>> ctrees_;
+  vector<rtree> rtrees_;
   int da_;
 
   // Assign original/transformed points to clusters.
@@ -47,19 +56,22 @@ class Compass : public HybridIndex<dist_t, attr_t> {
   Compass(size_t n, size_t d, size_t da, size_t M, size_t efc, size_t nlist)
       : HybridIndex<dist_t, attr_t>(n, d, M, efc, nlist),
         btrees_(nlist, btree::btree_map<attr_t, pair<labeltype, array<attr_t, 4>>>()),
+        ctrees_(nlist, btree::btree_map<array<attr_t, 4>, labeltype>()),
+        rtrees_(nlist, rtree()),
         da_(da) {}
 
   void AddPointsToIvf(const size_t n, const void *data, const labeltype *labels, const attr_t *attrs) override {
     AssignPoints(n, data, 1, this->base_cluster_rank_);
     for (int i = 0; i < n; i++) {
       // vector<attr_t> arr(da_);
-      array<attr_t, 4> arr;
+      array<attr_t, 4> arr{0, 0, 0, 0};
       for (int j = 0; j < da_; j++) {
         arr[j] = attrs[i * da_ + j];
       }
-      btrees_[this->base_cluster_rank_[i]].insert(
-          std::make_pair(attrs[i * da_], std::make_pair(labels[i], std::move(arr)))
-      );
+      point p(attrs[i * da_], attrs[i * da_ + 1]);
+      rtrees_[this->base_cluster_rank_[i]].insert(std::make_pair(p, labels[i]));
+      btrees_[this->base_cluster_rank_[i]].insert(std::make_pair(attrs[i * da_], std::make_pair(labels[i], arr)));
+      ctrees_[this->base_cluster_rank_[i]].insert(std::make_pair(arr, labels[i]));
     }
   }
 
@@ -69,12 +81,14 @@ class Compass : public HybridIndex<dist_t, attr_t> {
     for (int i = 0; i < this->n_; i++) {
       in.read((char *)(&assigned_cluster), sizeof(faiss::idx_t));
       // vector<attr_t> arr(da_);
-      array<attr_t, 4> arr;
-      int a = sizeof(arr);
+      array<attr_t, 4> arr{0, 0, 0, 0};
       for (int j = 0; j < da_; j++) {
         arr[j] = attrs[i * da_ + j];
       }
-      btrees_[assigned_cluster].insert(std::make_pair(attrs[i * da_], std::make_pair(i, std::move(arr))));
+      point p(attrs[i * da_], attrs[i * da_ + 1]);
+      rtrees_[assigned_cluster].insert(std::make_pair(p, i));
+      btrees_[assigned_cluster].insert(std::make_pair(attrs[i * da_], std::make_pair(i, arr)));
+      ctrees_[assigned_cluster].insert(std::make_pair(arr, i));
     }
   }
 
