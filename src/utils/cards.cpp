@@ -268,6 +268,34 @@ DataCard sift_4_10000_float32{
     "float32",
 };
 
+DataCard sift_5_10000_float32{
+    "sift",
+    sift_bpath,
+    sift_qpath,
+    sift_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard sift_6_10000_float32{
+    "sift",
+    sift_bpath,
+    sift_qpath,
+    sift_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    6,
+    10000,
+    "float32",
+};
+
 DataCard gist_1_2_int32{
     "gist",
     gist_bpath,
@@ -418,6 +446,34 @@ DataCard gist_4_10000_float32{
     1'000,
     100,
     4,
+    10000,
+    "float32",
+};
+
+DataCard gist_5_10000_float32{
+    "gist",
+    gist_bpath,
+    gist_qpath,
+    gist_gpath,
+    960,
+    1'000'000,
+    1'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard gist_6_10000_float32{
+    "gist",
+    gist_bpath,
+    gist_qpath,
+    gist_gpath,
+    960,
+    1'000'000,
+    1'000,
+    100,
+    6,
     10000,
     "float32",
 };
@@ -576,6 +632,34 @@ DataCard crawl_4_10000_float32{
     "float32",
 };
 
+DataCard crawl_5_10000_float32{
+    "crawl",
+    crawl_bpath,
+    crawl_qpath,
+    crawl_gpath,
+    300,
+    1'989'995,
+    10'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard crawl_6_10000_float32{
+    "crawl",
+    crawl_bpath,
+    crawl_qpath,
+    crawl_gpath,
+    300,
+    1'989'995,
+    10'000,
+    100,
+    6,
+    10000,
+    "float32",
+};
+
 DataCard glove100_1_2_int32{
     "glove100",
     glove100_bpath,
@@ -730,6 +814,34 @@ DataCard glove100_4_10000_float32{
     "float32",
 };
 
+DataCard glove100_5_10000_float32{
+    "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    glove100_gpath,
+    100,
+    1'183'514,
+    10'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard glove100_6_10000_float32{
+    "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    glove100_gpath,
+    100,
+    1'183'514,
+    10'000,
+    100,
+    6,
+    10000,
+    "float32",
+};
+
 DataCard audio_1_10000_float32{
     "audio",
     audio_bpath,
@@ -782,6 +894,34 @@ DataCard audio_4_10000_float32{
     10'000,
     100,
     4,
+    10000,
+    "float32",
+};
+
+DataCard audio_5_10000_float32{
+    "audio",
+    audio_bpath,
+    audio_qpath,
+    audio_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard audio_6_10000_float32{
+    "audio",
+    audio_bpath,
+    audio_qpath,
+    audio_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    6,
     10000,
     "float32",
 };
@@ -842,6 +982,34 @@ DataCard video_4_10000_float32{
     "float32",
 };
 
+DataCard video_5_10000_float32{
+    "video",
+    video_bpath,
+    video_qpath,
+    video_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard video_6_10000_float32{
+    "video",
+    video_bpath,
+    video_qpath,
+    video_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    6,
+    10000,
+    "float32",
+};
+
 // DataCard deep10m_1_10000_float32{
 //     "crawl",
 //     crawl_bpath,
@@ -874,6 +1042,8 @@ std::map<std::string, DataCard> name_to_card{
     {"sift_2_10000_float32", sift_2_10000_float32},
     {"sift_3_10000_float32", sift_3_10000_float32},
     {"sift_4_10000_float32", sift_4_10000_float32},
+    {"sift_5_10000_float32", sift_5_10000_float32},
+    {"sift_6_10000_float32", sift_6_10000_float32},
     {"gist_1_2_int32", gist_1_2_int32},
     {"gist_1_5_int32", gist_1_5_int32},
     {"gist_1_10_int32", gist_1_10_int32},
@@ -885,6 +1055,8 @@ std::map<std::string, DataCard> name_to_card{
     {"gist_2_10000_float32", gist_2_10000_float32},
     {"gist_3_10000_float32", gist_3_10000_float32},
     {"gist_4_10000_float32", gist_4_10000_float32},
+    {"gist_5_10000_float32", gist_5_10000_float32},
+    {"gist_6_10000_float32", gist_6_10000_float32},
     {"crawl_1_2_int32", crawl_1_2_int32},
     {"crawl_1_5_int32", crawl_1_5_int32},
     {"crawl_1_10_int32", crawl_1_10_int32},
@@ -896,6 +1068,8 @@ std::map<std::string, DataCard> name_to_card{
     {"crawl_2_10000_float32", crawl_2_10000_float32},
     {"crawl_3_10000_float32", crawl_3_10000_float32},
     {"crawl_4_10000_float32", crawl_4_10000_float32},
+    {"crawl_5_10000_float32", crawl_5_10000_float32},
+    {"crawl_6_10000_float32", crawl_6_10000_float32},
     {"glove100_1_2_int32", glove100_1_2_int32},
     {"glove100_1_5_int32", glove100_1_5_int32},
     {"glove100_1_10_int32", glove100_1_10_int32},
@@ -907,12 +1081,18 @@ std::map<std::string, DataCard> name_to_card{
     {"glove100_2_10000_float32", glove100_2_10000_float32},
     {"glove100_3_10000_float32", glove100_3_10000_float32},
     {"glove100_4_10000_float32", glove100_4_10000_float32},
+    {"glove100_5_10000_float32", glove100_5_10000_float32},
+    {"glove100_6_10000_float32", glove100_6_10000_float32},
     {"audio_1_10000_float32", audio_1_10000_float32},
     {"audio_2_10000_float32", audio_2_10000_float32},
     {"audio_3_10000_float32", audio_3_10000_float32},
     {"audio_4_10000_float32", audio_4_10000_float32},
+    {"audio_5_10000_float32", audio_5_10000_float32},
+    {"audio_6_10000_float32", audio_6_10000_float32},
     {"video_1_10000_float32", video_1_10000_float32},
     {"video_2_10000_float32", video_2_10000_float32},
     {"video_3_10000_float32", video_3_10000_float32},
     {"video_4_10000_float32", video_4_10000_float32},
+    {"video_5_10000_float32", video_5_10000_float32},
+    {"video_6_10000_float32", video_6_10000_float32},
 };
