@@ -7,6 +7,7 @@ add_executable(bench-compass-ivf-1d-kmeanspp bench-compass-ivf-1d-kmeans++.cpp)
 add_executable(bench-compass-ivf-1d-bikmeans bench-compass-ivf-1d-bikmeans.cpp)
 add_executable(bench-compass-graph-1d bench-compass-graph-1d.cpp)
 add_executable(bench-hop-hnsw-1d bench-hop-hnsw-1d.cpp)
+add_executable(bench-postfiltering bench-postfiltering.cpp)
 # add_executable(bench-compass-nsg bench-compass-nsg.cpp)
 
 # Legacy
