@@ -18,7 +18,6 @@ class Compass1dCg : public Compass1d<dist_t, attr_t> {
       BatchMetric &bm,
       float *distances = nullptr
   ) override {
-    int count_beg = this->cgraph_->metric_distance_computations;
     auto search_beg = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < n; i++) {
       auto clusters = cgraph_->searchKnnCloserFirst((char *)data + i * this->cgraph_->data_size_, k);
@@ -32,9 +31,7 @@ class Compass1dCg : public Compass1d<dist_t, attr_t> {
       }
     }
     auto search_end = std::chrono::high_resolution_clock::now();
-    int count_end = this->cgraph_->metric_distance_computations;
-    bm.cluster_search_time = std::chrono::duration_cast<std::chrono::microseconds>(search_end - search_beg).count();
-    bm.cluster_search_ncomp = count_end - count_beg;
+    bm.cluster_search_time = std::chrono::duration_cast<std::chrono::nanoseconds>(search_end - search_beg).count();
   }
 
  public:

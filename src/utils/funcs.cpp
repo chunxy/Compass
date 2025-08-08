@@ -318,13 +318,19 @@ void collect_batch_metric(
     stat.perc_of_ivf_ppsl_in_rz[j] = (double)ivf_ppsl_in_rz / rz.size();
     stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
     stat.num_computations[j] = metric.ncomp;
+    stat.cg_num_computations[j] = metric.ncomp_cg;
     stat.num_rounds[j] = metric.nround;
     stat.num_clusters[j] = metric.ncluster;
     stat.num_recycled[j] = metric.nrecycled;
+    stat.latencies[j] = metric.latency;
+    stat.ivf_latencies[j] = metric.ivf_latency;
+    stat.cg_latencies[j] = metric.cg_latency;
+    stat.btree_latencies[j] = metric.btree_latency;
+    stat.graph_latencies[j] = metric.graph_latency;
   }
-  stat.latencies.push_back(bm.latency);
-  stat.cluster_search_time.push_back(bm.cluster_search_time);
-  stat.cluster_search_ncomp.push_back(bm.cluster_search_ncomp);
+  stat.batch_time.push_back(bm.time);
+  stat.batch_overhead.push_back(bm.overhead);
+  stat.batch_cluster_search_time.push_back(bm.cluster_search_time);
 }
 
 nlohmann::json collate_stat(
@@ -333,10 +339,13 @@ nlohmann::json collate_stat(
     const int nsat,
     const int k,
     const int nq,
-    const int search_time,
+    const int search_time,  // in microseconds
     const int nthread,
     FILE *out
 ) {
+  int nbatch = s.batch_time.size();
+  int batch_sz = nq / nbatch;
+
   for (int j = 0; j < s.rec_at_ks.size(); j++) {
     fmt::print(out, "Query: {:d},\n", j);
     fmt::print(out, "\tResult      : ");
@@ -346,7 +355,12 @@ nlohmann::json collate_stat(
     fmt::print(out, "\tRecall: {:5.2f}%, ", s.rec_at_ks[j] * 100);
     fmt::print(out, "Precision: {:5.2f}%, ", s.pre_at_ks[j] * 100);
     fmt::print(out, "{:3d}/{:3d}/{:3d}\n", s.tp_s[j], s.rz_s[j], k);
-    fmt::print(out, "\tLatency in us         : {:d}\n", s.latencies[j]);
+    fmt::print(out, "\tLatency in ns         : {:d}\n", s.latencies[j]);
+    fmt::print(out, "\tBatch overhead in ns  : {:d}\n", s.batch_overhead[j] / batch_sz);
+    fmt::print(out, "\tCG Latency in ns      : {:d}\n", s.cg_latencies[j]);
+    fmt::print(out, "\tIVF Latency in ns     : {:d}\n", s.ivf_latencies[j]);
+    fmt::print(out, "\tBtree Latency in ns   : {:d}\n", s.btree_latencies[j]);
+    fmt::print(out, "\tGraph Latency in ns   : {:d}\n", s.graph_latencies[j]);
     fmt::print(out, "\tNo. IVF Ppsl Rounds   : {:3d}\n", s.num_rounds[j]);
     fmt::print(out, "\tNo. IVF Ppsl          : {:3d}\n", s.ivf_ppsl_nums[j]);
     fmt::print(out, "\tNo. Graph Ppsl        : {:3d}\n", s.graph_ppsl_nums[j]);
@@ -389,14 +403,19 @@ nlohmann::json collate_stat(
   json["linear_scan_rate"] = s.linear_scan_rate;
 
   json["batched"] = {
-      {"latency_in_us", s.latencies},
-      {"cluster_search_time_in_us", s.cluster_search_time},
-      {"cluster_search_ncomp", s.cluster_search_ncomp},
+      {"batch_time_in_us", s.batch_time},
+      {"batch_overhead_in_ns", s.batch_overhead},
+      {"batch_cluster_search_time_in_ns", s.batch_cluster_search_time},
   };
-  auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0l);
-  auto sum_of_cluster_search_time = std::accumulate(s.cluster_search_time.begin(), s.cluster_search_time.end(), 0l);
-  auto sum_of_cluster_search_ncomp = std::accumulate(s.cluster_search_ncomp.begin(), s.cluster_search_ncomp.end(), 0l);
-  int nbatch = s.latencies.size();
+  auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0ll);
+  auto sum_of_cg_latency = std::accumulate(s.cg_latencies.begin(), s.cg_latencies.end(), 0ll);
+  auto sum_of_btree_latency = std::accumulate(s.btree_latencies.begin(), s.btree_latencies.end(), 0ll);
+  auto sum_of_graph_latency = std::accumulate(s.graph_latencies.begin(), s.graph_latencies.end(), 0ll);
+  auto sum_of_ivf_latency = std::accumulate(s.ivf_latencies.begin(), s.ivf_latencies.end(), 0ll);
+  auto sum_of_cg_ncomp = std::accumulate(s.cg_num_computations.begin(), s.cg_num_computations.end(), 0ll);
+
+  auto sum_of_cluster_search_time =
+      std::accumulate(s.batch_cluster_search_time.begin(), s.batch_cluster_search_time.end(), 0ll);
 
   json["aggregated"] = {
       {"recall", sum_of_rec / nq},
@@ -417,13 +436,16 @@ nlohmann::json collate_stat(
       {"tampered_qps", (double)nq / (search_time - sum_of_cluster_search_time) * 1000000},
       {"num_threads", nthread},
       {"num_computations", (double)sum_of_num_comp / nq},
+      {"cg_num_computations", (double)sum_of_cg_ncomp / nq},
       {"num_clusters", (double)sum_of_num_cluster / nq},
       {"num_rounds", (double)sum_of_num_round / nq},
       {"num_recycled", (double)sum_of_num_recycled / nq},
-      {"batchsz", nq / nbatch},
-      {"latency_in_s", (double)sum_of_latency / 1000000 / nbatch},
-      {"cluster_search_time_in_s", (double)sum_of_cluster_search_time / 1000000 / nbatch},
-      {"cluster_search_ncomp", (double)sum_of_cluster_search_ncomp / nbatch},
+      {"batch_sz", batch_sz},
+      {"latency_in_ns", (double)sum_of_latency / nq},
+      {"latency_cg_in_ns", (double)sum_of_cg_latency / nq},
+      {"latency_btree_in_ns", (double)sum_of_btree_latency / nq},
+      {"latency_graph_in_ns", (double)sum_of_graph_latency / nq},
+      {"latency_ivf_in_ns", (double)sum_of_ivf_latency / nq},
   };
   return json;
 }

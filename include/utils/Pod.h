@@ -127,23 +127,39 @@ struct QueryMetric {
   std::vector<bool> is_ivf_ppsl;
   std::vector<bool> is_graph_ppsl;
   std::vector<float> cand_dist;
+  long long latency;
+  long long btree_latency;
+  long long cg_latency;
+  long long graph_latency;
+  long long ivf_latency;
+  int ncomp_cg;
   int nround;
   int ncomp;
   int ncluster;
   int nrecycled;
 
   QueryMetric(int nb)
-      : is_ivf_ppsl(nb, false), is_graph_ppsl(nb, false), nround(0), ncomp(0), ncluster(0), nrecycled(0) {}
+      : is_ivf_ppsl(nb, false),
+        is_graph_ppsl(nb, false),
+        latency(0),
+        btree_latency(0),
+        cg_latency(0),
+        graph_latency(0),
+        ivf_latency(0),
+        ncomp_cg(0),
+        nround(0),
+        ncomp(0),
+        ncluster(0),
+        nrecycled(0) {}
 };
 
 struct BatchMetric {
   std::vector<QueryMetric> qmetrics;
-  int latency;
-  int cluster_search_time;
-  int cluster_search_ncomp;
+  long long time;
+  long long overhead;
+  long long cluster_search_time;
 
-  BatchMetric(int nq, int nb)
-      : qmetrics(nq, QueryMetric(nb)), latency(0), cluster_search_time(0), cluster_search_ncomp(0) {}
+  BatchMetric(int nq, int nb) : qmetrics(nq, QueryMetric(nb)), time(0), overhead(0), cluster_search_time(0) {}
 };
 
 struct Stat {
@@ -166,13 +182,19 @@ struct Stat {
   vector<float> perc_of_ivf_ppsl_in_rz;
   vector<float> linear_scan_rate;
   vector<long> num_computations;
+  vector<long> cg_num_computations;
   vector<long> num_rounds;
   vector<long> num_clusters;
   vector<long> num_recycled;
+  vector<long long> latencies;
+  vector<long long> ivf_latencies;  // IVF latency partically includes CG latency and btree latency
+  vector<long long> cg_latencies;
+  vector<long long> btree_latencies;
+  vector<long long> graph_latencies;
   // per-batch stat
-  vector<long> latencies;
-  vector<long> cluster_search_time;
-  vector<long> cluster_search_ncomp;
+  vector<long long> batch_time;
+  vector<long long> batch_overhead;
+  vector<long long> batch_cluster_search_time;  // leave it as is
 
   Stat(int nq)
       : rec_at_ks(nq, 0),
@@ -198,7 +220,13 @@ struct Stat {
         perc_of_ivf_ppsl_in_rz(nq, 0),
         linear_scan_rate(nq, 0),
         num_computations(nq, 0),
+        cg_num_computations(nq, 0),
         num_rounds(nq, 0),
         num_clusters(nq, 0),
-        num_recycled(nq, 0) {}
+        num_recycled(nq, 0),
+        latencies(nq, 0),
+        cg_latencies(nq, 0),
+        btree_latencies(nq, 0),
+        graph_latencies(nq, 0),
+        ivf_latencies(nq, 0) {}
 };

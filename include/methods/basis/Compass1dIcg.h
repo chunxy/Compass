@@ -190,7 +190,7 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
 
-      bm.cluster_search_ncomp += isearch_->GetNcomp(&state);
+      bm.qmetrics[q].ncomp_cg = isearch_->GetNcomp(&state);
       isearch_->Close(&state);
     }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include "basis/CompassXCg.h"
 #include "faiss/IndexFlat.h"
 #include "faiss/IndexIVFFlat.h"
@@ -42,7 +43,7 @@ class CompassPcaCg : public CompassXCg<dist_t, attr_t> {
     CompassXCg<dist_t, attr_t>::SearchClusters(n, xdata, k, assigned_clusters, bm, distances);
     delete[] xdata;
     auto search_end = std::chrono::high_resolution_clock::now();
-    bm.cluster_search_time = std::chrono::duration_cast<std::chrono::microseconds>(search_end - search_beg).count();
+    bm.cluster_search_time = std::chrono::duration_cast<std::chrono::nanoseconds>(search_end - search_beg).count();
   }
 
   void BuildClusterGraph() override {
