@@ -35,12 +35,12 @@ class Bar {
   int a;
 
  public:
-  // Bar(int a) : a(a) {}
+  Bar(int a) : a(a) {}
   Bar(const Bar &other) = delete;
   Bar &operator=(const Bar &other) = delete;
 };
 
-Bar bar() { return {10}; }
+Bar bar() { return Bar(10); }
 
 int main(int argc, char **argv) {
   vector<float> l_bounds, u_bounds;
