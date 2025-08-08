@@ -470,65 +470,65 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     }
   }
 
-  //   void ReentrantSearchKnnBounded(
-  //       const void *query_data,
-  //       size_t k,
-  //       std::priority_queue<std::pair<dist_t, labeltype>> &top_graph,
-  //       std::priority_queue<std::pair<dist_t, labeltype>> &top_ivf,
-  //       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
-  //       VisitedList *vl,
-  //       RangeQuery<float> *is_id_allowed,
-  //       int &ncomp,
-  //       std::vector<bool> &is_graph_ppsl
-  //   ) {
-  //     size_t efs = std::max(k, this->ef_);
-  //     auto upper_bound = top_graph.empty() ? std::numeric_limits<dist_t>::max() : top_graph.top().first;
+  void ReentrantSearchKnnBounded(
+      const void *query_data,
+      size_t k,
+      std::priority_queue<std::pair<dist_t, labeltype>> &top_graph,
+      std::priority_queue<std::pair<dist_t, labeltype>> &top_ivf,
+      std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
+      VisitedList *vl,
+      RangeQuery<float> *is_id_allowed,
+      int &ncomp,
+      std::vector<bool> &is_graph_ppsl
+  ) {
+    size_t efs = std::max(k, this->ef_);
+    auto upper_bound = top_graph.empty() ? std::numeric_limits<dist_t>::max() : top_graph.top().first;
 
-  //     while (!candidate_set.empty()) {
-  //       auto curr_obj = candidate_set.top().second;
-  //       auto curr_dist = -candidate_set.top().first;
-  //       candidate_set.pop();
+    while (!candidate_set.empty()) {
+      auto curr_obj = candidate_set.top().second;
+      auto curr_dist = -candidate_set.top().first;
+      candidate_set.pop();
 
-  //       if (curr_dist > upper_bound || curr_dist > top_ivf.top().first) {
-  //         break;
-  //       }
+      if (curr_dist > upper_bound || curr_dist > -top_ivf.top().first) {
+        break;
+      }
 
-  //       unsigned int *cand_info = this->get_linklist0(curr_obj);
-  //       int size = this->getListCount(cand_info);
-  //       tableint *cand_nbrs = (tableint *)(cand_info + 1);
-  // #ifdef USE_SSE
-  //       _mm_prefetch(is_id_allowed->prefetch(*cand_nbrs), _MM_HINT_T0);
-  //       _mm_prefetch(is_id_allowed->prefetch(*(cand_nbrs + 1)), _MM_HINT_T0);
-  //       _mm_prefetch((vl->mass + *(cand_nbrs + 1)), _MM_HINT_T0);
-  //       _mm_prefetch((vl->mass + *(cand_nbrs)), _MM_HINT_T0);
-  //       _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
-  //       _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
-  // #endif
+      unsigned int *cand_info = this->get_linklist0(curr_obj);
+      int size = this->getListCount(cand_info);
+      tableint *cand_nbrs = (tableint *)(cand_info + 1);
+#ifdef USE_SSE
+      _mm_prefetch(is_id_allowed->prefetch(*cand_nbrs), _MM_HINT_T0);
+      _mm_prefetch(is_id_allowed->prefetch(*(cand_nbrs + 1)), _MM_HINT_T0);
+      _mm_prefetch((vl->mass + *(cand_nbrs + 1)), _MM_HINT_T0);
+      _mm_prefetch((vl->mass + *(cand_nbrs)), _MM_HINT_T0);
+      _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
+      _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
+#endif
 
-  //       for (int i = 0; i < size; i++) {
-  //         tableint cand_nbr = cand_nbrs[i];
-  // #ifdef USE_SSE
-  //         _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
-  //         _mm_prefetch(is_id_allowed->prefetch(*(cand_nbrs + i + 1)), _MM_HINT_T0);
-  //         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
-  // #endif
-  //         if (vl->mass[cand_nbr] == vl->curV) continue;
-  //         vl->mass[cand_nbr] = vl->curV;
-  //         if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) continue;
-  //         ncomp++;
-  //         is_graph_ppsl[cand_nbr] = true;
-  //         dist_t cand_nbr_dist =
-  //             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
-  //         if (cand_nbr_dist < upper_bound || top_graph.size() < efs) {
-  //           candidate_set.emplace(-cand_nbr_dist, cand_nbr);
-  // #ifdef USE_SSE
-  //           _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
-  // #endif
-  //           top_graph.emplace(cand_nbr_dist, cand_nbr);
-  //           if (top_graph.size() > efs) top_graph.pop();
-  //           upper_bound = top_graph.top().first;
-  //         }
-  //       }
-  //     }
-  //   }
+      for (int i = 0; i < size; i++) {
+        tableint cand_nbr = cand_nbrs[i];
+#ifdef USE_SSE
+        _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
+        _mm_prefetch(is_id_allowed->prefetch(*(cand_nbrs + i + 1)), _MM_HINT_T0);
+        _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
+#endif
+        if (vl->mass[cand_nbr] == vl->curV) continue;
+        vl->mass[cand_nbr] = vl->curV;
+        if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) continue;
+        ncomp++;
+        is_graph_ppsl[cand_nbr] = true;
+        dist_t cand_nbr_dist =
+            this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+        if (cand_nbr_dist < upper_bound || top_graph.size() < efs) {
+          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+#ifdef USE_SSE
+          _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+#endif
+          top_graph.emplace(cand_nbr_dist, cand_nbr);
+          if (top_graph.size() > efs) top_graph.pop();
+          upper_bound = top_graph.top().first;
+        }
+      }
+    }
+  }
 };
