@@ -30,7 +30,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   )
       : HierarchicalNSW<dist_t>(s, location, nmslib, max_elements, allow_replace_deleted) {}
 
-  void ReentrantSearchKnn(
+  void IterativeReentrantSearchKnn(
       const void *query_data,
       const size_t k,
       std::priority_queue<std::pair<dist_t, labeltype>> &recycled_candidates,
@@ -92,7 +92,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     }
   }
 
-  void ReentrantSearchKnn(
+  void IterativeReentrantSearchKnn(
       const void *query_data,
       const size_t k,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,

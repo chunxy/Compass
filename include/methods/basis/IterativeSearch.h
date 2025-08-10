@@ -46,7 +46,7 @@ class IterativeSearch {
       state->top_candidates_.emplace(-top.first, top.second);
       state->recycled_candidates_.pop();
     }
-    hnsw_->ReentrantSearchKnn(
+    hnsw_->IterativeReentrantSearchKnn(
         state->query_,
         this->batch_k_,
         state->recycled_candidates_,
@@ -69,7 +69,7 @@ class IterativeSearch {
   }
 
   int UpdateNextNeo(IterativeSearchState<dist_t> *state) {
-    hnsw_->ReentrantSearchKnn(
+    hnsw_->IterativeReentrantSearchKnn(
         state->query_,
         this->batch_k_,
         state->candidate_set_,
