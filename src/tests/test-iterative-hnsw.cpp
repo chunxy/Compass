@@ -35,8 +35,8 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   int M = 4, efc = 200;
   int k = 500;
-  int batch_k = 10, initial_efs = 50;
-  vector<int> delta_efs_s = {100, 200};
+  int batch_k = 50, initial_efs = 50;
+  vector<int> delta_efs_s = {20, 30, 40, 50, 100};
 
   po::options_description optional_configs("Optional");
   optional_configs.add_options()("k", po::value<decltype(k)>(&k));
@@ -95,16 +95,20 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading/building index\n");
 
   nlohmann::json json, json_neo;
+  VisitedList *vl = comp->hnsw_->visited_list_pool_->getFreeVisitedList();
   for (auto efs : delta_efs_s) {
     comp->SetSearchParam(batch_k, initial_efs, efs);
     double recall = 0;
     double ncomp = 0;
     double search_time = 0;
+    long long btree_time = 0;
+    long long internal_search_time = 0;
     for (int j = 0; j < nq; j++) {
       std::set<labeltype> rz_indices, gt_indices, rz_gt_interse;
 
       auto open_beg = high_resolution_clock::system_clock::now();
-      IterativeSearchState<float> state = std::move(comp->Open(xq + j * d, k));
+      vl->reset();
+      IterativeSearchState<float> state = std::move(comp->Open(xq + j * d, k, vl));
       auto open_end = high_resolution_clock::system_clock::now();
       search_time += duration_cast<microseconds>(open_end - open_beg).count();
 
@@ -123,6 +127,8 @@ int main(int argc, char **argv) {
       }
 
       ncomp += comp->GetNcomp(&state);
+      btree_time += state.out_.btree_time;
+      internal_search_time += state.out_.search_time;
       comp->Close(&state);
 
       for (int i = 0; i < k; i++) {
@@ -141,11 +147,13 @@ int main(int argc, char **argv) {
     json[fmt::to_string(efs)]["recall"] = recall / nq;
     json[fmt::to_string(efs)]["qps"] = nq * 1000000. / search_time;
     json[fmt::to_string(efs)]["ncomp"] = ncomp / nq;
-    json["M"] = M;
-    json["k"] = k;
-    json["batch_k"] = batch_k;
-    json["initial_efs"] = initial_efs;
+    json[fmt::to_string(efs)]["btree_time_in_ns"] = (double)btree_time / nq;
+    json[fmt::to_string(efs)]["internal_search_time_in_ns"] = (double)internal_search_time / nq;
   }
+  json["M"] = M;
+  json["k"] = k;
+  json["batch_k"] = batch_k;
+  json["initial_efs"] = initial_efs;
 
   std::ofstream ofs((log_root / out_json).c_str());
   ofs.write(json.dump(4).c_str(), json.dump(4).length());

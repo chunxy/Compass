@@ -114,16 +114,18 @@ int main(int argc, char **argv) {
 
       while (rz_indices.size() < k) {
         auto search_beg = high_resolution_clock::system_clock::now();
-        auto pair = comp->NextNeo(&state);
+        auto batch = comp->NextBatchNeo(&state);
         auto search_end = high_resolution_clock::system_clock::now();
         search_time += duration_cast<microseconds>(search_end - search_beg).count();
 
-        if (pair.first == -1 && pair.second == -1) {
+        if (batch.empty()) {
           break;
         }
-        auto i = pair.second;
-        auto d = pair.first;
-        rz_indices.insert(i);
+        while (!batch.empty()) {
+          auto [dist, label] = batch.top();
+          batch.pop();
+          rz_indices.insert(label);
+        }
       }
 
       ncomp += comp->GetNcomp(&state);
