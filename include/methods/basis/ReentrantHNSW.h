@@ -3,8 +3,12 @@
 #include <algorithm>
 #include <cstddef>
 #include "avl.h"
+#include "fc/btree.h"
 #include "hnswlib/hnswlib.h"
+#include "utils/out.h"
 #include "utils/predicate.h"
+
+namespace fc = frozenca;
 
 using namespace hnswlib;
 
@@ -99,13 +103,20 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       AVL::Tree<std::pair<dist_t, labeltype>> &otree,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
       VisitedList *vl,
-      int &ncomp
+      int &ncomp,
+      Out &out
   ) {
+    auto start = std::chrono::high_resolution_clock::now();
     size_t efs = std::max(k, this->ef_);
     float upper_bound = std::numeric_limits<dist_t>::max();
-    if (otree.size() != 0) {
-      int idx = otree.size() < efs ? otree.size() : efs;
-      upper_bound = otree.getValueGivenIndex(idx)->el.first;
+    {
+      auto otree_start = std::chrono::high_resolution_clock::now();
+      if (otree.size() != 0) {
+        int idx = otree.size() < efs ? otree.size() : efs;
+        upper_bound = otree.getValueGivenIndex(idx)->el.first;
+      }
+      auto otree_stop = std::chrono::high_resolution_clock::now();
+      out.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(otree_stop - otree_start).count();
     }
 
     while (!candidate_set.empty()) {
@@ -121,6 +132,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       int size = this->getListCount(cand_info);
       tableint *cand_nbrs = (tableint *)(cand_info + 1);
 #ifdef USE_SSE
+      _mm_prefetch((char *)(vl->mass + *(cand_nbrs)), _MM_HINT_T0);
+      _mm_prefetch((char *)(vl->mass + *(cand_nbrs + 1)), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
 #endif
@@ -128,6 +141,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       for (int i = 0; i < size; i++) {
         tableint cand_nbr = cand_nbrs[i];
 #ifdef USE_SSE
+        _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
         if (vl->mass[cand_nbr] == vl->curV) continue;
@@ -136,21 +150,108 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         dist_t cand_nbr_dist =
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
         result_set.emplace(-cand_nbr_dist, cand_nbr);
+        candidate_set.emplace(-cand_nbr_dist, cand_nbr);
 
-        if (otree.size() < efs || cand_nbr_dist < upper_bound) {
-          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
-        }
+        // if (otree.size() < efs || cand_nbr_dist < upper_bound) {
+        //   candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+        // }
 #ifdef USE_SSE
         _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
 #endif
-        otree.insert(std::make_pair(cand_nbr_dist, cand_nbr));
-        if (otree.size() >= efs) {
-          upper_bound = otree.getValueGivenIndex(efs)->el.first;
-        } else {
-          upper_bound = otree.getValueGivenIndex(otree.size())->el.first;
+        {
+          auto otree_start = std::chrono::high_resolution_clock::now();
+          otree.insert(std::make_pair(cand_nbr_dist, cand_nbr));
+          if (otree.size() >= efs) {
+            upper_bound = otree.getValueGivenIndex(efs)->el.first;
+          } else {
+            upper_bound = otree.getValueGivenIndex(otree.size())->el.first;
+          }
+          auto otree_stop = std::chrono::high_resolution_clock::now();
+          out.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(otree_stop - otree_start).count();
         }
       }
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    out.search_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+  }
+
+  void IterativeReentrantSearchKnn(
+      const void *query_data,
+      const size_t k,
+      std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
+      fc::BTreeMap<dist_t, std::pair<dist_t, labeltype>, 32> &btree,
+      std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
+      VisitedList *vl,
+      int &ncomp,
+      Out &out
+  ) {
+    auto start = std::chrono::high_resolution_clock::now();
+    size_t efs = std::max(k, this->ef_);
+    float upper_bound = std::numeric_limits<dist_t>::max();
+    {
+      auto btree_start = std::chrono::high_resolution_clock::now();
+      if (btree.size() != 0) {
+        int idx = btree.size() < efs ? btree.size() : efs;
+        upper_bound = btree.kth(idx - 1).first;
+      }
+      auto btree_stop = std::chrono::high_resolution_clock::now();
+      out.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(btree_stop - btree_start).count();
+    }
+
+    while (!candidate_set.empty()) {
+      auto curr_obj = candidate_set.top().second;
+      auto curr_dist = -candidate_set.top().first;
+      candidate_set.pop();
+
+      if (curr_dist > upper_bound) {
+        break;
+      }
+
+      unsigned int *cand_info = this->get_linklist0(curr_obj);
+      int size = this->getListCount(cand_info);
+      tableint *cand_nbrs = (tableint *)(cand_info + 1);
+#ifdef USE_SSE
+      _mm_prefetch((char *)(vl->mass + *(cand_nbrs)), _MM_HINT_T0);
+      _mm_prefetch((char *)(vl->mass + *(cand_nbrs + 1)), _MM_HINT_T0);
+      _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
+      _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
+#endif
+
+      for (int i = 0; i < size; i++) {
+        tableint cand_nbr = cand_nbrs[i];
+#ifdef USE_SSE
+        _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
+        _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
+#endif
+        if (vl->mass[cand_nbr] == vl->curV) continue;
+        vl->mass[cand_nbr] = vl->curV;
+        ncomp++;
+        dist_t cand_nbr_dist =
+            this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+        result_set.emplace(-cand_nbr_dist, cand_nbr);
+        candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+
+        // if (btree.size() < efs || cand_nbr_dist < upper_bound) {
+        //   candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+        // }
+#ifdef USE_SSE
+        _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+#endif
+        {
+          auto btree_start = std::chrono::high_resolution_clock::now();
+          btree[cand_nbr_dist] = std::make_pair(cand_nbr_dist, cand_nbr);
+          if (btree.size() >= efs) {
+            upper_bound = btree.kth(efs - 1).first;
+          } else {
+            upper_bound = btree.kth(btree.size() - 1).first;
+          }
+          auto btree_stop = std::chrono::high_resolution_clock::now();
+          out.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(btree_stop - btree_start).count();
+        }
+      }
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    out.search_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   }
 
   void ReentrantSearchKnn(

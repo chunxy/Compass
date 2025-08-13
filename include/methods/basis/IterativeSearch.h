@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "ReentrantHNSW.h"
+#include "utils/out.h"
 
 using std::pair;
 using std::priority_queue;
@@ -18,17 +19,20 @@ template <typename dist_t>
 class IterativeSearchState {
   friend class IterativeSearch<dist_t>;
   const void *query_;
-  const size_t k_;
-  priority_queue<pair<dist_t, labeltype>> recycled_candidates_;  // min heap
-  priority_queue<pair<dist_t, labeltype>> top_candidates_;       // max heap
-  priority_queue<pair<dist_t, labeltype>> candidate_set_;        // min heap
-  priority_queue<pair<dist_t, labeltype>> result_set_;           // min heap
-  priority_queue<pair<dist_t, labeltype>> batch_rz_;             // min heap
-  AVL::Tree<std::pair<dist_t, labeltype>> otree_;                // top candidates alternative
+  size_t k_;
+  priority_queue<pair<dist_t, labeltype>> recycled_candidates_;   // min heap
+  priority_queue<pair<dist_t, labeltype>> top_candidates_;        // max heap
+  priority_queue<pair<dist_t, labeltype>> candidate_set_;         // min heap
+  priority_queue<pair<dist_t, labeltype>> result_set_;            // min heap
+  priority_queue<pair<dist_t, labeltype>> batch_rz_;              // min heap
+  AVL::Tree<std::pair<dist_t, labeltype>> otree_;                 // top candidates alternative
+  fc::BTreeMap<dist_t, std::pair<dist_t, labeltype>, 32> btree_;  // top candidates alternative
   VisitedList *vl_;
   int ncomp_;
   int total_;
 
+ public:
+  Out out_;
   IterativeSearchState(const void *query, size_t k) : query_(query), k_(k) {}
 };
 
@@ -41,11 +45,15 @@ class IterativeSearch {
   VisitedList *vl_;
 
   int UpdateNext(IterativeSearchState<dist_t> *state) {
+    auto start = std::chrono::high_resolution_clock::now();
     while (!state->recycled_candidates_.empty() && state->top_candidates_.size() < hnsw_->ef_) {
       auto top = state->recycled_candidates_.top();
       state->top_candidates_.emplace(-top.first, top.second);
       state->recycled_candidates_.pop();
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    state->out_.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    start = std::chrono::high_resolution_clock::now();
     hnsw_->IterativeReentrantSearchKnn(
         state->query_,
         this->batch_k_,
@@ -56,6 +64,9 @@ class IterativeSearch {
         state->vl_,
         state->ncomp_
     );
+    end = std::chrono::high_resolution_clock::now();
+    state->out_.search_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    start = std::chrono::high_resolution_clock::now();
     int cnt = 0;
     while (cnt < this->batch_k_ && !state->result_set_.empty()) {
       auto top = state->result_set_.top();
@@ -73,10 +84,11 @@ class IterativeSearch {
         state->query_,
         this->batch_k_,
         state->candidate_set_,
-        state->otree_,
+        state->btree_,
         state->result_set_,
         state->vl_,
-        state->ncomp_
+        state->ncomp_,
+        state->out_
     );
     int cnt = 0;
     while (cnt < this->batch_k_ && !state->result_set_.empty()) {
@@ -147,7 +159,7 @@ class IterativeSearch {
 
       UpdateNext(&state);
     }
-    return std::move(state);
+    return state;
   }
 
   // VistedList is provided outside in this version.
@@ -195,13 +207,13 @@ class IterativeSearch {
 
       UpdateNext(&state);
     }
-    return std::move(state);
+    return state;
   }
 
-  IterativeSearchState<dist_t> OpenNeo(const void *query, int k) {
+  IterativeSearchState<dist_t> OpenNeo(const void *query, int k, VisitedList *vl = nullptr) {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
-    state.vl_ = hnsw_->visited_list_pool_->getFreeVisitedList();
+    state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
     state.ncomp_ = 0;
     state.total_ = 0;
     {
@@ -238,7 +250,8 @@ class IterativeSearch {
       state.vl_->mass[curr_obj] = state.vl_->curV;
       state.candidate_set_.emplace(-curr_dist, curr_obj);
       state.result_set_.emplace(-curr_dist, curr_obj);
-      state.otree_.insert(std::make_pair(curr_dist, curr_obj));
+      // state.otree_.insert(std::make_pair(curr_dist, curr_obj));
+      state.btree_[curr_dist] = std::make_pair(curr_dist, curr_obj);
 
       UpdateNextNeo(&state);
     }
@@ -263,6 +276,24 @@ class IterativeSearch {
     return Next(state);
   }
 
+  priority_queue<pair<dist_t, labeltype>> NextBatch(IterativeSearchState<dist_t> *state) {
+    if (state->total_ >= state->k_) {
+      return {};
+    }
+    if (HasNext(state)) {
+      auto moved = std::move(state->batch_rz_);
+      state->total_ += moved.size();
+      state->batch_rz_ = {};
+      return moved;
+    } else {
+      int cnt = UpdateNext(state);
+      if (cnt == 0) {
+        return {};
+      }
+    }
+    return NextBatch(state);
+  }
+
   pair<dist_t, labeltype> NextNeo(IterativeSearchState<dist_t> *state) {
     if (state->total_ >= state->k_) {
       return {-1, -1};
@@ -279,6 +310,34 @@ class IterativeSearch {
       }
     }
     return NextNeo(state);
+  }
+
+  priority_queue<pair<dist_t, labeltype>> NextBatchNeo(IterativeSearchState<dist_t> *state) {
+    if (state->total_ >= state->k_) {
+      return {};
+    }
+    // if (HasNext(state)) {
+    //   auto moved = std::move(state->batch_rz_);
+    //   state->total_ += moved.size();
+    //   state->batch_rz_ = {};
+    //   return moved;
+    // } else {
+    //   int cnt = UpdateNextNeo(state);
+    //   if (cnt == 0) {
+    //     return {};
+    //   }
+    // }
+    if (!HasNext(state)) {
+      int cnt = UpdateNextNeo(state);
+      if (cnt == 0) {
+        return {};
+      }
+    }
+    auto moved = std::move(state->batch_rz_);
+    state->total_ += moved.size();
+    state->batch_rz_ = {};
+    return moved;
+    // return NextBatchNeo(state);
   }
 
   void Close(IterativeSearchState<dist_t> *state) { hnsw_->setEf(this->initial_efs_); }
