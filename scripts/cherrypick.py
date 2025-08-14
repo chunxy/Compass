@@ -27,17 +27,19 @@ for d in DATASETS:
     nrel_50_100_200[d][m] = {"nrel": [50, 100, 200]}
 
 best_d_m_b = {d: {} for d in DATASETS}
-for d in ("sift", "audio"):
-  best_d_m_b[d]["CompassBikmeansIcg"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
-best_d_m_b["gist"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_512_M_cg_4"]
-best_d_m_b["gist"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
-best_d_m_b["video"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_512_M_cg_4"]
-best_d_m_b["video"]["CompassBikmeansIcg"] = ["M_16_efc_200_nlist_20000_M_cg_4"]
-best_d_m_b["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_128_M_cg_4"]
-best_d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+# for d in ("sift", "audio"):
+#   best_d_m_b[d]["CompassBikmeansIcg"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
+# best_d_m_b["gist"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_512_M_cg_4"]
+# best_d_m_b["gist"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+# best_d_m_b["video"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_10000_dx_512_M_cg_4"]
+# best_d_m_b["video"]["CompassBikmeansIcg"] = ["M_16_efc_200_nlist_20000_M_cg_4"]
+# best_d_m_b["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_128_M_cg_4"]
+# best_d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 for d in DATASETS:
   best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
+  best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
+  best_d_m_b[d]["Prefiltering"] = [""]
 
 best_d_m_s = {d: {} for d in DATASETS}
 for m in COMPASS_METHODS:
@@ -380,6 +382,6 @@ if __name__ == "__main__":
   # pick_M()
   # pick_nlist()
   # pick_dx()
-  compare_with_sotas() # slow?
+  # compare_best_with_sotas_by_dimension()
+  # compare_with_sotas() # slow?
   compare_best_with_sotas()
-  compare_best_with_sotas_by_dimension()

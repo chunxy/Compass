@@ -2,7 +2,7 @@ from functools import reduce
 
 DATASETS = ["sift", "audio", "glove100", "crawl", "video", "gist"]
 
-DA_S = [1, 2, 3, 4]
+DA_S = [1,]
 
 # attribute dimension - intervals, for reading JSON files of Compass result
 compass_da_interval = {
@@ -38,6 +38,17 @@ post_da_interval = {
   2: [(pcnt, pcnt) for pcnt in (10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95)],
   3: [(pcnt, pcnt, pcnt) for pcnt in (10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95)],
   4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95)],
+}
+postfiltering_da_interval = {
+  1: [
+    *[((100, ), (r, )) for r in (200, 300, 600)],
+    *[((100, ), (r, )) for r in range(1100, 10000, 1000)],
+  ]
+}
+prefiltering_da_interval = {
+  1: [
+    *[((100, ), (r, )) for r in (200, 300, 600)],
+  ]
 }
 
 # attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
@@ -90,14 +101,15 @@ COMPASSX_METHODS = [
   "CompassPcaQicg",
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
-METHODS = COMPASS_METHODS + SOTA_METHODS
-POSTFILTERING_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
+BASE_METHODS = ["Prefiltering", "Postfiltering"]
+METHODS = COMPASS_METHODS + SOTA_METHODS + BASE_METHODS
+SOTA_POST_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
 
 # method - workload template, accompanied with M_DA_RUN
 M_WORKLOAD = {
   **{
     m: "{}_10000_{}_{}_10"
-    for m in COMPASS_METHODS
+    for m in COMPASS_METHODS + BASE_METHODS
   },
   **{
     m: "{}_{}_10"
@@ -105,7 +117,7 @@ M_WORKLOAD = {
   },
   **{
     m: "{}_{}_10"
-    for m in POSTFILTERING_METHODS
+    for m in SOTA_POST_METHODS
   },
 }
 
@@ -118,10 +130,12 @@ M_DA_RUN = {
     m: sota_da_interval
     for m in SOTA_METHODS
   },
-  ** {
+  **{
     m: post_da_interval
-    for m in POSTFILTERING_METHODS
-  }
+    for m in SOTA_POST_METHODS
+  },
+  "Prefiltering": prefiltering_da_interval,
+  "Postfiltering": postfiltering_da_interval,
 }
 
 compass_group_dataset = {
@@ -177,6 +191,8 @@ compass_x_icg_parameters = {
   "build": ["M", "efc", "nlist", "dx", "M_cg"],
   "search": ["efs", "nrel", "batch_k", "initial_efs", "delta_efs"],
 }
+prefiltering_parameters = {"build": [], "search": []}
+postfiltering_parameters = {"build": ["M", "efc"], "search": ["efs"]}
 
 # method - parameter
 M_PARAM = {
@@ -196,6 +212,8 @@ M_PARAM = {
   "SeRF": serf_parameters,
   "iRangeGraph+Post": irangegraph_parameters,
   "SeRF+Post": serf_parameters,
+  "Prefiltering": prefiltering_parameters,
+  "Postfiltering": postfiltering_parameters,
 }
 
 compass_args = {
@@ -221,7 +239,12 @@ serf_args = {
   "efmax": [500],
   "efs": [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 1000],
 }
-MULTIPLES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+prefiltering_args = {}
+postfiltering_args = {
+  "M": [16, 32],
+  "efc": [200],
+  "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
+}
 M_ARGS = {
   **{
     m: compass_args
@@ -231,6 +254,8 @@ M_ARGS = {
   "SeRF": serf_args,
   "iRangeGraph+Post": irangegraph_args,
   "SeRF+Post": serf_args,
+  "Prefiltering": prefiltering_args,
+  "Postfiltering": postfiltering_args,
 }
 
 D_ARGS = {
@@ -308,5 +333,11 @@ M_STYLE = {
   },
   "SeRF+Post": {
     "marker": "p", "color": "gray"
+  },
+  "Prefiltering": {
+    "marker": "^", "color": "red"
+  },
+  "Postfiltering": {
+    "marker": "p", "color": "green"
   }
 }

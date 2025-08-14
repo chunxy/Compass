@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from config import (
+  BASE_METHODS,
   COMPASS_METHODS,
-  POSTFILTERING_METHODS,
+  SOTA_POST_METHODS,
   DA_RANGE,
   DA_S,
   DA_SEL,
@@ -48,11 +49,11 @@ xlim = [0.6, 1]
 def summarize():
   for da in DA_S:
     entries = []
-    for m in POSTFILTERING_METHODS + METHODS:
+    for m in SOTA_POST_METHODS + METHODS:
       if da not in M_DA_RUN[m]: continue  # noqa: E701
       for d in DATASETS:
         for itvl in M_DA_RUN[m][da]:
-          if m in COMPASS_METHODS:
+          if m in COMPASS_METHODS or m in BASE_METHODS:
             w = M_WORKLOAD[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
             nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
             sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
@@ -69,7 +70,6 @@ def summarize():
               path = LOG_ROOT / m / w / b / s
               if path.exists():
                 entries.append((path, m, w, d, nrg, sel, b, s))
-
 
     df = pd.DataFrame.from_records(
       entries, columns=[
@@ -122,6 +122,7 @@ def summarize():
 
 def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
+  df = df.fillna('')
 
   for d in datasets:
     for rg in DA_RANGE[da]:
@@ -204,6 +205,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
 
 def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
+  df = df.fillna('')
 
   for rg in DA_RANGE[da]:
     fig, axs = plt.subplots(4, len(datasets), layout='constrained')
@@ -285,6 +287,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
 
 def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
+  df = df.fillna('')
   recall_thresholds = [0.8, 0.9, 0.95]
   selectivities = DA_SEL[da]
 
@@ -344,6 +347,7 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
 
 def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures"):
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
+  df = df.fillna('')
   recall_thresholds = [0.8, 0.9, 0.95]
   selectivities = DA_SEL[da]
 
@@ -436,11 +440,13 @@ def draw_qps_comp_fixing_selectivity_by_dimension_away(d_m_b, d_m_s, anno, prefi
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
-                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp", "initial_ncomp"]].sort_values(["selectivity", "recall"])
+                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp",
+                                                        "initial_ncomp"]].sort_values(["selectivity", "recall"])
                   rec_sel_qps_comp["total_ncomp"] = rec_sel_qps_comp["initial_ncomp"] + rec_sel_qps_comp["ncomp"]
                   grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
                   grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
-                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["total_ncomp"].min()
+                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity",
+                                                                                                    as_index=False)["total_ncomp"].min()
                   pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
                   label = f"{m}-{b}-{nrel}-{rec}"
                   if label not in d_m_sel[d][m][sel]:  # a list by dimension
@@ -529,11 +535,13 @@ def draw_qps_comp_fixing_selectivity_by_dimension_home(d_m_b, d_m_s, anno, prefi
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
-                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp", "initial_ncomp"]].sort_values(["selectivity", "recall"])
+                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp",
+                                                        "initial_ncomp"]].sort_values(["selectivity", "recall"])
                   rec_sel_qps_comp["total_ncomp"] = rec_sel_qps_comp["initial_ncomp"] + rec_sel_qps_comp["ncomp"]
                   grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
                   grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
-                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["total_ncomp"].min()
+                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity",
+                                                                                                    as_index=False)["total_ncomp"].min()
                   pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
                   label = f"{m}-{b}-{nrel}-{rec}"
                   if label not in d_m_sel[d][m][sel]:  # a list by dimension
