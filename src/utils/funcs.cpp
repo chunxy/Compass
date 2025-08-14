@@ -274,21 +274,26 @@ void collect_batch_metric(
     float rz_min = std::numeric_limits<float>::max(), rz_max = std::numeric_limits<float>::min();
     int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;
     int ivf_ppsl_in_tp = 0, graph_ppsl_in_tp = 0;
+    int tp = 0;
     while (!rz.empty()) {
       auto pair = rz.top();
       rz.pop();
       auto id = pair.second;
       auto dist = pair.first;
-      if (metric.is_ivf_ppsl[id])
+      if (metric.is_ivf_ppsl[id]) {
         ivf_ppsl_in_rz++;
-      else if (metric.is_graph_ppsl[id])
+      } else if (metric.is_graph_ppsl[id]) {
         graph_ppsl_in_rz++;
+      }
       if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), id) != hybrid_topks[j].end() ||
           dist <= gt_max_s[i] + EPSILON) {
-        if (metric.is_ivf_ppsl[id])
+        if (metric.is_ivf_ppsl[id]) {
           ivf_ppsl_in_tp++;
-        else if (metric.is_graph_ppsl[id])
+          tp++;
+        } else if (metric.is_graph_ppsl[id]) {
           graph_ppsl_in_tp++;
+          tp++;
+        }
       }
       rz_min = std::min(rz_min, dist);
       rz_max = std::max(rz_max, dist);
@@ -303,7 +308,7 @@ void collect_batch_metric(
     stat.ivf_ppsl_in_tp_s[j] = ivf_ppsl_in_tp;
     stat.graph_ppsl_in_tp_s[j] = graph_ppsl_in_tp;
 
-    stat.tp_s[j] = ivf_ppsl_in_tp + graph_ppsl_in_tp;
+    stat.tp_s[j] = tp;
     stat.rz_s[j] = rz.size();
     stat.rec_at_ks[j] = (double)stat.tp_s[j] / hybrid_topks[j].size();
     stat.pre_at_ks[j] = (double)stat.tp_s[j] / rz.size();
