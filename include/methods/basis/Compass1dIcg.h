@@ -128,7 +128,9 @@ class Compass1dIcg : public Compass1d<dist_t, attr_t> {
 #ifdef USE_SSE
             _mm_prefetch(this->hnsw_.getDataByInternalId((*itr_beg).second), _MM_HINT_T0);
 #endif
-            if (visited[tableid] == visited_tag) continue;
+            if (visited[tableid] == visited_tag) {
+              continue;
+            }
 
             auto vect = this->hnsw_.getDataByInternalId(tableid);
             auto dist = this->hnsw_.fstdistfunc_(
