@@ -60,6 +60,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       int size = this->getListCount(cand_info);
       tableint *cand_nbrs = (tableint *)(cand_info + 1);
 #ifdef USE_SSE
+      _mm_prefetch((char *)(vl->mass + *(cand_nbrs)), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
 #endif
@@ -77,11 +78,11 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
 
         result_set.emplace(-cand_nbr_dist, cand_nbr);
-        candidate_set.emplace(-cand_nbr_dist, cand_nbr);
-#ifdef USE_SSE
-        _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
-#endif
         if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
+          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+#ifdef USE_SSE
+          _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+#endif
           top_candidates.emplace(cand_nbr_dist, cand_nbr);
           if (top_candidates.size() > efs) {
             auto top = top_candidates.top();

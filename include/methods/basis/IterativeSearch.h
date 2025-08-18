@@ -33,7 +33,7 @@ class IterativeSearchState {
 
  public:
   Out out_;
-  IterativeSearchState(const void *query, size_t k) : query_(query), k_(k) {}
+  IterativeSearchState(const void *query, size_t k) : query_(query), k_(k), ncomp_(0), total_(0) {}
 };
 
 template <typename dist_t>
@@ -45,15 +45,22 @@ class IterativeSearch {
   VisitedList *vl_;
 
   int UpdateNext(IterativeSearchState<dist_t> *state) {
+#ifndef BENCH
     auto start = std::chrono::high_resolution_clock::now();
+#endif
     while (!state->recycled_candidates_.empty() && state->top_candidates_.size() < hnsw_->ef_) {
       auto top = state->recycled_candidates_.top();
       state->top_candidates_.emplace(-top.first, top.second);
+      state->candidate_set_.emplace(top.first, top.second);
       state->recycled_candidates_.pop();
     }
+#ifndef BENCH
     auto end = std::chrono::high_resolution_clock::now();
     state->out_.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+#endif
+#ifndef BENCH
     start = std::chrono::high_resolution_clock::now();
+#endif
     hnsw_->IterativeReentrantSearchKnn(
         state->query_,
         this->batch_k_,
@@ -64,9 +71,10 @@ class IterativeSearch {
         state->vl_,
         state->ncomp_
     );
+#ifndef BENCH
     end = std::chrono::high_resolution_clock::now();
     state->out_.search_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    start = std::chrono::high_resolution_clock::now();
+#endif
     int cnt = 0;
     while (cnt < this->batch_k_ && !state->result_set_.empty()) {
       auto top = state->result_set_.top();
