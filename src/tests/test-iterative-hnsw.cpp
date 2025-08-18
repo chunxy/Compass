@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
   }
   fmt::print("Finished loading/building index\n");
 
-  nlohmann::json json, json_neo;
+  nlohmann::json json;
   VisitedList *vl = comp->hnsw_->visited_list_pool_->getFreeVisitedList();
   for (auto efs : delta_efs_s) {
     comp->SetSearchParam(batch_k, initial_efs, efs);
