@@ -349,6 +349,7 @@ nlohmann::json collate_stat(
     FILE *out
 ) {
   int nbatch = s.batch_time.size();
+  if (nbatch == 0) nbatch = nq;
   int batch_sz = nq / nbatch;
 
   for (int j = 0; j < s.rec_at_ks.size(); j++) {
@@ -361,7 +362,7 @@ nlohmann::json collate_stat(
     fmt::print(out, "Precision: {:5.2f}%, ", s.pre_at_ks[j] * 100);
     fmt::print(out, "{:3d}/{:3d}/{:3d}\n", s.tp_s[j], s.rz_s[j], k);
     fmt::print(out, "\tLatency in ns         : {:d}\n", s.latencies[j]);
-    fmt::print(out, "\tBatch overhead in ns  : {:d}\n", s.batch_overhead[j] / batch_sz);
+    fmt::print(out, "\tBatch overhead in ns  : {:d}\n", s.batch_overhead[j / batch_sz] / batch_sz);
     fmt::print(out, "\tCG Latency in ns      : {:d}\n", s.cg_latencies[j]);
     fmt::print(out, "\tIVF Latency in ns     : {:d}\n", s.ivf_latencies[j]);
     fmt::print(out, "\tBtree Latency in ns   : {:d}\n", s.btree_latencies[j]);
