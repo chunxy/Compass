@@ -89,8 +89,8 @@ int main(int argc, char **argv) {
     std::string search_param = fmt::format("efs_{}", efs);
     std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
     std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-    // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
-    fs::path log_root(fmt::format(LOGS, args.k));
+    fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+    // fs::path log_root(fmt::format(LOGS, args.k));
     fs::path log_dir = log_root / method / workload / build_param / search_param;
     fs::create_directories(log_dir);
     fmt::print("Saving to {}.\n", (log_dir / out_json).string());
@@ -107,7 +107,9 @@ int main(int argc, char **argv) {
 #ifndef COMPASS_DEBUG
 // #pragma omp parallel for num_threads(args.nthread) schedule(static)
 #endif
+    Stat stat(nq);
     for (int j = 0; j < nq; j++) {
+      auto q_start = high_resolution_clock::now();
       int initial_comp = comp.metric_distance_computations.load();
       auto ret = comp.searchKnn(xq + j * d, efs, nullptr);
       num_computations[j] = comp.metric_distance_computations.load() - initial_comp;
@@ -119,12 +121,17 @@ int main(int argc, char **argv) {
         }
         ret.pop();
       }
+      auto q_stop = high_resolution_clock::now();
+      auto q_time = duration_cast<nanoseconds>(q_stop - q_start).count();
+      stat.latencies.push_back(q_time);
+      stat.batch_time.push_back(q_time);
+      stat.batch_overhead.push_back(0);
+      stat.batch_cluster_search_time.push_back(0);
     }
     auto search_stop = high_resolution_clock::now();
     auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
 
     // statistics
-    Stat stat(nq);
     for (int j = 0; j < nq;) {
       for (int ii = 0; ii < results.size(); ii++) {
         auto rz = results[ii];
@@ -133,6 +140,7 @@ int main(int argc, char **argv) {
         float rz_min = std::numeric_limits<float>::max(), rz_max = std::numeric_limits<float>::min();
         int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;
         int ivf_ppsl_in_tp = 0, graph_ppsl_in_tp = 0;
+        int tp = 0;
         while (!rz.empty()) {
           auto pair = rz.top();
           rz.pop();
@@ -144,6 +152,7 @@ int main(int argc, char **argv) {
           graph_ppsl_in_rz++;
           if (d <= gt_max + EPSILON) {
             graph_ppsl_in_tp++;
+            tp++;
           }
         }
 
@@ -156,7 +165,7 @@ int main(int argc, char **argv) {
         stat.ivf_ppsl_in_tp_s[j] = ivf_ppsl_in_tp;
         stat.graph_ppsl_in_tp_s[j] = graph_ppsl_in_tp;
 
-        stat.tp_s[j] = ivf_ppsl_in_tp + graph_ppsl_in_tp;
+        stat.tp_s[j] = tp;
         stat.rz_s[j] = rz.size();
         stat.rec_at_ks[j] = (double)stat.tp_s[j] / hybrid_topks[j].size();
         stat.pre_at_ks[j] = (double)stat.tp_s[j] / rz.size();
@@ -172,7 +181,7 @@ int main(int argc, char **argv) {
         stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
         stat.num_computations[j] = num_computations[j];
         stat.num_rounds[j] = 0;
-        stat.latencies.push_back(duration_cast<microseconds>(search_stop - search_start).count());
+        // stat.latencies.push_back(duration_cast<microseconds>(search_stop - search_start).count());
         j++;
       }
     }
