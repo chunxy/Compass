@@ -28,19 +28,20 @@ auto dist_func = hnswlib::L2Sqr;
 
 int main(int argc, char **argv) {
   extern std::map<std::string, DataCard> name_to_card;
-  DataCard c = name_to_card["siftsmall_1_1000_top500_float32"];
+  DataCard c = name_to_card["audio_1_10000_float32"];
   float l = 0, r = 1000;
 
   size_t d = c.dim;          // This has to be size_t due to dist_func() call.
   int nb = c.n_base;         // number of database vectors
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
-  int M = 4, efc = 200;
+  int M = 16, efc = 200;
 
   time_t ts = time(nullptr);
   auto tm = localtime(&ts);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
   fs::path root("/home/chunxy/repos/Compass/scratches/test-hnsw");
+  fs::path ckp_root("/home/chunxy/repos/Compass/scratches/test-reentrant-hnsw");
 
   fmt::print("Saving to {}.\n", (root / out_json).string());
 
@@ -71,7 +72,7 @@ int main(int argc, char **argv) {
   HierarchicalNSW<float> *comp;
 
   string index_file = fmt::format("{}_M_{}_efc_{}.hnsw", c.name, M, efc);
-  fs::path ckp_path = root / index_file;
+  fs::path ckp_path = ckp_root / index_file;
   if (fs::exists(ckp_path)) {
     comp = new HierarchicalNSW<float>(&l2space, ckp_path.string(), false, nb);
   } else {
