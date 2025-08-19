@@ -3,7 +3,7 @@
 #include <string>
 
 // arithmetics
-const float EPSILON = 1e-5;
+const float EPSILON = 1e-3;
 
 // directories
 const std::string WORKSPACE = "/home/chunxy/repos/Compass";
