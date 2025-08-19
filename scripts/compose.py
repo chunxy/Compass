@@ -3,12 +3,13 @@ from pathlib import Path
 
 from config import (
   COMPASS_METHODS,
+  BASE_METHODS,
   DA_S,
   M_DA_RUN,
   M_GROUP_DATASET,
   M_PARAM,
-  compass_args,
   D_ARGS,
+  M_ARGS,
 )
 
 EXP_ROOT = Path("/home/chunxy/repos/Compass/runs/exp")
@@ -23,7 +24,7 @@ done'''
 
 def compose():
   for da in DA_S:
-    for m in COMPASS_METHODS:
+    for m in COMPASS_METHODS + BASE_METHODS:
       for group, datasets in M_GROUP_DATASET[m].items():
         parts = [p.lower() for p in re.findall(r'[A-Z][a-z]*', m)]
         filename = f"{da}d-" + "-".join(parts[1:]) + f"-exp-{group}.sh"
@@ -31,9 +32,9 @@ def compose():
           for d in datasets:
             f.write(f'dataset={d}\n')
             for bp in M_PARAM[m]["build"]:
-              f.write(f'{bp}_s=({" ".join(map(str, D_ARGS[d].get(bp, compass_args[bp])))})\n')
+              f.write(f'{bp}_s=({" ".join(map(str, D_ARGS[d].get(bp, M_ARGS[m][bp])))})\n')
             for sp in M_PARAM[m]["search"]:
-              f.write(f'{sp}_s=({" ".join(map(str, D_ARGS[d].get(sp, compass_args[sp])))})\n')
+              f.write(f'{sp}_s=({" ".join(map(str, D_ARGS[d].get(sp, M_ARGS[m][sp])))})\n')
 
             build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["build"]))
             search_string = " ".join(map(lambda x: f"--{x} ${{{x}_s[@]}}", M_PARAM[m]["search"]))
