@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
 
-  std::string method = "CompassIvf1d";
+  std::string method = "CompassIvf";
   std::string workload = fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, args.l_bound, args.u_bound, args.k);
   std::string build_param = fmt::format("nlist_{}", args.nlist);
 
