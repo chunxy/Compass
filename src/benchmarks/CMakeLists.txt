@@ -1,10 +1,10 @@
 link_libraries(Boost::filesystem)
 
 # Baseline
-add_executable(bench-compass-ivf-1d bench-compass-ivf-1d.cpp)
-add_executable(bench-compass-ivf-1d-imi bench-compass-ivf-1d-imi.cpp)
-add_executable(bench-compass-ivf-1d-kmeanspp bench-compass-ivf-1d-kmeans++.cpp)
-add_executable(bench-compass-ivf-1d-bikmeans bench-compass-ivf-1d-bikmeans.cpp)
+add_executable(bench-compass-1d-ivf bench-compass-1d-ivf.cpp)
+add_executable(bench-compass-1d-ivf-imi bench-compass-1d-ivf-imi.cpp)
+add_executable(bench-compass-1d-ivf-kmeanspp bench-compass-1d-ivf-kmeans++.cpp)
+add_executable(bench-compass-1d-ivf-bikmeans bench-compass-1d-ivf-bikmeans.cpp)
 add_executable(bench-compass-graph-1d bench-compass-graph-1d.cpp)
 add_executable(bench-hop-hnsw-1d bench-hop-hnsw-1d.cpp)
 add_executable(bench-postfiltering bench-postfiltering.cpp)
