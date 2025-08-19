@@ -323,6 +323,7 @@ void collect_batch_metric(
     stat.perc_of_ivf_ppsl_in_rz[j] = (double)ivf_ppsl_in_rz / rz.size();
     stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
     stat.num_computations[j] = metric.ncomp;
+    stat.num_computations_graph[j] = metric.ncomp_graph;
     stat.cg_num_computations[j] = metric.ncomp_cg;
     stat.num_rounds[j] = metric.nround;
     stat.num_clusters[j] = metric.ncluster;
@@ -371,6 +372,7 @@ nlohmann::json collate_stat(
     fmt::print(out, "\tNo. IVF Ppsl          : {:3d}\n", s.ivf_ppsl_nums[j]);
     fmt::print(out, "\tNo. Graph Ppsl        : {:3d}\n", s.graph_ppsl_nums[j]);
     fmt::print(out, "\tNo. Distance Comp     : {:3d}\n", s.num_computations[j]);
+    fmt::print(out, "\tNo. Distance Comp Graph: {:3d}\n", s.num_computations_graph[j]);
     fmt::print(out, "\tIVF Proposal Rate     : {:3d}/{:3d}\n", s.ivf_ppsl_in_rz_s[j], s.ivf_ppsl_nums[j]);
     fmt::print(out, "\tIVF Proposal Quality  : {:3d}/{:3d}\n", s.ivf_ppsl_in_tp_s[j], s.ivf_ppsl_nums[j]);
     fmt::print(out, "\tGraph Proposal Rate   : {:3d}/{:3d}\n", s.graph_ppsl_in_rz_s[j], s.graph_ppsl_nums[j]);
@@ -392,6 +394,7 @@ nlohmann::json collate_stat(
   auto sum_of_linear_scan_rate = std::accumulate(s.linear_scan_rate.begin(), s.linear_scan_rate.end(), 0.);
   auto sum_of_num_cluster = std::accumulate(s.num_clusters.begin(), s.num_clusters.end(), 0l);
   auto sum_of_num_comp = std::accumulate(s.num_computations.begin(), s.num_computations.end(), 0l);
+  auto sum_of_num_comp_graph = std::accumulate(s.num_computations_graph.begin(), s.num_computations_graph.end(), 0l);
   auto sum_of_num_round = std::accumulate(s.num_rounds.begin(), s.num_rounds.end(), 0l);
   auto sum_of_num_recycled = std::accumulate(s.num_recycled.begin(), s.num_recycled.end(), 0l);
 
@@ -442,6 +445,7 @@ nlohmann::json collate_stat(
       {"tampered_qps", (double)nq / (search_time - sum_of_cluster_search_time) * 1000000},
       {"num_threads", nthread},
       {"num_computations", (double)sum_of_num_comp / nq},
+      {"num_computations_graph", (double)sum_of_num_comp_graph / nq},
       {"cg_num_computations", (double)sum_of_cg_ncomp / nq},
       {"num_clusters", (double)sum_of_num_cluster / nq},
       {"num_rounds", (double)sum_of_num_round / nq},

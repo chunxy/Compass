@@ -135,6 +135,7 @@ struct QueryMetric {
   int ncomp_cg;
   int nround;
   int ncomp;
+  int ncomp_graph;
   int ncluster;
   int nrecycled;
 
@@ -149,6 +150,7 @@ struct QueryMetric {
         ncomp_cg(0),
         nround(0),
         ncomp(0),
+        ncomp_graph(0),
         ncluster(0),
         nrecycled(0) {}
 };
@@ -182,6 +184,7 @@ struct Stat {
   vector<float> perc_of_ivf_ppsl_in_rz;
   vector<float> linear_scan_rate;
   vector<long> num_computations;
+  vector<long> num_computations_graph;
   vector<long> cg_num_computations;
   vector<long> num_rounds;
   vector<long> num_clusters;
@@ -220,6 +223,7 @@ struct Stat {
         perc_of_ivf_ppsl_in_rz(nq, 0),
         linear_scan_rate(nq, 0),
         num_computations(nq, 0),
+        num_computations_graph(nq, 0),
         cg_num_computations(nq, 0),
         num_rounds(nq, 0),
         num_clusters(nq, 0),
