@@ -109,17 +109,12 @@ int main(int argc, char **argv) {
     out = fopen((log_dir / out_text).c_str(), "w");
 #endif
 
-    auto search_start = high_resolution_clock::now();
 #ifndef COMPASS_DEBUG
     // omp_set_num_threads(args.nthread);
 // #pragma omp parallel for
 #endif
-    for (int j = 0; j < nq; j += args.batchsz) {
-      comp.SearchKnn(xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, nprobe, metrics, ranked_clusters);
-    }
-    auto search_stop = high_resolution_clock::now();
-    auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
 
+    long long search_time = 0;
     // statistics
     Stat stat(nq);
     for (int j = 0; j < nq;) {
@@ -130,6 +125,12 @@ int main(int argc, char **argv) {
           xq + j * d, args.batchsz, args.k, args.l_bound, args.u_bound, nprobe, metrics, ranked_clusters
       );
       auto search_stop = high_resolution_clock::now();
+      auto q_time = duration_cast<microseconds>(search_stop - search_start).count();
+      stat.latencies.push_back(q_time);
+      stat.batch_time.push_back(q_time);
+      stat.batch_overhead.push_back(0);
+      stat.batch_cluster_search_time.push_back(0);
+      search_time += q_time;
 
       for (int ii = 0; ii < results.size(); ii++) {
         auto rz = results[ii];
@@ -145,7 +146,8 @@ int main(int argc, char **argv) {
             ivf_ppsl_in_rz++;
           else if (metric.is_graph_ppsl[i])
             graph_ppsl_in_rz++;
-          if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), i) != hybrid_topks[j].end() || d <= gt_max + EPSILON) {
+          if (std::find(hybrid_topks[j].begin(), hybrid_topks[j].end(), i) != hybrid_topks[j].end() ||
+              d <= gt_max + EPSILON) {
             if (metric.is_ivf_ppsl[i])
               ivf_ppsl_in_tp++;
             else if (metric.is_graph_ppsl[i])
