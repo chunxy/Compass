@@ -142,7 +142,7 @@ class Compass1dPost {
 
       int in_range_cnt = 0, total = 0, nround = 0;
       while (top_candidates.size() < efs) {
-        if (total >= 20 && in_range_cnt <= total * 0.1 && in_range_cnt < k) {
+        if (total > 20 && in_range_cnt <= total * 0.1) {
 #ifndef BENCH
           auto ivf_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
@@ -237,6 +237,7 @@ class Compass1dPost {
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
+      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
 
       while (top_candidates.size() > k) top_candidates.pop();
