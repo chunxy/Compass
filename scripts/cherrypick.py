@@ -37,7 +37,7 @@ best_d_m_b = {d: {} for d in DATASETS}
 # best_d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 
 for d in ("sift", "audio"):
-  best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
+  best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 best_d_m_b["gist"]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 best_d_m_b["video"]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 best_d_m_b["crawl"]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
@@ -46,7 +46,8 @@ for d in DATASETS:
   best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
   best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
-  best_d_m_b[d]["Ivf"] = ["nlist_5000", "nlist_10000"]
+  best_d_m_b[d]["Ivf"] = ["nlist_10000", "nlist_20000"]
+  best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200"]
   # best_d_m_b[d]["Prefiltering"] = [""]
 
 best_d_m_s = {d: {} for d in DATASETS}
@@ -60,6 +61,7 @@ best_d_m_s = {d: {} for d in DATASETS}
 
 for d in DATASETS:
   best_d_m_s[d]["CompassPostK"] = {"nrel": [100]}
+  best_d_m_s[d]["CompassGraph"] = {"nrel": [100, 200]}
 
 
 # Compare clustering methods.

@@ -42,6 +42,9 @@ sota_post_da_interval = {
 ivf_da_interval = {
   1: [*[((100, ), (r, )) for r in (200, 300, 600, 1100, 2100)]]
 }
+compass_graph_da_interval = {
+  1: [*[((100,), (r,)) for r in range(2100, 10000, 1000)],],
+}
 postfiltering_da_interval = {
   1: [
     *[((100, ), (r, )) for r in (200, 300, 600)],
@@ -102,7 +105,7 @@ COMPASSX_METHODS = [
   "CompassPcaQicg",
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
-BASE_METHODS = ["Prefiltering", "Postfiltering", "CompassPostK", "Ivf"]
+BASE_METHODS = ["Prefiltering", "Postfiltering", "CompassPostK", "Ivf", "CompassGraph"]
 METHODS = COMPASS_METHODS + SOTA_METHODS + BASE_METHODS
 SOTA_POST_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
 
@@ -139,6 +142,7 @@ M_DA_RUN = {
   "Postfiltering": postfiltering_da_interval,
   "CompassPostK": postfiltering_da_interval,
   "Ivf": ivf_da_interval,
+  "CompassGraph": compass_graph_da_interval,
 }
 
 compass_group_dataset = {
@@ -172,7 +176,8 @@ M_GROUP_DATASET = {
     m: compass_group_dataset
     for m in BASE_METHODS
   },
-  "CompassPostK": compass_post_group_dataset
+  "CompassPostK": compass_post_group_dataset,
+  "Ivf": compass_post_group_dataset,
 }
 
 irangegraph_parameters = {
@@ -217,6 +222,7 @@ ivf_parameters = {
 }
 prefiltering_parameters = {"build": [], "search": []}
 postfiltering_parameters = {"build": ["M", "efc"], "search": ["efs"]}
+compass_graph_parameters = {"build": ["M", "efc"], "search": ["efs", "nrel"]}
 
 # method - parameter
 M_PARAM = {
@@ -240,6 +246,7 @@ M_PARAM = {
   "Postfiltering": postfiltering_parameters,
   "CompassPostK": compass_post_parameters,
   "Ivf": ivf_parameters,
+  "CompassGraph": compass_graph_parameters,
 }
 
 compass_args = {
@@ -272,19 +279,25 @@ postfiltering_args = {
   "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
 }
 compass_post_args = {
-  "M": [16, 32],
+  "M": [16],
   "efc": [200],
-  "nlist": [5000, 10000],
+  "nlist": [10000, 20000],
   "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200],
-  "M_cg": [4, 8],
+  "M_cg": [4],
   "nrel": [50, 100],
   "batch_k": [50],
   "initial_efs": [50],
   "delta_efs": [30],  # 100 for old exps, 50 for old iterative graph, 31 for grouped attributes
 }
 ivf_args = {
-  "nlist": [5000, 10000],
-  "nprobe": [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100],
+  "nlist": [10000, 20000],
+  "nprobe": [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 160, 180, 200],
+}
+compass_graph_args = {
+  "M": [16, 32],
+  "efc": [200],
+  "efs": [10, 20, 60, 100, 200, 300, 400, 500, 1000, 1500, 2000],
+  "nrel": [100, 200],
 }
 M_ARGS = {
   **{
@@ -299,12 +312,13 @@ M_ARGS = {
   "Postfiltering": postfiltering_args,
   "CompassPostK": compass_post_args,
   "Ivf": ivf_args,
+  "CompassGraph": compass_graph_args,
 }
 
 D_ARGS = {
   "sift": {
     "dx": [64],
-    "nlist": [5000, 10000],
+    "nlist": [10000],
   },
   "glove100": {
     "dx": [64],
@@ -312,7 +326,7 @@ D_ARGS = {
   },
   "audio": {
     "dx": [64],
-    "nlist": [5000, 10000],
+    "nlist": [10000],
   },
   "video": {
     "dx": [256, 512],
@@ -387,5 +401,8 @@ M_STYLE = {
   },
   "Ivf": {
     "marker": "^", "color": "pink"
+  },
+  "CompassGraph": {
+    "marker": "^", "color": "orange"
   },
 }
