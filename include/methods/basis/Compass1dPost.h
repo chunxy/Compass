@@ -40,7 +40,7 @@ class Compass1dPost {
         nlist_(nlist),
         graph_(n, d, new L2Space(d), M),
         cg_(nlist, d, new L2Space(d), M_cg),
-        btrees_(nlist, fc::BTreeMap<dist_t, labeltype, 32>()),
+        btrees_(nlist),
         base_cluster_rank_(new faiss::idx_t[n]) {
     cg_.SetSearchParam(batch_k, initial_efs, delta_efs);
     ivf_ = nullptr;
