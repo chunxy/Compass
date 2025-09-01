@@ -23,7 +23,8 @@ class Compass1dPostK : public Compass1dPost<dist_t, attr_t> {
     faiss::idx_t assigned_cluster;
     for (int i = 0; i < this->n_; i++) {
       in.read((char *)(&assigned_cluster), sizeof(faiss::idx_t));
-      this->btrees_[assigned_cluster].insert(std::make_pair(attrs[i], (labeltype)i));
+      // this->btrees_[assigned_cluster].insert(std::make_pair(attrs[i], (labeltype)i));
+      this->btrees_[assigned_cluster][attrs[i]] = i;
     }
   }
 

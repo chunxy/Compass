@@ -1,9 +1,10 @@
 #include <boost/filesystem.hpp>
-#include "btree_map.h"
 #include "faiss/Index.h"
 #include "faiss/index_io.h"
+#include "hnswlib/hnswlib.h"
 #include "methods/basis/IterativeSearch.h"
 #include "utils/Pod.h"
+#include "fc/btree.h"
 
 namespace fs = boost::filesystem;
 
@@ -13,7 +14,8 @@ class Compass1dPost {
   IterativeSearch<dist_t> graph_;
   IterativeSearch<dist_t> cg_;
   faiss::Index *ivf_;
-  vector<btree::btree_map<attr_t, labeltype>> btrees_;
+  // vector<btree::btree_map<attr_t, labeltype>> btrees_;
+  vector<fc::BTreeMap<dist_t, labeltype, 32>> btrees_;
   faiss::idx_t *base_cluster_rank_;
   // faiss::idx_t *query_cluster_rank_;
   // dist_t *distances_;
@@ -38,7 +40,7 @@ class Compass1dPost {
         nlist_(nlist),
         graph_(n, d, new L2Space(d), M),
         cg_(nlist, d, new L2Space(d), M_cg),
-        btrees_(nlist, btree::btree_map<attr_t, labeltype>()),
+        btrees_(nlist, fc::BTreeMap<dist_t, labeltype, 32>()),
         base_cluster_rank_(new faiss::idx_t[n]) {
     cg_.SetSearchParam(batch_k, initial_efs, delta_efs);
     ivf_ = nullptr;
@@ -92,7 +94,8 @@ class Compass1dPost {
   virtual void AddPointsToIvf(const size_t n, const void *data, const labeltype *labels, const attr_t *attrs) {
     AssignPoints(n, data, 1, this->base_cluster_rank_);
     for (int i = 0; i < n; i++) {
-      btrees_[this->base_cluster_rank_[i]].insert(std::make_pair(attrs[i], labels[i]));
+      // btrees_[this->base_cluster_rank_[i]].insert(std::make_pair(attrs[i], labels[i]));
+      btrees_[this->base_cluster_rank_[i]][attrs[i]] = labels[i];
     }
   }
 
@@ -114,7 +117,7 @@ class Compass1dPost {
     VisitedList *vl = this->graph_.hnsw_->visited_list_pool_->getFreeVisitedList();
     VisitedList *vl_cg = this->cg_.hnsw_->visited_list_pool_->getFreeVisitedList();
 
-    graph_.SetSearchParam(k, k, k);
+    graph_.SetSearchParam(20, 20, k);
     // cg_.SetSearchParam(20, 20, 20);
 
     for (int q = 0; q < nq; q++) {
@@ -129,6 +132,7 @@ class Compass1dPost {
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
       auto state = graph_.Open(query_q, graph_.hnsw_->max_elements_, vl);
+      graph_.SetSearchParam(k, k, k);
 #ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
