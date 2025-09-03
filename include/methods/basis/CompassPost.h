@@ -124,7 +124,7 @@ class CompassPost {
   ) {
     vector<priority_queue<pair<dist_t, labeltype>>> results(nq);
 
-    RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, 1);
+    RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);
     VisitedList *vl = this->graph_.hnsw_->visited_list_pool_->getFreeVisitedList();
     VisitedList *vl_cg = this->cg_.hnsw_->visited_list_pool_->getFreeVisitedList();
 
