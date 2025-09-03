@@ -176,7 +176,7 @@ class CompassPost {
             int clus = next.second;
             itr_beg = btrees_[clus].lower_bound(l_bound[0]);
             itr_end = btrees_[clus].upper_bound(u_bound[0]);
-            while (itr_beg != itr_end && !pred(itr_beg->first)) {
+            while (itr_beg != itr_end && !pred(itr_beg->second->first)) {
               itr_beg++;
             }
             initialized = true;
@@ -204,12 +204,12 @@ class CompassPost {
               clus_cnt++;
               continue;
             }
-            tableint tableid = itr_beg->first;
+            tableint tableid = itr_beg->second->first;
             do {
               itr_beg++;
-            } while (itr_beg != itr_end && !pred(itr_beg->first));
+            } while (itr_beg != itr_end && !pred(itr_beg->second->first));
 #ifdef USE_SSE
-            if (itr_beg != itr_end) _mm_prefetch(this->graph_.hnsw_->getDataByInternalId(itr_beg->first), _MM_HINT_T0);
+            if (itr_beg != itr_end) _mm_prefetch(this->graph_.hnsw_->getDataByInternalId(itr_beg->second->first), _MM_HINT_T0);
 #endif
             auto vect = this->graph_.hnsw_->getDataByInternalId(tableid);
             auto dist = this->graph_.hnsw_->fstdistfunc_(query_q, vect, this->graph_.hnsw_->dist_func_param_);

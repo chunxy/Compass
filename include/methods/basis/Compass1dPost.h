@@ -1,10 +1,10 @@
 #include <boost/filesystem.hpp>
 #include "faiss/Index.h"
 #include "faiss/index_io.h"
+#include "fc/btree.h"
 #include "hnswlib/hnswlib.h"
 #include "methods/basis/IterativeSearch.h"
 #include "utils/Pod.h"
-#include "fc/btree.h"
 
 namespace fs = boost::filesystem;
 
@@ -192,6 +192,9 @@ class Compass1dPost {
             }
             tableint tableid = itr_beg->second;
             itr_beg++;
+#ifdef USE_SSE
+            if (itr_beg != itr_end) _mm_prefetch(this->graph_.hnsw_->getDataByInternalId(itr_beg->second), _MM_HINT_T0);
+#endif
             // if (vl->mass[tableid] == vl->curV) {
             //   continue;
             // }
