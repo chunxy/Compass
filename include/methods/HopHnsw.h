@@ -100,7 +100,7 @@ class HopHnsw : public HierarchicalNSW<dist_t> {
 
       auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
 
-      while (true) {
+      while (!candidate_set.empty()) {
         auto curr_obj = candidate_set.top().second;
         auto curr_dist = -candidate_set.top().first;
         candidate_set.pop();
@@ -109,7 +109,7 @@ class HopHnsw : public HierarchicalNSW<dist_t> {
           break;
         }
 
-        unsigned int *cand_info = this->get_linklist0(curr_obj);
+        tableint *cand_info = this->get_linklist0(curr_obj);
         int size = this->getListCount(cand_info);
         tableint *cand_nbrs = (tableint *)(cand_info + 1);
 #ifdef USE_SSE
@@ -117,7 +117,10 @@ class HopHnsw : public HierarchicalNSW<dist_t> {
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
 #endif
 
-        int precision_comp = this->maxM0_;
+        // int precision_comp = this->maxM0_;
+        std::priority_queue<pair<dist_t, tableint>> added_onehop_neighbors;
+        std::unordered_set<tableint> other_onehop_id;
+        float added_onehop_count = 0;
         for (int i = 0; i < size; i++) {
           tableint cand_nbr = cand_nbrs[i];
 #ifdef USE_SSE
@@ -125,53 +128,90 @@ class HopHnsw : public HierarchicalNSW<dist_t> {
 #endif
           if (visited[cand_nbr] == visited_tag) continue;
           visited[cand_nbr] = visited_tag;
+          if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) {
+            other_onehop_id.insert(cand_nbr);
+            continue;
+          }
+
           metrics[q].ncomp++;
           dist_t cand_nbr_dist = this->fstdistfunc_(
               (char *)query + this->data_size_ * q, this->getDataByInternalId(cand_nbr), this->dist_func_param_
           );
+          added_onehop_count++;
+          added_onehop_neighbors.emplace(-cand_nbr_dist, cand_nbr);
           if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
             candidate_set.emplace(-cand_nbr_dist, cand_nbr);
 #ifdef USE_SSE
             _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
 #endif
             metrics[q].is_graph_ppsl[cand_nbr] = true;
-            if (is_id_allowed == nullptr || (*is_id_allowed)(cand_nbr)) {
-              top_candidates.emplace(cand_nbr_dist, cand_nbr);
-              if (top_candidates.size() > efs) top_candidates.pop();
-              upper_bound = top_candidates.top().first;
-              precision_comp--;
-            }
+            top_candidates.emplace(cand_nbr_dist, cand_nbr);
+            if (top_candidates.size() > efs) top_candidates.pop();
+            upper_bound = top_candidates.top().first;
           }
         }
 
-        for (int i = 0; i < size; i++) {
-          if (precision_comp <= 0) break;
+        if (added_onehop_count / size < 0.4) {
+          bool full_twohop = true;
+          // adaptive-local, directed
+          while (added_onehop_neighbors.size() > 0) {
+            tableint cand_nbr = added_onehop_neighbors.top().second;
+            added_onehop_neighbors.pop();
 
-          tableint cand_nbr = cand_nbrs[i];
-          unsigned int *twohop_info = this->get_linklist0(cand_nbr);
-          int twohop_size = this->getListCount(twohop_info);
-          tableint *twohop_nbrs = twohop_info + 1;
+            tableint *twohop_info = this->get_linklist0(cand_nbr);
+            int twohop_size = this->getListCount(twohop_info);
+            tableint *twohop_nbrs = twohop_info + 1;
 
-          for (int j = 0; j < twohop_size && precision_comp > 0; j++) {
-            tableint twohop_nbr = twohop_nbrs[j];
-            if (visited[twohop_nbr] == visited_tag) continue;
-            visited[twohop_nbr] = visited_tag;
-            metrics[q].ncomp++;
+            for (int j = 0; j < twohop_size; j++) {
+              tableint twohop_nbr = twohop_nbrs[j];
+              if (visited[twohop_nbr] == visited_tag) continue;
+              visited[twohop_nbr] = visited_tag;
+              if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+              metrics[q].ncomp++;
 
-            dist_t twohop_nbr_dist = this->fstdistfunc_(
-                (char *)query + this->data_size_ * q, this->getDataByInternalId(twohop_nbr), this->dist_func_param_
-            );
-            if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
-              candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
+              dist_t twohop_nbr_dist = this->fstdistfunc_(
+                  (char *)query + this->data_size_ * q, this->getDataByInternalId(twohop_nbr), this->dist_func_param_
+              );
+              if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
+                candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
 #ifdef USE_SSE
-              _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+                _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
 #endif
-              metrics[q].is_graph_ppsl[twohop_nbr] = true;
-              if (is_id_allowed == nullptr || (*is_id_allowed)(twohop_nbr)) {
+                metrics[q].is_graph_ppsl[twohop_nbr] = true;
                 top_candidates.emplace(twohop_nbr_dist, twohop_nbr);
                 if (top_candidates.size() > efs) top_candidates.pop();
                 upper_bound = top_candidates.top().first;
-                precision_comp--;
+              }
+            }
+          }
+
+          while (other_onehop_id.size() > 0) {
+            tableint cand_nbr = *other_onehop_id.begin();
+            other_onehop_id.erase(other_onehop_id.begin());
+
+            tableint *twohop_info = this->get_linklist0(cand_nbr);
+            int twohop_size = this->getListCount(twohop_info);
+            tableint *twohop_nbrs = twohop_info + 1;
+
+            for (int j = 0; j < twohop_size; j++) {
+              tableint twohop_nbr = twohop_nbrs[j];
+              if (visited[twohop_nbr] == visited_tag) continue;
+              visited[twohop_nbr] = visited_tag;
+              if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+              metrics[q].ncomp++;
+
+              dist_t twohop_nbr_dist = this->fstdistfunc_(
+                  (char *)query + this->data_size_ * q, this->getDataByInternalId(twohop_nbr), this->dist_func_param_
+              );
+              if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
+                candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
+#ifdef USE_SSE
+                _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+#endif
+                metrics[q].is_graph_ppsl[twohop_nbr] = true;
+                top_candidates.emplace(twohop_nbr_dist, twohop_nbr);
+                if (top_candidates.size() > efs) top_candidates.pop();
+                upper_bound = top_candidates.top().first;
               }
             }
           }

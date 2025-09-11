@@ -83,13 +83,15 @@ int main(int argc, char **argv) {
   RangeQuery<float> pred(&args.l_bound, &args.u_bound, attrs.data(), nb, 1);
   vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
 
+  nq = args.fast ? 200 : nq;
   for (auto efs : args.efs) {
     time_t ts = time(nullptr);
     auto tm = localtime(&ts);
     std::string search_param = fmt::format("efs_{}", efs);
     std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
     std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-    fs::path log_root(fmt::format(LOGS, args.k));
+    fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+    // fs::path log_root(fmt::format(LOGS, args.k));
     fs::path log_dir = log_root / method / workload / build_param / search_param;
     fs::create_directories(log_dir);
     fmt::print("Saving to {}.\n", (log_dir / out_json).string());
@@ -99,18 +101,25 @@ int main(int argc, char **argv) {
     out = fopen((log_dir / out_text).c_str(), "w");
 #endif
 
+    // statistics
+    Stat stat(nq);
     auto search_start = high_resolution_clock::now();
 #ifndef COMPASS_DEBUG
 // #pragma omp parallel for num_threads(args.nthread) schedule(static)
 #endif
     for (int j = 0; j < nq; j += args.batchsz) {
-      comp.SearchKnn<float>(xq + j * d, args.batchsz, args.k, efs, &pred, metrics);
+      auto batch_start = high_resolution_clock::now();
+      auto results = comp.SearchKnn<float>(xq + j * d, args.batchsz, args.k, efs, &pred, metrics);
+      auto batch_stop = high_resolution_clock::now();
+      auto q_time = duration_cast<microseconds>(batch_stop - batch_start).count();
+      stat.latencies.push_back(q_time);
+      stat.batch_time.push_back(q_time);
+      stat.batch_overhead.push_back(0);
+      stat.batch_cluster_search_time.push_back(0);
     }
     auto search_stop = high_resolution_clock::now();
     auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
 
-    // statistics
-    Stat stat(nq);
     for (int j = 0; j < nq;) {
       vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
       auto search_start = high_resolution_clock::now();
