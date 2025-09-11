@@ -54,6 +54,9 @@ postfiltering_da_interval = {
 prefiltering_da_interval = {
   1: [*[((100, ), (r, )) for r in (200, 300, 600)]]
 }
+navix_da_interval = {
+  1: [*[((0, ), (r * 1_000_000 // 100, )) for r in (1, 3, 5, 10, 20, 30, 40, 50, 75, 90)]]
+}
 
 # attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
 DA_RANGE = {
@@ -87,25 +90,25 @@ DA_SEL = {
 COMPASS_METHODS = [
   "CompassK",
   "CompassBikmeans",
-  "CompassKCg",
-  "CompassBikmeansCg",
+  # "CompassKCg",
+  # "CompassBikmeansCg",
   "CompassPca",
-  "CompassPcaCg",
+  # "CompassPcaCg",
   "CompassKIcg",
   "CompassBikmeansIcg",
   "CompassPcaIcg",
-  "CompassKQicg",
-  "CompassBikmeansQicg",
-  "CompassPcaQicg",
+  # "CompassKQicg",
+  # "CompassBikmeansQicg",
+  # "CompassPcaQicg",
 ]
 COMPASSX_METHODS = [
   "CompassPca",
-  "CompassPcaCg",
+  # "CompassPcaCg",
   "CompassPcaIcg",
-  "CompassPcaQicg",
+  # "CompassPcaQicg",
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
-BASE_METHODS = ["Prefiltering", "Postfiltering", "CompassPostK", "Ivf", "CompassGraph"]
+BASE_METHODS = ["Prefiltering", "Postfiltering", "CompassPostK", "Ivf", "CompassGraph", "Navix"]
 METHODS = COMPASS_METHODS + SOTA_METHODS + BASE_METHODS
 SOTA_POST_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
 
@@ -140,9 +143,10 @@ M_DA_RUN = {
   },
   "Prefiltering": prefiltering_da_interval,
   "Postfiltering": postfiltering_da_interval,
-  "CompassPostK": postfiltering_da_interval,
+  "CompassPostK": compass_da_interval,
   "Ivf": ivf_da_interval,
   "CompassGraph": compass_graph_da_interval,
+  "Navix": navix_da_interval,
 }
 
 compass_group_dataset = {
@@ -223,6 +227,7 @@ ivf_parameters = {
 prefiltering_parameters = {"build": [], "search": []}
 postfiltering_parameters = {"build": ["M", "efc"], "search": ["efs"]}
 compass_graph_parameters = {"build": ["M", "efc"], "search": ["efs", "nrel"]}
+navix_parameters = {"build": ["M", "efc"], "search": ["efs"]}
 
 # method - parameter
 M_PARAM = {
@@ -247,6 +252,7 @@ M_PARAM = {
   "CompassPostK": compass_post_parameters,
   "Ivf": ivf_parameters,
   "CompassGraph": compass_graph_parameters,
+  "Navix": navix_parameters,
 }
 
 compass_args = {
@@ -279,7 +285,7 @@ postfiltering_args = {
   "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
 }
 compass_post_args = {
-  "M": [16],
+  "M": [16, 32],
   "efc": [200],
   "nlist": [10000, 20000],
   "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200],
@@ -299,6 +305,11 @@ compass_graph_args = {
   "efs": [10, 20, 60, 100, 200, 300, 400, 500, 1000, 1500, 2000],
   "nrel": [100, 200],
 }
+navix_args = {
+  "M": [16],
+  "efc": [200],
+  "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200],
+}
 M_ARGS = {
   **{
     m: compass_args
@@ -313,6 +324,7 @@ M_ARGS = {
   "CompassPostK": compass_post_args,
   "Ivf": ivf_args,
   "CompassGraph": compass_graph_args,
+  "Navix": navix_args,
 }
 
 D_ARGS = {
@@ -404,5 +416,8 @@ M_STYLE = {
   },
   "CompassGraph": {
     "marker": "^", "color": "orange"
+  },
+  "Navix": {
+    "marker": "^", "color": "purple"
   },
 }

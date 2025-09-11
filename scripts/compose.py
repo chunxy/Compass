@@ -25,6 +25,8 @@ done'''
 def compose():
   for da in DA_S:
     for m in COMPASS_METHODS + BASE_METHODS:
+      if da not in M_DA_RUN[m]:
+        continue
       for group, datasets in M_GROUP_DATASET[m].items():
         parts = [p.lower() for p in re.findall(r'[A-Z][a-z]*', m)]
         filename = f"{da}d-" + "-".join(parts[1:]) + f"-exp-{group}.sh"

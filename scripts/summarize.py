@@ -10,6 +10,8 @@ import pandas as pd
 from config import (
   BASE_METHODS,
   COMPASS_METHODS,
+  COMPASSX_METHODS,
+  SOTA_METHODS,
   SOTA_POST_METHODS,
   DA_RANGE,
   DA_S,
@@ -20,7 +22,6 @@ from config import (
   M_STYLE,
   M_PARAM,
   M_WORKLOAD,
-  METHODS,
   compass_args,
   D_ARGS,
 )
@@ -47,9 +48,9 @@ xlim = [0.6, 1]
 
 
 def summarize():
-  for da in DA_S:
+  for da in [1]:
     entries = []
-    for m in SOTA_POST_METHODS + METHODS:
+    for m in SOTA_POST_METHODS + BASE_METHODS + SOTA_METHODS:
       if da not in M_DA_RUN[m]: continue  # noqa: E701
       for d in DATASETS:
         for itvl in M_DA_RUN[m][da]:
@@ -71,6 +72,23 @@ def summarize():
               if path.exists():
                 entries.append((path, m, w, d, nrg, sel, b, s))
 
+    if da not in M_DA_RUN["Navix"]: continue  # noqa: E701
+    for d in DATASETS:
+      for itvl in M_DA_RUN["Navix"][da]:
+        w = M_WORKLOAD["Navix"].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
+        nrg = "-".join([f"{(r - l) // 10000}" for l, r in zip(*itvl)])  # noqa: E741
+        sel = f"{reduce(lambda a, b: a * b, [(r - l) / 1000000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
+
+        bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM["Navix"]["build"]])
+        st = "_".join([f"{sp}_{{}}" for sp in M_PARAM["Navix"]["search"]])
+        for ba in product(*[D_ARGS[d].get(bp, M_ARGS["Navix"][bp]) for bp in M_PARAM["Navix"]["build"]]):
+          b = bt.format(*ba)
+          for sa in product(*[D_ARGS[d].get(sp, M_ARGS["Navix"][sp]) for sp in M_PARAM["Navix"]["search"]]):
+            s = st.format(*sa)
+            path = LOG_ROOT / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
+            if path.exists():
+              entries.append((path, "Navix", w, d, nrg, sel, b, s))
+
     df = pd.DataFrame.from_records(
       entries, columns=[
         "path",
@@ -86,6 +104,16 @@ def summarize():
 
     rec, qps, tqps, ncomp, prop, initial_ncomp = [], [], [], [], [], []
     for e in entries:
+      if e[1] == "Navix":
+        with open(e[0]) as f:
+          stat = json.load(f)
+          rec.append(stat["recall_percentage"] / 100)
+          qps.append(1 / stat["avg_vector_search_time_ms"] * 1000)
+          tqps.append(1 / stat["avg_execution_time_ms"] * 1000)
+          ncomp.append(stat["avg_distance_computations"])
+          prop.append(0)
+          initial_ncomp.append(0)
+        continue
       jsons = list(e[0].glob("*.json"))
       if len(jsons) == 0:
         df = df.drop(e[0])
@@ -107,6 +135,9 @@ def summarize():
             initial_ncomp.append(stat["aggregated"]["cluster_search_ncomp"] / stat["aggregated"]["batchsz"])
           else:
             initial_ncomp.append(stat["aggregated"]["cluster_search_ncomp"] / 100)
+        elif "cg_num_computations" in stat["aggregated"]:
+          ncomp[-1] += stat["aggregated"]["cg_num_computations"]
+          initial_ncomp.append(0)
         else:
           initial_ncomp.append(0)
 
@@ -596,6 +627,7 @@ def draw_qps_comp_fixing_selectivity_by_dimension_home(d_m_b, d_m_s, anno, prefi
       path.parent.mkdir(parents=True, exist_ok=True)
       fig.savefig(path, dpi=200)
       plt.close()
+
 
 if __name__ == "__main__":
   summarize()
