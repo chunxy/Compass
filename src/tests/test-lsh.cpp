@@ -60,13 +60,13 @@ int main() {
   // AttrReaderToVector<float> reader(attr_path);
   // auto attrs = reader.GetAttrs();
 
-  int nbits = 1024;
+  int nbits = 512;
   faiss::IndexLSH index(d, nbits);
   index.train(nb, xb);
   index.add(nb, xb);
 
   omp_set_num_threads(1);
-  int k = nk;
+  int k = 10;
   {  // search xq
     idx_t *I = new idx_t[k * nq];
     float *D = new float[k * nq];
