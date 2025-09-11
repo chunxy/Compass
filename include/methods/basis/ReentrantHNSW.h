@@ -180,7 +180,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       const void *query_data,
       const size_t k,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
-      fc::BTreeMap<dist_t, std::pair<dist_t, labeltype>, 32> &btree,
+      fc::BTreeMap<dist_t, std::pair<dist_t, labeltype>, 16> &btree,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
       VisitedList *vl,
       int &ncomp,

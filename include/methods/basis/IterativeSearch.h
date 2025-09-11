@@ -26,7 +26,7 @@ class IterativeSearchState {
   priority_queue<pair<dist_t, labeltype>> result_set_;            // min heap
   priority_queue<pair<dist_t, labeltype>> batch_rz_;              // min heap
   AVL::Tree<std::pair<dist_t, labeltype>> otree_;                 // top candidates alternative
-  fc::BTreeMap<dist_t, std::pair<dist_t, labeltype>, 32> btree_;  // top candidates alternative
+  fc::BTreeMap<dist_t, std::pair<dist_t, labeltype>, 16> btree_;  // top candidates alternative
   VisitedList *vl_;
   int ncomp_;
   int total_;
@@ -98,6 +98,16 @@ class IterativeSearch {
         state->ncomp_,
         state->out_
     );
+    // hnsw_->IterativeReentrantSearchKnn(
+    //     state->query_,
+    //     this->batch_k_,
+    //     state->candidate_set_,
+    //     state->otree_,
+    //     state->result_set_,
+    //     state->vl_,
+    //     state->ncomp_,
+    //     state->out_
+    // );
     int cnt = 0;
     while (cnt < this->batch_k_ && !state->result_set_.empty()) {
       auto top = state->result_set_.top();
