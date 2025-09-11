@@ -28,7 +28,7 @@ auto dist_func = hnswlib::L2Sqr;
 
 int main(int argc, char **argv) {
   extern std::map<std::string, DataCard> name_to_card;
-  DataCard c = name_to_card["siftsmall_1_1000_top500_float32"];
+  DataCard c = name_to_card["audio_1_10000_float32"];
   size_t d = c.dim;          // This has to be size_t due to dist_func() call.
   int nb = c.n_base;         // number of database vectors
   int nq = c.n_queries;      // number of queries
