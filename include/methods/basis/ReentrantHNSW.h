@@ -97,6 +97,157 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     }
   }
 
+  void IterativeReentrantSearchKnnTwoHop(
+      const void *query_data,
+      const size_t k,
+      BaseFilterFunctor *is_id_allowed,
+      std::priority_queue<std::pair<dist_t, labeltype>> &recycled_candidates,
+      std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
+      std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
+      std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
+      VisitedList *vl,
+      int &ncomp
+  ) {
+    size_t efs = std::max(k, this->ef_);
+    auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+
+    while (!candidate_set.empty()) {
+      auto curr_obj = candidate_set.top().second;
+      auto curr_dist = -candidate_set.top().first;
+      candidate_set.pop();
+
+      if (curr_dist > upper_bound) {
+        break;
+      }
+
+      unsigned int *cand_info = this->get_linklist0(curr_obj);
+      int size = this->getListCount(cand_info);
+      tableint *cand_nbrs = (tableint *)(cand_info + 1);
+#ifdef USE_SSE
+      _mm_prefetch((char *)(vl->mass + *(cand_nbrs)), _MM_HINT_T0);
+      _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
+      _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
+#endif
+
+      std::priority_queue<std::pair<dist_t, tableint>> added_onehop_neighbors;
+      std::unordered_set<tableint> other_onehop_id;
+      float added_onehop_count = 0;
+
+      for (int i = 0; i < size; i++) {
+        tableint cand_nbr = cand_nbrs[i];
+#ifdef USE_SSE
+        _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
+        _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
+#endif
+        if (vl->mass[cand_nbr] == vl->curV) continue;
+        vl->mass[cand_nbr] = vl->curV;
+        if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) {
+          other_onehop_id.insert(cand_nbr);
+          continue;
+        }
+        ncomp++;
+        dist_t cand_nbr_dist =
+            this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+
+        result_set.emplace(-cand_nbr_dist, cand_nbr);
+        added_onehop_count++;
+        added_onehop_neighbors.emplace(-cand_nbr_dist, cand_nbr);
+        if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
+          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+#ifdef USE_SSE
+          _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+#endif
+          top_candidates.emplace(cand_nbr_dist, cand_nbr);
+          if (top_candidates.size() > efs) {
+            auto top = top_candidates.top();
+            recycled_candidates.emplace(-top.first, top.second);
+            top_candidates.pop();
+          }
+          upper_bound = top_candidates.top().first;
+        } else {
+          recycled_candidates.emplace(-cand_nbr_dist, cand_nbr);
+        }
+      }
+
+      if (added_onehop_count <= 2) {
+        // adaptive-local, directed
+        while (added_onehop_neighbors.size() > 0) {
+          tableint cand_nbr = added_onehop_neighbors.top().second;
+          added_onehop_neighbors.pop();
+
+          tableint *twohop_info = this->get_linklist0(cand_nbr);
+          int twohop_size = this->getListCount(twohop_info);
+          tableint *twohop_nbrs = twohop_info + 1;
+
+          for (int j = 0; j < twohop_size; j++) {
+            tableint twohop_nbr = twohop_nbrs[j];
+            if (vl->mass[twohop_nbr] == vl->curV) continue;
+            vl->mass[twohop_nbr] = vl->curV;
+            if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+            ncomp++;
+
+            dist_t twohop_nbr_dist =
+                this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
+            result_set.emplace(-twohop_nbr_dist, cand_nbr);
+
+            if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
+              candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
+#ifdef USE_SSE
+              _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+#endif
+              top_candidates.emplace(twohop_nbr_dist, twohop_nbr);
+              if (top_candidates.size() > efs) {
+                auto top = top_candidates.top();
+                recycled_candidates.emplace(-top.first, top.second);
+                top_candidates.pop();
+              };
+              upper_bound = top_candidates.top().first;
+            } else {
+              recycled_candidates.emplace(-twohop_nbr_dist, twohop_nbr);
+            }
+          }
+        }
+
+        while (other_onehop_id.size() > 0) {
+          tableint cand_nbr = *other_onehop_id.begin();
+          other_onehop_id.erase(other_onehop_id.begin());
+
+          tableint *twohop_info = this->get_linklist0(cand_nbr);
+          int twohop_size = this->getListCount(twohop_info);
+          tableint *twohop_nbrs = twohop_info + 1;
+
+          for (int j = 0; j < twohop_size; j++) {
+            tableint twohop_nbr = twohop_nbrs[j];
+            if (vl->mass[twohop_nbr] == vl->curV) continue;
+            vl->mass[twohop_nbr] = vl->curV;
+            if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+            ncomp++;
+
+            dist_t twohop_nbr_dist =
+                this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
+            result_set.emplace(-twohop_nbr_dist, cand_nbr);
+
+            if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
+              candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
+#ifdef USE_SSE
+              _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+#endif
+              top_candidates.emplace(twohop_nbr_dist, twohop_nbr);
+              if (top_candidates.size() > efs) {
+                auto top = top_candidates.top();
+                recycled_candidates.emplace(-top.first, top.second);
+                top_candidates.pop();
+              };
+              upper_bound = top_candidates.top().first;
+            } else {
+              recycled_candidates.emplace(-twohop_nbr_dist, twohop_nbr);
+            }
+          }
+        }
+      }
+    }
+  }
+
   void IterativeReentrantSearchKnn(
       const void *query_data,
       const size_t k,
