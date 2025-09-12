@@ -36,12 +36,12 @@ best_d_m_b = {d: {} for d in DATASETS}
 # best_d_m_b["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_128_M_cg_4"]
 # best_d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 
-for d in ("sift", "audio"):
+for d in ("sift", "audio", "gist", "crawl"):
   best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
-best_d_m_b["gist"]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
-best_d_m_b["video"]["CompassPostK"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
-best_d_m_b["crawl"]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
-best_d_m_b["glove100"]["CompassPostK"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+for d in ("video", "glove100"):
+  best_d_m_b[d]["CompassPostK"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
 for d in DATASETS:
   # best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
@@ -61,7 +61,8 @@ best_d_m_s = {d: {} for d in DATASETS}
 #   best_d_m_s["gist"][m] = {"nrel": [100]}
 
 for d in DATASETS:
-  best_d_m_s[d]["CompassPostK"] = {"nrel": [100]}
+  best_d_m_s[d]["CompassPostK"] = {"nrel": [50, 100]}
+  best_d_m_s[d]["CompassPostKTh"] = {"nrel": [50, 100]}
   best_d_m_s[d]["CompassGraph"] = {"nrel": [100, 200]}
 
 

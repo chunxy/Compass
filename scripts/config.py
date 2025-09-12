@@ -108,7 +108,7 @@ COMPASSX_METHODS = [
   # "CompassPcaQicg",
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
-BASE_METHODS = ["Prefiltering", "Postfiltering", "CompassPostK", "Ivf", "CompassGraph", "Navix"]
+BASE_METHODS = ["Prefiltering", "Postfiltering", "CompassPostK", "CompassPostKTh", "Ivf", "CompassGraph", "Navix"]
 METHODS = COMPASS_METHODS + SOTA_METHODS + BASE_METHODS
 SOTA_POST_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
 
@@ -144,6 +144,7 @@ M_DA_RUN = {
   "Prefiltering": prefiltering_da_interval,
   "Postfiltering": postfiltering_da_interval,
   "CompassPostK": compass_da_interval,
+  "CompassPostKTh": compass_da_interval,
   "Ivf": ivf_da_interval,
   "CompassGraph": compass_graph_da_interval,
   "Navix": navix_da_interval,
@@ -181,6 +182,7 @@ M_GROUP_DATASET = {
     for m in BASE_METHODS
   },
   "CompassPostK": compass_post_group_dataset,
+  "CompassPostKTh": compass_post_group_dataset,
   "Ivf": compass_post_group_dataset,
 }
 
@@ -250,6 +252,7 @@ M_PARAM = {
   "Prefiltering": prefiltering_parameters,
   "Postfiltering": postfiltering_parameters,
   "CompassPostK": compass_post_parameters,
+  "CompassPostKTh": compass_post_parameters,
   "Ivf": ivf_parameters,
   "CompassGraph": compass_graph_parameters,
   "Navix": navix_parameters,
@@ -288,7 +291,7 @@ compass_post_args = {
   "M": [16, 32],
   "efc": [200],
   "nlist": [10000, 20000],
-  "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200],
+  "efs": [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100],
   "M_cg": [4],
   "nrel": [50, 100],
   "batch_k": [50],
@@ -322,6 +325,7 @@ M_ARGS = {
   "Prefiltering": prefiltering_args,
   "Postfiltering": postfiltering_args,
   "CompassPostK": compass_post_args,
+  "CompassPostKTh": compass_post_args,
   "Ivf": ivf_args,
   "CompassGraph": compass_graph_args,
   "Navix": navix_args,
@@ -330,23 +334,23 @@ M_ARGS = {
 D_ARGS = {
   "sift": {
     "dx": [64],
-    "nlist": [10000],
+    "nlist": [5000, 10000],
   },
   "glove100": {
     "dx": [64],
-    "efs": compass_args["efs"] + [250, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
+    # "efs": compass_args["efs"] + [250, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
   },
   "audio": {
     "dx": [64],
-    "nlist": [10000],
+    "nlist": [5000, 10000],
   },
   "video": {
     "dx": [256, 512],
-    "efs": compass_args["efs"] + [250, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
+    # "efs": compass_args["efs"] + [250, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
   },
   "gist": {
     "dx": [256, 512],
-    "efs": compass_args["efs"] + [250, 350, 400, 450, 500],
+    # "efs": compass_args["efs"] + [250, 350, 400, 450, 500],
   },
   "crawl": {
     "dx": [128, 256],  # "M_cg": [4, 8],
@@ -410,6 +414,9 @@ M_STYLE = {
   },
   "CompassPostK": {
     "marker": "s", "color": "blue"
+  },
+  "CompassPostKTh": {
+    "marker": "s", "color": "orange"
   },
   "Ivf": {
     "marker": "^", "color": "pink"
