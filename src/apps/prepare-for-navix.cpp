@@ -8,7 +8,6 @@
 #include <cstdio>
 #include <map>
 #include <string>
-#include "config.h"
 #include "utils/Pod.h"
 #include "utils/card.h"
 #include "utils/funcs.h"
@@ -36,10 +35,10 @@ int main(int argc, char **argv) {
   args.k = 100;  // We find top-100 for Navix.
 
   fs::path data("/home/chunxy/repos/Compass/data/navix");
-  int sel = (args.u_bound - args.l_bound) / 100;
-  fs::create_directories(data / c.name);
+  int sel = (args.u_bound - args.l_bound) / 10000;
+  fs::create_directories(data / c.name / "bench_data");
   std::string query_file = fmt::format("queries_{}.txt", sel);
-  std::string gt_file = fmt::format("gt_{}.txt", sel);
+  std::string gt_file = fmt::format("gt_{}.bin", sel);
   std::ofstream query_ofs((data / c.name / "bench_data" / query_file).string());
   std::ofstream gt_ofs((data / c.name / "bench_data" / gt_file).string());
 
