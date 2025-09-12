@@ -33,32 +33,31 @@ int main(int argc, char **argv) {
   load_hybrid_data(c, xb, xq, gt, attrs);
   fmt::print("Finished loading data.\n");
 
-  // Load groundtruth for hybrid search.
-  vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, {args.l_bound}, {args.u_bound}, args.k, hybrid_topks);
-  fmt::print("Finished loading groundtruth.\n");
+  args.k = 100;  // We find top-100 for Navix.
 
   fs::path data("/home/chunxy/repos/Compass/data/navix");
   int sel = (args.u_bound - args.l_bound) / 100;
   fs::create_directories(data / c.name);
   std::string query_file = fmt::format("query_{}.txt", sel);
   std::string gt_file = fmt::format("gt_{}.txt", sel);
-  std::ofstream query_ofs((data / c.name / query_file).string());
-  std::ofstream gt_ofs((data / c.name / gt_file).string());
+  std::ofstream query_ofs((data / c.name / "bench_data" / query_file).string());
+  std::ofstream gt_ofs((data / c.name / "bench_data" / gt_file).string());
+
+  hnswlib::L2Space space(d);
 
   for (int i = 0; i < 50; i++) {
-    float *vector = xq + i * d;
+    float *query_vec = xq + i * d;
     std::stringstream ss;
     ss << "[";
     for (int j = 0; j < d - 1; j++) {
-      ss << std::fixed << std::setw(10) << std::setprecision(8) << vector[j] << ",";
+      ss << std::fixed << std::setw(10) << std::setprecision(8) << query_vec[j] << ",";
       // ss << std::fixed << std::setprecision(8) << vector[j] << ",";
     }
-    ss << std::fixed << std::setprecision(8) << vector[d - 1] << "]";
+    ss << std::fixed << std::setprecision(8) << query_vec[d - 1] << "]";
     std::string vector_string = ss.str();
 
     std::string query = fmt::format(
-        "MATCH (e:{}) WHERE e.id >= {} AND e.id <= {} "
+        "MATCH (e:{}) WHERE e.id >= {} AND e.id < {} "
         "CALL ANN_SEARCH(e.embedding, {}, <maxK>, <efsearch>, <useQ>, "
         "<knn>, <searchType>) RETURN e.id;\n",
         c.name,
@@ -68,10 +67,24 @@ int main(int argc, char **argv) {
     );
     query_ofs << query;
 
-    auto gt = hybrid_topks[i];
-    for (int j = 0; j < gt.size(); j++) {
-      int64_t id = gt[j];
-      // write id to gt_ofs in binary
+    priority_queue<pair<float, uint32_t>> pq;
+    for (int i = args.l_bound; i <= args.u_bound; i++) {
+      float dist = space.get_dist_func()(query_vec, xb + i * d, space.get_dist_func_param());
+      pq.emplace(dist, i);
+      if (pq.size() > args.k) {
+        pq.pop();
+      }
+    }
+    vector<labeltype> topk(args.k);
+    int sz = args.k;
+    while (!pq.empty()) {
+      topk[--sz] = pq.top().second;
+      pq.pop();
+    }
+
+    for (int j = 0; j < topk.size(); j++) {
+      int64_t id = topk[j];
+      // Write 8-byte id to gt_ofs in binary.
       gt_ofs.write((char *)&id, sizeof(id));
     }
   }
