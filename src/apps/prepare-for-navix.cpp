@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   fs::path data("/home/chunxy/repos/Compass/data/navix");
   int sel = (args.u_bound - args.l_bound) / 100;
   fs::create_directories(data / c.name);
-  std::string query_file = fmt::format("query_{}.txt", sel);
+  std::string query_file = fmt::format("queries_{}.txt", sel);
   std::string gt_file = fmt::format("gt_{}.txt", sel);
   std::ofstream query_ofs((data / c.name / "bench_data" / query_file).string());
   std::ofstream gt_ofs((data / c.name / "bench_data" / gt_file).string());
@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
     query_ofs << query;
 
     priority_queue<pair<float, uint32_t>> pq;
-    for (int i = args.l_bound; i <= args.u_bound; i++) {
+    for (int i = args.l_bound; i < args.u_bound; i++) {
       float dist = space.get_dist_func()(query_vec, xb + i * d, space.get_dist_func_param());
       pq.emplace(dist, i);
       if (pq.size() > args.k) {
