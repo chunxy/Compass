@@ -258,7 +258,7 @@ class Compass1dPost {
     return results;
   }
 
-  virtual vector<priority_queue<pair<dist_t, labeltype>>> SearchKnnIvfFirst(
+  virtual vector<priority_queue<pair<dist_t, labeltype>>> SearchKnnPostFiltered(
       const void *query,
       const int nq,
       const int k,
@@ -290,8 +290,8 @@ class Compass1dPost {
 #ifndef BENCH
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
-      auto state = graph_.OpenUninit(query_q, graph_.hnsw_->max_elements_, vl);
-      graph_.SetSearchParam(k, 20 + k, k); // bad behavior...
+      auto state = graph_.OpenFiltered(query_q, graph_.hnsw_->max_elements_, vl, &pred);
+      graph_.SetSearchParam(k, 20 + k, k);  // bad behavior...
 #ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
@@ -316,13 +316,13 @@ class Compass1dPost {
       itr_end = btrees_[clus].upper_bound(u_bound[0]);
       int clus_cnt = 1;
 
-      int in_range_cnt = 0, num_graph_ppsl = 0, nround = 0;
+      int nround_graph = 0, num_graph_ppsl = 0, nround = 0;
       int num_ivf_ppsl = 0;
       while (top_candidates.size() < efs) {
         // TODO: 0.1 is a tuning point.
         // If this number is too small, we have to rely on graph to add points slowly
         // Otherwise, we will turn to IVF for batch addition (k in our case).
-        if (num_ivf_ppsl == 0 || (num_graph_ppsl > 20 && in_range_cnt <= num_graph_ppsl * 0.1)) {
+        if ((nround_graph >= 1 && num_graph_ppsl <= nround_graph * k * 0.3)) {
 #ifndef BENCH
           auto ivf_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
@@ -375,26 +375,27 @@ class Compass1dPost {
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
 #endif
-        }
+        } else {
 #ifndef BENCH
-        auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
+          auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
-        priority_queue<pair<dist_t, labeltype>> batch = graph_.NextBatch(&state);
-        num_graph_ppsl += batch.size();
-        while (!batch.empty()) {
-          auto [dist, label] = batch.top();
-          batch.pop();
-          if (pred(label)) {
-            top_candidates.push(std::make_pair(-dist, label));
-            bm.qmetrics[q].is_graph_ppsl[label] = true;
-            in_range_cnt++;
+          priority_queue<pair<dist_t, labeltype>> batch = graph_.NextBatchFiltered(&state, &pred);
+          num_graph_ppsl += batch.size();
+          while (!batch.empty()) {
+            auto [dist, label] = batch.top();
+            batch.pop();
+            if (pred(label)) {
+              top_candidates.push(std::make_pair(-dist, label));
+              bm.qmetrics[q].is_graph_ppsl[label] = true;
+            }
           }
-        }
+          nround_graph++;
 #ifndef BENCH
-        auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
-        auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
-        bm.qmetrics[q].graph_latency += graph_time;
+          auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
+          auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
+          bm.qmetrics[q].graph_latency += graph_time;
 #endif
+        }
         nround++;
       }
 
@@ -415,7 +416,7 @@ class Compass1dPost {
     return results;
   }
 
-  virtual vector<priority_queue<pair<dist_t, labeltype>>> SearchKnnTwoHop(
+  virtual vector<priority_queue<pair<dist_t, labeltype>>> SearchKnnPostFilteredTwoHop(
       const void *query,
       const int nq,
       const int k,
