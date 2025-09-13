@@ -289,11 +289,10 @@ void collect_batch_metric(
           dist <= gt_max_s[i] + EPSILON) {
         if (metric.is_ivf_ppsl[id]) {
           ivf_ppsl_in_tp++;
-          tp++;
         } else if (metric.is_graph_ppsl[id]) {
           graph_ppsl_in_tp++;
-          tp++;
         }
+        tp++;
       }
       rz_min = std::min(rz_min, dist);
       rz_max = std::max(rz_max, dist);
