@@ -207,17 +207,20 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
         if (vl->mass[cand_nbr] == vl->curV) continue;
         vl->mass[cand_nbr] = vl->curV;
-        if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) {
-          other_onehop_id.insert(cand_nbr);
-          continue;
-        }
+
         ncomp++;
         dist_t cand_nbr_dist =
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
 
-        result_set.emplace(-cand_nbr_dist, cand_nbr);
-        added_onehop_count++;
-        added_onehop_neighbors.emplace(-cand_nbr_dist, cand_nbr);
+        if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) {
+          other_onehop_id.insert(cand_nbr);
+          // continue;
+        } else {
+          result_set.emplace(-cand_nbr_dist, cand_nbr);
+          added_onehop_count++;
+          added_onehop_neighbors.emplace(-cand_nbr_dist, cand_nbr);
+        }
+
         if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
           candidate_set.emplace(-cand_nbr_dist, cand_nbr);
 #ifdef USE_SSE
@@ -235,11 +238,19 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         }
       }
 
-      if (added_onehop_count <= 2) {
+
+      if (added_onehop_count / size <= 0.1) {
+        int remaining = size - added_onehop_count;
         // adaptive-local, directed
-        while (added_onehop_neighbors.size() > 0) {
+        while (added_onehop_neighbors.size() > 0 && remaining > 0) {
           tableint cand_nbr = added_onehop_neighbors.top().second;
           added_onehop_neighbors.pop();
+#ifdef USE_SSE
+          _mm_prefetch(this->getDataByInternalId(cand_nbr), _MM_HINT_T0);
+          if (added_onehop_neighbors.size() > 0) {
+            _mm_prefetch(this->getDataByInternalId(added_onehop_neighbors.top().second), _MM_HINT_T0);
+          }
+#endif
 
           tableint *twohop_info = this->get_linklist0(cand_nbr);
           int twohop_size = this->getListCount(twohop_info);
@@ -248,19 +259,17 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           for (int j = 0; j < twohop_size; j++) {
             tableint twohop_nbr = twohop_nbrs[j];
             if (vl->mass[twohop_nbr] == vl->curV) continue;
-            vl->mass[twohop_nbr] = vl->curV;
             if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+            vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
-
+            remaining--;
             dist_t twohop_nbr_dist =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
             result_set.emplace(-twohop_nbr_dist, cand_nbr);
 
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
               candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
-#ifdef USE_SSE
-              _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
-#endif
+
               top_candidates.emplace(twohop_nbr_dist, twohop_nbr);
               if (top_candidates.size() > efs) {
                 auto top = top_candidates.top();
@@ -274,9 +283,15 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           }
         }
 
-        while (other_onehop_id.size() > 0) {
+        while (other_onehop_id.size() > 0 && remaining > 0) {
           tableint cand_nbr = *other_onehop_id.begin();
           other_onehop_id.erase(other_onehop_id.begin());
+#ifdef USE_SSE
+          _mm_prefetch(this->getDataByInternalId(cand_nbr), _MM_HINT_T0);
+          if (other_onehop_id.size() > 0) {
+            _mm_prefetch(this->getDataByInternalId(*other_onehop_id.begin()), _MM_HINT_T0);
+          }
+#endif
 
           tableint *twohop_info = this->get_linklist0(cand_nbr);
           int twohop_size = this->getListCount(twohop_info);
@@ -285,19 +300,16 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           for (int j = 0; j < twohop_size; j++) {
             tableint twohop_nbr = twohop_nbrs[j];
             if (vl->mass[twohop_nbr] == vl->curV) continue;
-            vl->mass[twohop_nbr] = vl->curV;
             if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+            vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
-
+            remaining--;
             dist_t twohop_nbr_dist =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
             result_set.emplace(-twohop_nbr_dist, cand_nbr);
 
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
               candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
-#ifdef USE_SSE
-              _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
-#endif
               top_candidates.emplace(twohop_nbr_dist, twohop_nbr);
               if (top_candidates.size() > efs) {
                 auto top = top_candidates.top();

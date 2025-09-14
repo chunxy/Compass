@@ -22,9 +22,9 @@ class IterativeSearchState {
   size_t k_;
 
   priority_queue<pair<dist_t, labeltype>> recycled_candidates_;  // min heap
-  priority_queue<pair<dist_t, labeltype>> top_candidates_;       // max heap
  public:
-  priority_queue<pair<dist_t, labeltype>> candidate_set_;  // min heap
+  priority_queue<pair<dist_t, labeltype>> top_candidates_;  // max heap
+  priority_queue<pair<dist_t, labeltype>> candidate_set_;   // min heap
  private:
   priority_queue<pair<dist_t, labeltype>> result_set_;            // min heap
   priority_queue<pair<dist_t, labeltype>> batch_rz_;              // min heap
@@ -324,7 +324,7 @@ class IterativeSearch {
       }
       state.top_candidates_.emplace(curr_dist, curr_obj);
 
-      UpdateNextFiltered(&state, pred);
+      // UpdateNextFiltered(&state, pred);
     }
     return state;
   }
@@ -379,10 +379,12 @@ class IterativeSearch {
       }
       state.vl_->mass[curr_obj] = state.vl_->curV;
       state.candidate_set_.emplace(-curr_dist, curr_obj);
-      state.result_set_.emplace(-curr_dist, curr_obj);
+      if (pred == nullptr || (*pred)(curr_obj)) {
+        state.result_set_.emplace(-curr_dist, curr_obj);
+      }
       state.top_candidates_.emplace(curr_dist, curr_obj);
 
-      UpdateNextTwoHop(&state, pred);
+      // UpdateNextTwoHop(&state, pred);
     }
     return state;
   }
