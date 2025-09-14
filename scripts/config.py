@@ -291,7 +291,18 @@ compass_post_args = {
   "M": [16, 32],
   "efc": [200],
   "nlist": [10000, 20000],
-  "efs": [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100],
+  "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200],
+  "M_cg": [4],
+  "nrel": [50, 100],
+  "batch_k": [50],
+  "initial_efs": [50],
+  "delta_efs": [30],  # 100 for old exps, 50 for old iterative graph, 31 for grouped attributes
+}
+compass_post_th_args = {
+  "M": [16, 32],
+  "efc": [200],
+  "nlist": [10000, 20000],
+  "efs": [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200],
   "M_cg": [4],
   "nrel": [50, 100],
   "batch_k": [50],
@@ -325,7 +336,7 @@ M_ARGS = {
   "Prefiltering": prefiltering_args,
   "Postfiltering": postfiltering_args,
   "CompassPostK": compass_post_args,
-  "CompassPostKTh": compass_post_args,
+  "CompassPostKTh": compass_post_th_args,
   "Ivf": ivf_args,
   "CompassGraph": compass_graph_args,
   "Navix": navix_args,
@@ -413,10 +424,10 @@ M_STYLE = {
     "marker": "p", "color": "green"
   },
   "CompassPostK": {
-    "marker": "s", "color": "blue"
+    "marker": "s",
   },
   "CompassPostKTh": {
-    "marker": "s", "color": "orange"
+    "marker": "o",
   },
   "Ivf": {
     "marker": "^", "color": "pink"
