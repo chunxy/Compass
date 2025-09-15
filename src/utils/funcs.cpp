@@ -270,6 +270,7 @@ void collect_batch_metric(
 ) {
   for (int i = 0, j = curr; i < results.size(); i++, j++) {
     auto rz = results[i];
+    std::set<int> rz_ids;
     auto metric = bm.qmetrics[i];
     float rz_min = std::numeric_limits<float>::max(), rz_max = std::numeric_limits<float>::min();
     int ivf_ppsl_in_rz = 0, graph_ppsl_in_rz = 0;
@@ -280,6 +281,11 @@ void collect_batch_metric(
       rz.pop();
       auto id = pair.second;
       auto dist = pair.first;
+      if (rz_ids.find(id) != rz_ids.end()) {
+        fmt::print("Duplicate ID: {}\n", id);
+        continue;
+      }
+      rz_ids.insert(id);
       if (metric.is_ivf_ppsl[id]) {
         ivf_ppsl_in_rz++;
       } else if (metric.is_graph_ppsl[id]) {
