@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
       for (int j = 0; j < nq; j += args.batchsz) {
         int b = j / args.batchsz;
         auto batch_start = high_resolution_clock::system_clock::now();
-        results[b] = comp.SearchKnnPostFiltered(
+        results[b] = comp.SearchKnnPostFilteredTwoHop(
             xq + j * d,
             args.batchsz,
             args.k,
