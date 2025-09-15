@@ -267,7 +267,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             remaining--;
             dist_t twohop_nbr_dist =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
-            result_set.emplace(-twohop_nbr_dist, cand_nbr);
+            result_set.emplace(-twohop_nbr_dist, twohop_nbr);
 
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
               candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
@@ -308,7 +308,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             remaining--;
             dist_t twohop_nbr_dist =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
-            result_set.emplace(-twohop_nbr_dist, cand_nbr);
+            result_set.emplace(-twohop_nbr_dist, twohop_nbr);
 
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
               candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
