@@ -135,7 +135,7 @@ def summarize():
             initial_ncomp.append(stat["aggregated"]["cluster_search_ncomp"] / stat["aggregated"]["batchsz"])
           else:
             initial_ncomp.append(stat["aggregated"]["cluster_search_ncomp"] / 100)
-        elif "cg_num_computations" in stat["aggregated"]:
+        elif "cg_num_computations" in stat["aggregated"]: # For CompassPost series, add up computations together
           ncomp[-1] += stat["aggregated"]["cg_num_computations"]
           initial_ncomp.append(0)
         else:
