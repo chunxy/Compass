@@ -469,7 +469,7 @@ class Compass1dPost {
       int nround_graph = 0, num_graph_ppsl = 0, nround = 0;
       int num_ivf_ppsl = 0;
       while (top_candidates.size() < efs) {
-        if (num_ivf_ppsl == 0 || (nround_graph >= 1 && num_graph_ppsl <= nround_graph * k * 0.5)) {
+        if (num_ivf_ppsl == 0 || (nround_graph >= 1 && num_graph_ppsl <= nround_graph * k * 0.4)) {
 #ifndef BENCH
           auto ivf_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
@@ -513,6 +513,8 @@ class Compass1dPost {
             auto top = top_ivf.top();
             top_ivf.pop();
             top_candidates.push(std::make_pair(-top.first, top.second));
+            state.candidate_set_.emplace(top.first, top.second);
+            state.top_candidates_.emplace(-top.first, top.second);
             bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
             vl->mass[top.second] = vl->curV;
             num_ivf_ppsl++;

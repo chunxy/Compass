@@ -238,8 +238,10 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         }
       }
 
-
+      // TODO: The ratio is a tuning point.
       if (added_onehop_count / size <= 0.1) {
+        // Supppose `size` is the minimal number of elements
+        // to ensure connectivity.
         int remaining = size - added_onehop_count;
         // adaptive-local, directed
         while (added_onehop_neighbors.size() > 0 && remaining > 0) {
@@ -256,7 +258,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           int twohop_size = this->getListCount(twohop_info);
           tableint *twohop_nbrs = twohop_info + 1;
 
-          for (int j = 0; j < twohop_size; j++) {
+          for (int j = 0; j < twohop_size && remaining > 0; j++) {
             tableint twohop_nbr = twohop_nbrs[j];
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
@@ -297,7 +299,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           int twohop_size = this->getListCount(twohop_info);
           tableint *twohop_nbrs = twohop_info + 1;
 
-          for (int j = 0; j < twohop_size; j++) {
+          for (int j = 0; j < twohop_size && remaining > 0; j++) {
             tableint twohop_nbr = twohop_nbrs[j];
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
