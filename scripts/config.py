@@ -43,11 +43,11 @@ ivf_da_interval = {
   1: [*[((100, ), (r, )) for r in (200, 300, 600, 1100, 2100)]]
 }
 compass_graph_da_interval = {
-  1: [*[((100,), (r,)) for r in range(2100, 10000, 1000)],],
+  1: [*[((100, ), (r, )) for r in range(2100, 10000, 1000)]],
 }
 postfiltering_da_interval = {
   1: [
-    *[((100, ), (r, )) for r in (200, 300, 600)],
+    # *[((100, ), (r, )) for r in (200, 300, 600)], # temporarily removed to avoid figure scaling
     *[((100, ), (r, )) for r in range(1100, 10000, 1000)],
   ]
 }
@@ -55,7 +55,8 @@ prefiltering_da_interval = {
   1: [*[((100, ), (r, )) for r in (200, 300, 600)]]
 }
 navix_da_interval = {
-  1: [*[((0, ), (r * 1_000_000 // 100, )) for r in (1, 3, 5, 10, 20, 30, 40, 50, 75, 90)]]
+  # 1: [*[((0, ), (r * 1_000_000 // 100, )) for r in (1, 3, 5, 10, 20, 30, 40, 50, 75, 90)]] # temporarily removed to avoid figure scaling
+  1: [*[((0, ), (r * 1_000_000 // 100, )) for r in (5, 10, 20, 30, 40, 50, 60, 70, 75, 80, 90)]]
 }
 
 # attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
@@ -424,10 +425,10 @@ M_STYLE = {
     "marker": "p", "color": "green"
   },
   "CompassPostK": {
-    "marker": "s",
+    "marker": "s", "color": "blue"
   },
   "CompassPostKTh": {
-    "marker": "o",
+    "marker": "o", "color": "red"
   },
   "Ivf": {
     "marker": "^", "color": "pink"
