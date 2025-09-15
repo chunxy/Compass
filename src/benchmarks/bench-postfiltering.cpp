@@ -89,8 +89,8 @@ int main(int argc, char **argv) {
     std::string search_param = fmt::format("efs_{}", efs);
     std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
     std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-    fs::path log_root(fmt::format(LOGS, args.k) + "_special");
-    // fs::path log_root(fmt::format(LOGS, args.k));
+    // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+    fs::path log_root(fmt::format(LOGS, args.k));
     fs::path log_dir = log_root / method / workload / build_param / search_param;
     fs::create_directories(log_dir);
     fmt::print("Saving to {}.\n", (log_dir / out_json).string());
@@ -103,11 +103,11 @@ int main(int argc, char **argv) {
     comp.setEf(efs);
     vector<priority_queue<pair<float, labeltype>>> results(nq);
     vector<int> num_computations(nq);
-    auto search_start = high_resolution_clock::now();
 #ifndef COMPASS_DEBUG
 // #pragma omp parallel for num_threads(args.nthread) schedule(static)
 #endif
     Stat stat(nq);
+    long long search_time = 0;
     for (int j = 0; j < nq; j++) {
       auto q_start = high_resolution_clock::now();
       int initial_comp = comp.metric_distance_computations.load();
@@ -127,9 +127,8 @@ int main(int argc, char **argv) {
       stat.batch_time.push_back(q_time);
       stat.batch_overhead.push_back(0);
       stat.batch_cluster_search_time.push_back(0);
+      search_time += q_time;
     }
-    auto search_stop = high_resolution_clock::now();
-    auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
 
     // statistics
     for (int j = 0; j < nq;) {
