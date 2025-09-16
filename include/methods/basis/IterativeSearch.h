@@ -25,8 +25,10 @@ class IterativeSearchState {
  public:
   priority_queue<pair<dist_t, labeltype>> top_candidates_;  // max heap
   priority_queue<pair<dist_t, labeltype>> candidate_set_;   // min heap
+  priority_queue<pair<dist_t, labeltype>> result_set_;      // min heap
+  float sel_;
+
  private:
-  priority_queue<pair<dist_t, labeltype>> result_set_;            // min heap
   priority_queue<pair<dist_t, labeltype>> batch_rz_;              // min heap
   AVL::Tree<std::pair<dist_t, labeltype>> otree_;                 // top candidates alternative
   fc::BTreeMap<dist_t, std::pair<dist_t, labeltype>, 16> btree_;  // top candidates alternative
@@ -116,7 +118,8 @@ class IterativeSearch {
         state->candidate_set_,
         state->result_set_,
         state->vl_,
-        state->ncomp_
+        state->ncomp_,
+        state->sel_
     );
 #ifndef BENCH
     end = std::chrono::high_resolution_clock::now();
