@@ -172,7 +172,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
       VisitedList *vl,
-      int &ncomp
+      int &ncomp,
+      float &sel
   ) {
     size_t efs = std::max(k, this->ef_);
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
@@ -196,7 +197,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
 
       std::priority_queue<std::pair<dist_t, tableint>> added_onehop_neighbors;
-      std::unordered_set<tableint> other_onehop_id;
+      std::priority_queue<std::pair<dist_t, tableint>> other_onehop_neighbors;
       float added_onehop_count = 0;
 
       for (int i = 0; i < size; i++) {
@@ -213,7 +214,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
 
         if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) {
-          other_onehop_id.insert(cand_nbr);
+          other_onehop_neighbors.emplace(-cand_nbr_dist, cand_nbr);
           // continue;
         } else {
           result_set.emplace(-cand_nbr_dist, cand_nbr);
@@ -222,7 +223,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         }
 
         if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
-          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+          // No need to put on candidate_set, because it will be traversed later.
+          // candidate_set.emplace(-cand_nbr_dist, cand_nbr);
 #ifdef USE_SSE
           _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
 #endif
@@ -239,27 +241,25 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       }
 
       // TODO: The ratio is a tuning point.
-      if (added_onehop_count / size <= 0.1) {
-        // Supppose `size` is the minimal number of elements
-        // to ensure connectivity.
+      sel = added_onehop_count / size;
+      if (sel <= 0.1) {
+        // Supppose `size` is the minimal number of elements to ensure connectivity.
         int remaining = size - added_onehop_count;
         // adaptive-local, directed
         while (added_onehop_neighbors.size() > 0 && remaining > 0) {
           tableint cand_nbr = added_onehop_neighbors.top().second;
           added_onehop_neighbors.pop();
-#ifdef USE_SSE
-          _mm_prefetch(this->getDataByInternalId(cand_nbr), _MM_HINT_T0);
-          if (added_onehop_neighbors.size() > 0) {
-            _mm_prefetch(this->getDataByInternalId(added_onehop_neighbors.top().second), _MM_HINT_T0);
-          }
-#endif
 
           tableint *twohop_info = this->get_linklist0(cand_nbr);
           int twohop_size = this->getListCount(twohop_info);
           tableint *twohop_nbrs = twohop_info + 1;
 
-          for (int j = 0; j < twohop_size && remaining > 0; j++) {
+          for (int j = 0; j < twohop_size; j++) {
             tableint twohop_nbr = twohop_nbrs[j];
+#ifdef USE_SSE
+            _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
+#endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
             vl->mass[twohop_nbr] = vl->curV;
@@ -285,22 +285,20 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           }
         }
 
-        while (other_onehop_id.size() > 0 && remaining > 0) {
-          tableint cand_nbr = *other_onehop_id.begin();
-          other_onehop_id.erase(other_onehop_id.begin());
-#ifdef USE_SSE
-          _mm_prefetch(this->getDataByInternalId(cand_nbr), _MM_HINT_T0);
-          if (other_onehop_id.size() > 0) {
-            _mm_prefetch(this->getDataByInternalId(*other_onehop_id.begin()), _MM_HINT_T0);
-          }
-#endif
+        while (other_onehop_neighbors.size() > 0 && remaining > 0) {
+          tableint cand_nbr = other_onehop_neighbors.top().second;
+          other_onehop_neighbors.pop();
 
           tableint *twohop_info = this->get_linklist0(cand_nbr);
           int twohop_size = this->getListCount(twohop_info);
           tableint *twohop_nbrs = twohop_info + 1;
 
-          for (int j = 0; j < twohop_size && remaining > 0; j++) {
+          for (int j = 0; j < twohop_size; j++) {
             tableint twohop_nbr = twohop_nbrs[j];
+#ifdef USE_SSE
+            _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
+#endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
             vl->mass[twohop_nbr] = vl->curV;
@@ -324,6 +322,27 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             }
           }
         }
+      }
+
+      // Assess remaining one-hop neighbors.
+      while (added_onehop_neighbors.size()) {
+        tableint cand_nbr = added_onehop_neighbors.top().second;
+        float cand_nbr_dist = -added_onehop_neighbors.top().first;
+        added_onehop_neighbors.pop();
+
+        if (top_candidates.size() < efs || cand_nbr_dist <= upper_bound) {
+          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+        };
+      }
+
+      while (other_onehop_neighbors.size()) {
+        tableint cand_nbr = other_onehop_neighbors.top().second;
+        float cand_nbr_dist = -other_onehop_neighbors.top().first;
+        other_onehop_neighbors.pop();
+
+        if (top_candidates.size() < efs || cand_nbr_dist <= upper_bound) {
+          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+        };
       }
     }
   }
