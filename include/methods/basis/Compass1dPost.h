@@ -435,7 +435,7 @@ class Compass1dPost {
     VisitedList *vl = this->graph_.hnsw_->visited_list_pool_->getFreeVisitedList();
     VisitedList *vl_cg = this->cg_.hnsw_->visited_list_pool_->getFreeVisitedList();
 
-    graph_.SetSearchParam(20, 20, k);
+    // graph_.SetSearchParam(20, 20, k);
     // cg_.SetSearchParam(20, 20, 20);
 
     for (int q = 0; q < nq; q++) {
@@ -465,7 +465,7 @@ class Compass1dPost {
       int nround_graph = 0, num_graph_ppsl = 0, nround = 0;
       int num_ivf_ppsl = 0;
       while (top_candidates.size() < efs) {
-        if ((nround_graph >= 1 && num_graph_ppsl <= nround_graph * k * 0.4)) {
+        if ((nround_graph >= 1 && state.sel_ <= 0.2)) {
 #ifndef BENCH
           auto ivf_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
@@ -523,42 +523,45 @@ class Compass1dPost {
             top_ivf.push(std::make_pair(-dist, tableid));
             crel++;
           }
-          for (int i = 0; i < k && !top_ivf.empty(); i++) {
+          int i = 0;
+          for (; i < k && !top_ivf.empty(); i++) {
             auto top = top_ivf.top();
             top_ivf.pop();
-            top_candidates.push(std::make_pair(-top.first, top.second));
             state.candidate_set_.emplace(top.first, top.second);
+            state.result_set_.emplace(top.first, top.second);
             state.top_candidates_.emplace(-top.first, top.second);
             bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
             vl->mass[top.second] = vl->curV;
             num_ivf_ppsl++;
           }
+          graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
+
 #ifndef BENCH
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
 #endif
-        } else {
-#ifndef BENCH
-          auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
-#endif
-          priority_queue<pair<dist_t, labeltype>> batch = graph_.NextBatchTwoHop(&state, &pred);
-          num_graph_ppsl += batch.size();
-          while (!batch.empty()) {
-            auto [dist, label] = batch.top();
-            batch.pop();
-            // if (pred(label)) {
-            top_candidates.push(std::make_pair(-dist, label));
-            bm.qmetrics[q].is_graph_ppsl[label] = true;
-            // }
-          }
-#ifndef BENCH
-          auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
-          auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
-          bm.qmetrics[q].graph_latency += graph_time;
-#endif
-          nround_graph++;
         }
+#ifndef BENCH
+        auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+        priority_queue<pair<dist_t, labeltype>> batch = graph_.NextBatchTwoHop(&state, &pred);
+        num_graph_ppsl += batch.size();
+        while (!batch.empty()) {
+          auto [dist, label] = batch.top();
+          batch.pop();
+          // if (pred(label)) {
+          top_candidates.push(std::make_pair(-dist, label));
+          bm.qmetrics[q].is_graph_ppsl[label] = true;
+          // }
+        }
+#ifndef BENCH
+        auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
+        auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
+        bm.qmetrics[q].graph_latency += graph_time;
+#endif
+        nround_graph++;
+
         nround++;
       }
 
@@ -568,6 +571,8 @@ class Compass1dPost {
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
 
+      graph_.Close(&state);
+      cg_.Close(&cg_state);
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
 #ifndef BENCH
