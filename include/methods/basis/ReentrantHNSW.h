@@ -166,7 +166,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   void IterativeReentrantSearchKnnTwoHop(
       const void *query_data,
       const size_t k,
-      BaseFilterFunctor *is_id_allowed,
+      RangeQuery<float> *is_id_allowed,
       std::priority_queue<std::pair<dist_t, labeltype>> &recycled_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
@@ -177,6 +177,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   ) {
     size_t efs = std::max(k, this->ef_);
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+    bool computed = false;
 
     while (!candidate_set.empty()) {
       auto curr_obj = candidate_set.top().second;
@@ -192,22 +193,27 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       tableint *cand_nbrs = (tableint *)(cand_info + 1);
 #ifdef USE_SSE
       _mm_prefetch((char *)(vl->mass + *(cand_nbrs)), _MM_HINT_T0);
+      _mm_prefetch((char *)(is_id_allowed->prefetch(*(cand_nbrs))), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
 #endif
 
       std::priority_queue<std::pair<dist_t, tableint>> added_onehop_neighbors;
       std::priority_queue<std::pair<dist_t, tableint>> other_onehop_neighbors;
-      float added_onehop_count = 0;
+      // It may occur that the visited count is 0, which is not expected.
+      // Work around this first.
+      int added_onehop_count = 0, visited_count = 0;
 
       for (int i = 0; i < size; i++) {
         tableint cand_nbr = cand_nbrs[i];
 #ifdef USE_SSE
         _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
+        _mm_prefetch((char *)(is_id_allowed->prefetch(*(cand_nbrs + i + 1))), _MM_HINT_T0);
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
         if (vl->mass[cand_nbr] == vl->curV) continue;
         vl->mass[cand_nbr] = vl->curV;
+        visited_count++;
 
         ncomp++;
         dist_t cand_nbr_dist =
@@ -241,8 +247,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       }
 
       // TODO: The ratio is a tuning point.
-      sel = added_onehop_count / size;
-      if (sel <= 0.1) {
+      float selectivity = visited_count == 0 ? 1 : (float)added_onehop_count / visited_count;
+      if (!computed) {
+        sel = selectivity;
+        computed = true;
+      }
+      if (selectivity <= 0.1) {
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         int remaining = size - added_onehop_count;
         // adaptive-local, directed
@@ -253,11 +263,18 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           tableint *twohop_info = this->get_linklist0(cand_nbr);
           int twohop_size = this->getListCount(twohop_info);
           tableint *twohop_nbrs = twohop_info + 1;
+#ifdef USE_SSE
+          _mm_prefetch((char *)(vl->mass + *(twohop_nbrs)), _MM_HINT_T0);
+          _mm_prefetch((char *)(is_id_allowed->prefetch(*(twohop_nbrs))), _MM_HINT_T0);
+          _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs)), _MM_HINT_T0);
+          _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + 1)), _MM_HINT_T0);
+#endif
 
           for (int j = 0; j < twohop_size; j++) {
             tableint twohop_nbr = twohop_nbrs[j];
 #ifdef USE_SSE
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            _mm_prefetch((char *)(is_id_allowed->prefetch(*(twohop_nbrs + j + 1))), _MM_HINT_T0);
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
@@ -292,11 +309,18 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           tableint *twohop_info = this->get_linklist0(cand_nbr);
           int twohop_size = this->getListCount(twohop_info);
           tableint *twohop_nbrs = twohop_info + 1;
+#ifdef USE_SSE
+          _mm_prefetch((char *)(vl->mass + *(twohop_nbrs)), _MM_HINT_T0);
+          _mm_prefetch((char *)(is_id_allowed->prefetch(*(twohop_nbrs))), _MM_HINT_T0);
+          _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs)), _MM_HINT_T0);
+          _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + 1)), _MM_HINT_T0);
+#endif
 
           for (int j = 0; j < twohop_size; j++) {
             tableint twohop_nbr = twohop_nbrs[j];
 #ifdef USE_SSE
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            _mm_prefetch((char *)(is_id_allowed->prefetch(*(twohop_nbrs + j + 1))), _MM_HINT_T0);
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
