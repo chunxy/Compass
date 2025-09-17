@@ -167,7 +167,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -250,7 +250,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -330,7 +330,7 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -390,7 +390,7 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -467,7 +467,7 @@ def draw_qps_comp_fixing_selectivity_by_dimension_away(d_m_b, d_m_s, anno, prefi
         for sel in sel_s:
           for m in d_m_b[d].keys():
             for b in d_m_b[d][m]:
-              data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+              data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -562,7 +562,7 @@ def draw_qps_comp_fixing_selectivity_by_dimension_home(d_m_b, d_m_s, anno, prefi
         for sel in sel_s:
           for m in d_m_b[d].keys():
             for b in d_m_b[d][m]:
-              data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+              data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
