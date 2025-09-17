@@ -6,6 +6,7 @@
 #include <vector>
 #include "ReentrantHNSW.h"
 #include "utils/out.h"
+#include "utils/predicate.h"
 
 using std::pair;
 using std::priority_queue;
@@ -92,7 +93,7 @@ class IterativeSearch {
     return cnt;
   }
 
-  int UpdateNextTwoHop(IterativeSearchState<dist_t> *state, BaseFilterFunctor *pred) {
+  int UpdateNextTwoHop(IterativeSearchState<dist_t> *state, RangeQuery<float> *pred) {
 #ifndef BENCH
     auto start = std::chrono::high_resolution_clock::now();
 #endif
@@ -343,7 +344,7 @@ class IterativeSearch {
 
   // VistedList is provided outside in this version.
   IterativeSearchState<dist_t>
-  OpenTwoHop(const void *query, int k, BaseFilterFunctor *pred, VisitedList *vl = nullptr) {
+  OpenTwoHop(const void *query, int k, RangeQuery<float> *pred, VisitedList *vl = nullptr) {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
@@ -387,7 +388,7 @@ class IterativeSearch {
       }
       state.top_candidates_.emplace(curr_dist, curr_obj);
 
-      // UpdateNextTwoHop(&state, pred);
+      UpdateNextTwoHop(&state, pred);
     }
     return state;
   }
@@ -477,7 +478,7 @@ class IterativeSearch {
   }
 
   priority_queue<pair<dist_t, labeltype>>
-  NextBatchTwoHop(IterativeSearchState<dist_t> *state, BaseFilterFunctor *pred) {
+  NextBatchTwoHop(IterativeSearchState<dist_t> *state, RangeQuery<float> *pred) {
     if (state->total_ >= state->k_) {
       return {};
     }
