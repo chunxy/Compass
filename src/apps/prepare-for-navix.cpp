@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 
   hnswlib::L2Space space(d);
 
-  for (int i = 0; i < 50; i++) {
+  for (int i = 0; i < 200; i++) {
     float *query_vec = xq + i * d;
     std::stringstream ss;
     ss << "[";
