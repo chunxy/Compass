@@ -276,9 +276,6 @@ class Compass1dPost {
     VisitedList *vl = this->graph_.hnsw_->visited_list_pool_->getFreeVisitedList();
     VisitedList *vl_cg = this->cg_.hnsw_->visited_list_pool_->getFreeVisitedList();
 
-    graph_.SetSearchParam(20, 20, k);
-    // cg_.SetSearchParam(20, 20, 20);
-
     for (int q = 0; q < nq; q++) {
 #ifndef BENCH
       auto q_start = std::chrono::high_resolution_clock::system_clock::now();
@@ -290,8 +287,8 @@ class Compass1dPost {
 #ifndef BENCH
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
+      graph_.SetSearchParam(k, k, k);
       auto state = graph_.OpenFiltered(query_q, graph_.hnsw_->max_elements_, vl, &pred);
-      graph_.SetSearchParam(k, k, k);  // bad behavior...
 #ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
@@ -300,21 +297,8 @@ class Compass1dPost {
 
       decltype(btrees_[0].lower_bound(0)) itr_beg, itr_end;
       IterativeSearchState<dist_t> cg_state(query_q, k);
-      vl_cg->reset();
-#ifndef BENCH
-      auto cg_start = std::chrono::high_resolution_clock::system_clock::now();
-#endif
-      cg_state = cg_.Open(query_q, cg_.hnsw_->max_elements_, vl_cg);
-      auto next = cg_.Next(&cg_state);
-#ifndef BENCH
-      auto cg_stop = std::chrono::high_resolution_clock::system_clock::now();
-      auto cg_time = std::chrono::duration_cast<std::chrono::nanoseconds>(cg_stop - cg_start).count();
-      bm.qmetrics[q].cg_latency += cg_time;
-#endif
-      int clus = next.second;
-      itr_beg = btrees_[clus].lower_bound(l_bound[0]);
-      itr_end = btrees_[clus].upper_bound(u_bound[0]);
-      int clus_cnt = 1;
+      bool initialized = false;
+      int clus_cnt = 0;
 
       int nround_graph = 0, num_graph_ppsl = 0, nround = 0;
       int num_ivf_ppsl = 0;
@@ -326,6 +310,24 @@ class Compass1dPost {
 #ifndef BENCH
           auto ivf_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
+          if (!initialized) {
+            vl_cg->reset();
+#ifndef BENCH
+            auto cg_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+            cg_state = cg_.Open(query_q, cg_.hnsw_->max_elements_, vl_cg);
+            auto next = cg_.Next(&cg_state);
+#ifndef BENCH
+            auto cg_stop = std::chrono::high_resolution_clock::system_clock::now();
+            auto cg_time = std::chrono::duration_cast<std::chrono::nanoseconds>(cg_stop - cg_start).count();
+            bm.qmetrics[q].cg_latency += cg_time;
+#endif
+            int clus = next.second;
+            itr_beg = btrees_[clus].lower_bound(l_bound[0]);
+            itr_end = btrees_[clus].upper_bound(u_bound[0]);
+            initialized = true;
+            clus_cnt++;
+          }
           int crel = 0;
           while (crel < nrel) {
             if (itr_beg == itr_end) {
