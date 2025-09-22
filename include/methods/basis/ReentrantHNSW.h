@@ -91,7 +91,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           }
           upper_bound = top_candidates.top().first;
         } else {
-          recycled_candidates.emplace(-cand_nbr_dist, -cand_nbr);  // mark as directly dropped
+          recycled_candidates.emplace(-cand_nbr_dist, -(int64_t)cand_nbr);  // mark as directly dropped
         }
       }
     }
@@ -157,7 +157,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           }
           upper_bound = top_candidates.top().first;
         } else {
-          recycled_candidates.emplace(-cand_nbr_dist, -cand_nbr);
+          recycled_candidates.emplace(-cand_nbr_dist, -(int64_t)cand_nbr);
         }
       }
     }
@@ -244,7 +244,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           }
           upper_bound = top_candidates.top().first;
         } else {
-          recycled_candidates.emplace(-cand_nbr_dist, -cand_nbr);
+          recycled_candidates.emplace(-cand_nbr_dist, -(int64_t)cand_nbr);
         }
       }
 
@@ -280,7 +280,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
               };
               upper_bound = top_candidates.top().first;
             } else {
-              recycled_candidates.emplace(-dist, -cand_nbr);
+              recycled_candidates.emplace(-dist, -(int64_t)cand_nbr);
             }
           }
           remaining = size;
@@ -330,7 +330,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
               };
               upper_bound = top_candidates.top().first;
             } else {
-              recycled_candidates.emplace(-twohop_nbr_dist, -twohop_nbr);
+              recycled_candidates.emplace(-twohop_nbr_dist, -(int64_t)twohop_nbr);
             }
           }
         }
@@ -379,7 +379,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
               };
               upper_bound = top_candidates.top().first;
             } else {
-              recycled_candidates.emplace(-twohop_nbr_dist, -twohop_nbr);
+              recycled_candidates.emplace(-twohop_nbr_dist, -(int64_t)twohop_nbr);
             }
           }
         }
@@ -392,7 +392,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         added_onehop_neighbors.pop();
 
         // if (top_candidates.size() < efs || cand_nbr_dist <= upper_bound) {
-          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+        candidate_set.emplace(-cand_nbr_dist, cand_nbr);
         // };
       }
 
