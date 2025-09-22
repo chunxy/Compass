@@ -451,7 +451,6 @@ class Compass1dPost {
 #endif
       graph_.SetSearchParam(k, k, k);
       auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
-      graph_.SetSearchParam(k, k + k, k);  // remember to increment the initial_efs
 #ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
@@ -466,7 +465,7 @@ class Compass1dPost {
       int nround_graph = 0, num_graph_ppsl = 0, nround = 0;
       int num_ivf_ppsl = 0;
       int graph_last_round = 0;
-      double breaktie = 0.005;
+      double breaktie = 0.05;
       while (top_candidates.size() < efs) {
         // IVF is responsible for negative clustering and extremely low passrate.
         // Otherwise, post-filtering on graph should do.
