@@ -449,9 +449,9 @@ class Compass1dPost {
 #ifndef BENCH
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
-      graph_.SetSearchParam(20, 20, k);
-      auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
       graph_.SetSearchParam(k, k, k);
+      auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
+      graph_.SetSearchParam(k, k + k, k);  // remember to increment the initial_efs
 #ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
@@ -465,10 +465,12 @@ class Compass1dPost {
 
       int nround_graph = 0, num_graph_ppsl = 0, nround = 0;
       int num_ivf_ppsl = 0;
+      int graph_last_round = 0;
+      double breaktie = 0.005;
       while (top_candidates.size() < efs) {
         // IVF is responsible for negative clustering and extremely low passrate.
         // Otherwise, post-filtering on graph should do.
-        if ((nround_graph >= 1 && state.sel_ <= 0.2)) {
+        if ((nround_graph >= 1 && (state.sel_ <= breaktie || graph_last_round == 0))) {
 #ifndef BENCH
           auto ivf_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
@@ -540,20 +542,23 @@ class Compass1dPost {
             num_ivf_ppsl++;
           }
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
-
+          state.sel_ = 1;  // restart graph
+          continue;
 #ifndef BENCH
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
 #endif
         }
-        // Believe in graph when the first-hop selectivity is now low.
-        if (nround_graph == 0 || state.sel_ >= 0.1) {
+        // Believe in graph when the first-hop selectivity is not low.
+        // "state.sel_ >=" means we do not always rely on graph.
+        if (nround_graph == 0 || state.sel_ >= breaktie) {
 #ifndef BENCH
           auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
           priority_queue<pair<dist_t, labeltype>> batch = graph_.NextBatchTwoHop(&state, &pred);
           num_graph_ppsl += batch.size();
+          graph_last_round = batch.size();
           while (!batch.empty()) {
             auto [dist, label] = batch.top();
             batch.pop();
