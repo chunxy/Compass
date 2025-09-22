@@ -37,7 +37,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   void IterativeReentrantSearchKnn(
       const void *query_data,
       const size_t k,
-      std::priority_queue<std::pair<dist_t, labeltype>> &recycled_candidates,
+      std::priority_queue<std::pair<dist_t, int64_t>> &recycled_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
@@ -91,7 +91,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           }
           upper_bound = top_candidates.top().first;
         } else {
-          recycled_candidates.emplace(-cand_nbr_dist, cand_nbr);
+          recycled_candidates.emplace(-cand_nbr_dist, -cand_nbr);  // mark as directly dropped
         }
       }
     }
@@ -101,7 +101,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       const void *query_data,
       const size_t k,
       BaseFilterFunctor *is_id_allowed,
-      std::priority_queue<std::pair<dist_t, labeltype>> &recycled_candidates,
+      std::priority_queue<std::pair<dist_t, int64_t>> &recycled_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
@@ -157,7 +157,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           }
           upper_bound = top_candidates.top().first;
         } else {
-          recycled_candidates.emplace(-cand_nbr_dist, cand_nbr);
+          recycled_candidates.emplace(-cand_nbr_dist, -cand_nbr);
         }
       }
     }
@@ -167,7 +167,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       const void *query_data,
       const size_t k,
       RangeQuery<float> *is_id_allowed,
-      std::priority_queue<std::pair<dist_t, labeltype>> &recycled_candidates,
+      std::priority_queue<std::pair<dist_t, int64_t>> &recycled_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
@@ -177,9 +177,10 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   ) {
     size_t efs = std::max(k, this->ef_);
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
-    bool computed = false;
 
+    int total_added_count = 0, total_checked_count = 0;
     while (!candidate_set.empty()) {
+      int added_count = 0, checked_count = 0, satisfied_count = 0;
       auto curr_obj = candidate_set.top().second;
       auto curr_dist = -candidate_set.top().first;
       candidate_set.pop();
@@ -199,10 +200,9 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
 
       std::priority_queue<std::pair<dist_t, tableint>> added_onehop_neighbors;
-      std::priority_queue<std::pair<dist_t, tableint>> other_onehop_neighbors;
+      std::set<tableint> other_onehop_neighbors;
       // It may occur that the visited count is 0, which is not expected.
       // Work around this first.
-      int added_onehop_count = 0, visited_count = 0;
 
       for (int i = 0; i < size; i++) {
         tableint cand_nbr = cand_nbrs[i];
@@ -211,29 +211,31 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         _mm_prefetch((char *)(is_id_allowed->prefetch(*(cand_nbrs + i + 1))), _MM_HINT_T0);
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
+        if (is_id_allowed == nullptr || (*is_id_allowed)(cand_nbr)) {
+          satisfied_count++;
+        }
         if (vl->mass[cand_nbr] == vl->curV) continue;
+        checked_count++;
+        if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) {
+          other_onehop_neighbors.insert(cand_nbr);
+          continue;
+        };
         vl->mass[cand_nbr] = vl->curV;
-        visited_count++;
 
         ncomp++;
         dist_t cand_nbr_dist =
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
 
-        if (is_id_allowed != nullptr && !(*is_id_allowed)(cand_nbr)) {
-          other_onehop_neighbors.emplace(-cand_nbr_dist, cand_nbr);
-          // continue;
-        } else {
-          result_set.emplace(-cand_nbr_dist, cand_nbr);
-          added_onehop_count++;
-          added_onehop_neighbors.emplace(-cand_nbr_dist, cand_nbr);
-        }
+        result_set.emplace(-cand_nbr_dist, cand_nbr);
+        added_count++;
+        added_onehop_neighbors.emplace(-cand_nbr_dist, cand_nbr);
 
         if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
           // No need to put on candidate_set, because it will be traversed later.
           // candidate_set.emplace(-cand_nbr_dist, cand_nbr);
-#ifdef USE_SSE
-          _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
-#endif
+          // #ifdef USE_SSE
+          //           _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+          // #endif
           top_candidates.emplace(cand_nbr_dist, cand_nbr);
           if (top_candidates.size() > efs) {
             auto top = top_candidates.top();
@@ -242,20 +244,49 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           }
           upper_bound = top_candidates.top().first;
         } else {
-          recycled_candidates.emplace(-cand_nbr_dist, cand_nbr);
+          recycled_candidates.emplace(-cand_nbr_dist, -cand_nbr);
         }
       }
 
       // TODO: The ratio is a tuning point.
-      float selectivity = visited_count == 0 ? 1 : (float)added_onehop_count / visited_count;
-      if (!computed) {
-        sel = selectivity;
-        computed = true;
-      }
-      if (selectivity <= 0.1) {
+      // adaptive local
+      // float selectivity = checked_count == 0 ? 0 : (float)added_count / checked_count;
+      float selectivity = float(satisfied_count) / size;
+      if (selectivity <= 0.4) {
         // Supppose `size` is the minimal number of elements to ensure connectivity.
-        int remaining = size - added_onehop_count;
-        // adaptive-local, directed
+        auto estimatedFullTwoHopDistanceComp = (size * satisfied_count + satisfied_count) * 0.4;
+        auto estimatedDirectedDistanceComp = size + (size - satisfied_count);
+        int remaining = 10000000;
+        // if (selectivity >= 0.2) {  // directed two-hop
+        if (estimatedFullTwoHopDistanceComp > estimatedDirectedDistanceComp) {
+          while (other_onehop_neighbors.size() > 0) {
+            tableint cand_nbr = *other_onehop_neighbors.begin();
+            other_onehop_neighbors.erase(other_onehop_neighbors.begin());
+            vl->mass[cand_nbr] = vl->curV;
+#ifdef USE_SSE
+            if (other_onehop_neighbors.size() > 0) {
+              _mm_prefetch(this->getDataByInternalId(*other_onehop_neighbors.begin()), _MM_HINT_T0);
+            }
+#endif
+            ncomp++;
+            dist_t dist = this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+            added_onehop_neighbors.emplace(-dist, cand_nbr);
+            if (top_candidates.size() < efs || dist < upper_bound) {
+              top_candidates.emplace(dist, cand_nbr);
+              if (top_candidates.size() > efs) {
+                auto top = top_candidates.top();
+                recycled_candidates.emplace(-top.first, top.second);
+                top_candidates.pop();
+              };
+              upper_bound = top_candidates.top().first;
+            } else {
+              recycled_candidates.emplace(-dist, -cand_nbr);
+            }
+          }
+          remaining = size;
+        }
+        // }
+        // undirected two-hop
         while (added_onehop_neighbors.size() > 0 && remaining > 0) {
           tableint cand_nbr = added_onehop_neighbors.top().second;
           added_onehop_neighbors.pop();
@@ -278,12 +309,14 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
+            checked_count++;
             if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
             vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
             remaining--;
             dist_t twohop_nbr_dist =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
+            added_count++;
             result_set.emplace(-twohop_nbr_dist, twohop_nbr);
 
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
@@ -297,14 +330,16 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
               };
               upper_bound = top_candidates.top().first;
             } else {
-              recycled_candidates.emplace(-twohop_nbr_dist, twohop_nbr);
+              recycled_candidates.emplace(-twohop_nbr_dist, -twohop_nbr);
             }
           }
         }
 
-        while (other_onehop_neighbors.size() > 0 && remaining > 0) {
-          tableint cand_nbr = other_onehop_neighbors.top().second;
-          other_onehop_neighbors.pop();
+        while (other_onehop_neighbors.size() > 0) {
+          // Means we are running full two-hop search.
+          // So we don't restrict on the number, i.e. `remaining`.
+          tableint cand_nbr = *other_onehop_neighbors.begin();
+          other_onehop_neighbors.erase(other_onehop_neighbors.begin());
 
           tableint *twohop_info = this->get_linklist0(cand_nbr);
           int twohop_size = this->getListCount(twohop_info);
@@ -324,12 +359,14 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
+            checked_count++;
             if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
             vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
             remaining--;
             dist_t twohop_nbr_dist =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
+            added_count++;
             result_set.emplace(-twohop_nbr_dist, twohop_nbr);
 
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
@@ -342,7 +379,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
               };
               upper_bound = top_candidates.top().first;
             } else {
-              recycled_candidates.emplace(-twohop_nbr_dist, twohop_nbr);
+              recycled_candidates.emplace(-twohop_nbr_dist, -twohop_nbr);
             }
           }
         }
@@ -354,21 +391,24 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         float cand_nbr_dist = -added_onehop_neighbors.top().first;
         added_onehop_neighbors.pop();
 
-        if (top_candidates.size() < efs || cand_nbr_dist <= upper_bound) {
+        // if (top_candidates.size() < efs || cand_nbr_dist <= upper_bound) {
           candidate_set.emplace(-cand_nbr_dist, cand_nbr);
-        };
+        // };
       }
 
-      while (other_onehop_neighbors.size()) {
-        tableint cand_nbr = other_onehop_neighbors.top().second;
-        float cand_nbr_dist = -other_onehop_neighbors.top().first;
-        other_onehop_neighbors.pop();
+      // while (other_onehop_neighbors.size()) {
+      //   tableint cand_nbr = other_onehop_neighbors.top().second;
+      //   float cand_nbr_dist = -other_onehop_neighbors.top().first;
+      //   other_onehop_neighbors.pop();
 
-        if (top_candidates.size() < efs || cand_nbr_dist <= upper_bound) {
-          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
-        };
-      }
+      //   if (top_candidates.size() < efs || cand_nbr_dist <= upper_bound) {
+      //     candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+      //   };
+      // }
+      total_added_count += added_count;
+      total_checked_count += checked_count;
     }
+    sel = total_checked_count == 0 ? 0 : float(total_added_count) / total_checked_count;
   }
 
   void IterativeReentrantSearchKnn(
