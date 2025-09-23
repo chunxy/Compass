@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     std::string vector_string = ss.str();
 
     std::string query = fmt::format(
-        "MATCH (e:{}) WHERE e.attr >= {} AND e.attr < {} "
+        "MATCH (e:{}) WHERE e.attr >= {} AND e.attr <= {} "
         "CALL ANN_SEARCH(e.embedding, {}, <maxK>, <efsearch>, <useQ>, "
         "<knn>, <searchType>) RETURN e.id;\n",
         c.name,
