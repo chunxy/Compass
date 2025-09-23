@@ -33,9 +33,12 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading data.\n");
 
   args.k = 100;  // We find top-100 for Navix.
+  vector<vector<labeltype>> hybrid_topks(nq);
+  load_hybrid_query_gt(c, {args.l_bound}, vector<float>{args.u_bound}, args.k, hybrid_topks);
+  fmt::print("Finished loading groundtruth.\n");
 
   fs::path data("/home/chunxy/repos/Compass/data/navix");
-  int sel = (args.u_bound - args.l_bound) / 10000;
+  int sel = (args.u_bound - args.l_bound) / 100;
   fs::create_directories(data / c.name / "bench_data");
   std::string query_file = fmt::format("queries_{}.txt", sel);
   std::string gt_file = fmt::format("gt_{}.bin", sel);
@@ -55,41 +58,18 @@ int main(int argc, char **argv) {
     ss << std::fixed << std::setprecision(8) << query_vec[d - 1] << "]";
     std::string vector_string = ss.str();
 
-    int l = (args.u_bound - args.l_bound) / 2;
-    int r = c.n_base - (args.u_bound - args.l_bound) / 2;
     std::string query = fmt::format(
-        "MATCH (e:{}) WHERE e.id >= {} OR e.id < {} "
+        "MATCH (e:{}) WHERE e.attr >= {} AND e.attr < {} "
         "CALL ANN_SEARCH(e.embedding, {}, <maxK>, <efsearch>, <useQ>, "
         "<knn>, <searchType>) RETURN e.id;\n",
         c.name,
-        r,
-        l,
+        args.l_bound,
+        args.u_bound,
         vector_string
     );
     query_ofs << query;
 
-    priority_queue<pair<float, uint32_t>> pq;
-    for (int i = 0; i < l; i++) {
-      float dist = space.get_dist_func()(query_vec, xb + i * d, space.get_dist_func_param());
-      pq.emplace(dist, i);
-      if (pq.size() > args.k) {
-        pq.pop();
-      }
-    }
-    for (int i = r; i < c.n_base; i++) {
-      float dist = space.get_dist_func()(query_vec, xb + i * d, space.get_dist_func_param());
-      pq.emplace(dist, i);
-      if (pq.size() > args.k) {
-        pq.pop();
-      }
-    }
-    vector<labeltype> topk(args.k);
-    int sz = args.k;
-    while (!pq.empty()) {
-      topk[--sz] = pq.top().second;
-      pq.pop();
-    }
-
+    vector<labeltype> topk = hybrid_topks[i];
     for (int j = 0; j < topk.size(); j++) {
       int64_t id = topk[j];
       // Write 8-byte id to gt_ofs in binary.

@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 
 base_template = "/home/chunxy/repos/Compass/data/{}_base.float32"
+attr_template = "/home/chunxy/repos/Compass/data/attr/{}_1_10000.value.bin"
 out_template = "/home/chunxy/repos/Compass/data/{}.parquet"
 
 datasets = ["sift", "crawl", "glove100", "video", "audio"]
@@ -16,6 +17,11 @@ dims = {"sift": 128, "crawl": 300, "glove100": 100, "video": 1024, "audio": 128}
 
 for d in datasets:
   base_file = base_template.format(d)
+  attr_file = attr_template.format(d)
+  with open(attr_file, "rb") as f:
+    raw = np.fromfile(f, dtype=np.float32).reshape((-1, 2)) # 1 for number of attributes, 1 for the attribute
+  attrs = raw[:, 1]
+
   dim = dims[d]
   with open(base_file, "rb") as f:
     # I want to store the embeddings into a Parquet file together with the id.
@@ -31,6 +37,7 @@ for d in datasets:
     embedding_rows = [embeddings[i].copy() for i in range(embeddings.shape[0])]
     df = pd.DataFrame({
       "id": ids,
+      "attr": attrs,
       "embedding": embedding_rows,
     })
 
