@@ -55,19 +55,28 @@ int main(int argc, char **argv) {
     ss << std::fixed << std::setprecision(8) << query_vec[d - 1] << "]";
     std::string vector_string = ss.str();
 
+    int l = (args.u_bound - args.l_bound) / 2;
+    int r = c.n_base - (args.u_bound - args.l_bound) / 2;
     std::string query = fmt::format(
-        "MATCH (e:{}) WHERE e.id >= {} AND e.id < {} "
+        "MATCH (e:{}) WHERE e.id >= {} OR e.id < {} "
         "CALL ANN_SEARCH(e.embedding, {}, <maxK>, <efsearch>, <useQ>, "
         "<knn>, <searchType>) RETURN e.id;\n",
         c.name,
-        args.l_bound,
-        args.u_bound,
+        r,
+        l,
         vector_string
     );
     query_ofs << query;
 
     priority_queue<pair<float, uint32_t>> pq;
-    for (int i = args.l_bound; i < args.u_bound; i++) {
+    for (int i = 0; i < l; i++) {
+      float dist = space.get_dist_func()(query_vec, xb + i * d, space.get_dist_func_param());
+      pq.emplace(dist, i);
+      if (pq.size() > args.k) {
+        pq.pop();
+      }
+    }
+    for (int i = r; i < c.n_base; i++) {
       float dist = space.get_dist_func()(query_vec, xb + i * d, space.get_dist_func_param());
       pq.emplace(dist, i);
       if (pq.size() > args.k) {
