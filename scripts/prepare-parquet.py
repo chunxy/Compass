@@ -12,8 +12,8 @@ base_template = "/home/chunxy/repos/Compass/data/{}_base.float32"
 attr_template = "/home/chunxy/repos/Compass/data/attr/{}_1_10000.value.bin"
 out_template = "/home/chunxy/repos/Compass/data/{}_base.parquet"
 
-datasets = ["sift", "crawl", "glove100", "video", "audio"]
-dims = {"sift": 128, "crawl": 300, "glove100": 100, "video": 1024, "audio": 128}
+datasets = ["sift", "crawl", "glove100", "video", "audio", "gist"]
+dims = {"sift": 128, "crawl": 300, "glove100": 100, "video": 1024, "audio": 128, "gist": 960}
 
 for d in datasets:
   base_file = base_template.format(d)
