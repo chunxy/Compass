@@ -1,6 +1,6 @@
 from functools import reduce
 
-DATASETS = ["sift", "audio", "glove100", "crawl", "video", "gist"]
+DATASETS = ["sift", "audio", "crawl", "gist", "video", "glove100"]
 
 DA_S = [1]
 
@@ -303,12 +303,14 @@ compass_post_th_args = {
   "M": [16, 32],
   "efc": [200],
   "nlist": [10000],
-  "efs": [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200],
+  "efs": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200],
   "M_cg": [4],
-  "nrel": [50],
-  "batch_k": [50],
-  "initial_efs": [50],
-  "delta_efs": [30],  # 100 for old exps, 50 for old iterative graph, 31 for grouped attributes
+  "nrel": [50, 100],
+  # "batch_k": [50],
+  "batch_k": [20],
+  # "initial_efs": [50],
+  "initial_efs": [20],
+  "delta_efs": [20],
 }
 ivf_args = {
   "nlist": [10000, 20000],
@@ -358,6 +360,7 @@ D_ARGS = {
   },
   "video": {
     "dx": [256, 512],
+    "nlist": [10000, 20000],
     "efs": compass_args["efs"] + [210, 220, 230, 240, 250, 260, 270, 280, 290, 300],
   },
   "gist": {
