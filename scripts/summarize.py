@@ -400,9 +400,9 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
               grouped_ncomp = rec_sel_qps_ncomp[rec_sel_qps_ncomp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
               grouped_total_ncomp = rec_sel_qps_ncomp[rec_sel_qps_ncomp["recall"].gt(rec)].groupby("selectivity", as_index=False)["total_ncomp"].min()
               pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
-              axs[0][i].plot(pos_s, grouped_qps["qps"])
+              p = axs[0][i].plot(pos_s, grouped_qps["qps"], **marker)
               axs[0][i].scatter(pos_s, grouped_qps["qps"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
-              p = axs[1][i].plot(pos_s, grouped_ncomp["ncomp"])
+              axs[1][i].plot(pos_s, grouped_ncomp["ncomp"])
               axs[1][i].scatter(pos_s, grouped_ncomp["ncomp"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
               axs[1][i].plot(pos_s, grouped_total_ncomp["total_ncomp"], color=p[0].get_color(), linestyle="--")
               axs[1][i].scatter(pos_s, grouped_total_ncomp["total_ncomp"], **marker)
