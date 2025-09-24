@@ -452,7 +452,9 @@ class Compass1dPost {
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
       graph_.SetSearchParam(k, k, k);
+      // graph_.SetSearchParam(k, efs, k); // For testing non-iterative version.
       auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
+      graph_.SetSearchParam(k / 2, k + k / 2, k / 2);
 #ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
@@ -469,6 +471,7 @@ class Compass1dPost {
       int graph_last_round = 0;
       double breaktie = 0.05;
       while (top_candidates.size() < efs) {
+      // while (top_candidates.size() < k) { // For testing non-iterative version.
         // IVF is responsible for negative clustering and extremely low passrate.
         // Otherwise, post-filtering on graph should do.
         if ((nround_graph >= 1 && (state.sel_ <= breaktie || graph_last_round == 0))) {
