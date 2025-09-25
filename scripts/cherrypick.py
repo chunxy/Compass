@@ -37,21 +37,25 @@ best_d_m_b = {d: {} for d in DATASETS}
 # best_d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 
 for d in ("sift", "audio"):
-  best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
+  best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
 for d in ("gist",):
-  best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 for d in ("crawl",):
-  best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
-  best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
+  # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
+  best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
+  best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
 for d in ("video", "glove100"):
-  best_d_m_b[d]["CompassPostK"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
-  best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
+  # best_d_m_b[d]["CompassPostK"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  best_d_m_b[d]["CompassPostKNavix"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
 for d in DATASETS:
   # best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
-  best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
+  # best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
   best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
   # best_d_m_b[d]["Ivf"] = ["nlist_10000", "nlist_20000"]
   # best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200"]
@@ -69,7 +73,10 @@ best_d_m_s = {d: {} for d in DATASETS}
 for d in DATASETS:
   best_d_m_s[d]["CompassPostK"] = {"nrel": [50]}
   best_d_m_s[d]["CompassPostKTh"] = {"nrel": [50]}
+  best_d_m_s[d]["CompassPostKNavix"] = {"nrel": [50]}
   best_d_m_s[d]["CompassGraph"] = {"nrel": [100, 200]}
+best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [100]}
+best_d_m_s["crawl"]["CompassPostKNavix"] = {"nrel": [100]}
 
 
 # Compare clustering methods.

@@ -146,6 +146,55 @@ class IterativeSearch {
     return cnt;
   }
 
+  int UpdateNextNavix(IterativeSearchState<dist_t> *state, RangeQuery<float> *pred) {
+#ifndef BENCH
+    auto start = std::chrono::high_resolution_clock::now();
+#endif
+    while (!state->recycled_candidates_.empty() && state->top_candidates_.size() < hnsw_->ef_) {
+      auto top = state->recycled_candidates_.top();
+      if (top.second < 0) {
+        state->top_candidates_.emplace(-top.first, -top.second);
+        state->candidate_set_.emplace(top.first, -top.second);
+      } else {
+        state->top_candidates_.emplace(-top.first, top.second);
+      }
+      state->recycled_candidates_.pop();
+    }
+#ifndef BENCH
+    auto end = std::chrono::high_resolution_clock::now();
+    state->out_.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+#endif
+#ifndef BENCH
+    start = std::chrono::high_resolution_clock::now();
+#endif
+    hnsw_->IterativeReentrantSearchKnnNavix(
+        state->query_,
+        this->batch_k_,
+        pred,
+        state->recycled_candidates_,
+        state->top_candidates_,
+        state->candidate_set_,
+        state->result_set_,
+        state->vl_,
+        state->ncomp_,
+        state->sel_
+    );
+#ifndef BENCH
+    end = std::chrono::high_resolution_clock::now();
+    state->out_.search_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+#endif
+    int cnt = 0;
+    while (cnt < this->batch_k_ && !state->result_set_.empty()) {
+      auto top = state->result_set_.top();
+      state->result_set_.pop();
+      state->batch_rz_.emplace(top.first, top.second);
+      cnt++;
+    }
+    hnsw_->setEf(std::min(hnsw_->ef_ + this->delta_efs_, state->k_));  // expand the efs for next batch search
+    // Remember to reset the ef of hnsw_ to the initial value when closing the state.
+    return cnt;
+  }
+
   int UpdateNextFiltered(IterativeSearchState<dist_t> *state, BaseFilterFunctor *pred) {
 #ifndef BENCH
     auto start = std::chrono::high_resolution_clock::now();
@@ -405,6 +454,56 @@ class IterativeSearch {
     return state;
   }
 
+  // VistedList is provided outside in this version.
+  IterativeSearchState<dist_t> OpenNavix(const void *query, int k, RangeQuery<float> *pred, VisitedList *vl = nullptr) {
+    hnsw_->setEf(this->initial_efs_);
+    IterativeSearchState<dist_t> state(query, k);
+    state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
+    state.ncomp_ = 0;
+    state.total_ = 0;
+    {
+      tableint curr_obj = this->hnsw_->enterpoint_node_;
+      dist_t curr_dist =
+          this->hnsw_->fstdistfunc_(query, this->hnsw_->getDataByInternalId(curr_obj), this->hnsw_->dist_func_param_);
+
+      for (int level = this->hnsw_->maxlevel_; level > 0; level--) {
+        bool changed = true;
+        while (changed) {
+          changed = false;
+          unsigned int *data;
+
+          data = (unsigned int *)this->hnsw_->get_linklist(curr_obj, level);
+          int size = this->hnsw_->getListCount(data);
+
+          tableint *datal = (tableint *)(data + 1);
+          for (int i = 0; i < size; i++) {
+            tableint cand = datal[i];
+
+            if (cand < 0 || cand > this->hnsw_->max_elements_) throw std::runtime_error("cand error");
+            dist_t d =
+                this->hnsw_->fstdistfunc_(query, this->hnsw_->getDataByInternalId(cand), this->hnsw_->dist_func_param_);
+            state.ncomp_++;
+
+            if (d < curr_dist) {
+              curr_dist = d;
+              curr_obj = cand;
+              changed = true;
+            }
+          }
+        }
+      }
+      state.vl_->mass[curr_obj] = state.vl_->curV;
+      state.candidate_set_.emplace(-curr_dist, curr_obj);
+      if (pred == nullptr || (*pred)(curr_obj)) {
+        state.result_set_.emplace(-curr_dist, curr_obj);
+      }
+      state.top_candidates_.emplace(curr_dist, curr_obj);
+
+      UpdateNextNavix(&state, pred);
+    }
+    return state;
+  }
+
   IterativeSearchState<dist_t> OpenNeo(const void *query, int k, VisitedList *vl = nullptr) {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
@@ -506,6 +605,24 @@ class IterativeSearch {
       }
     }
     return NextBatchTwoHop(state, pred);
+  }
+
+  priority_queue<pair<dist_t, labeltype>> NextBatchNavix(IterativeSearchState<dist_t> *state, RangeQuery<float> *pred) {
+    if (state->total_ >= state->k_) {
+      return {};
+    }
+    if (HasNext(state)) {
+      auto moved = std::move(state->batch_rz_);
+      state->total_ += moved.size();
+      state->batch_rz_ = {};
+      return moved;
+    } else {
+      int cnt = UpdateNextNavix(state, pred);
+      if (cnt == 0) {
+        return {};
+      }
+    }
+    return NextBatchNavix(state, pred);
   }
 
   priority_queue<pair<dist_t, labeltype>>

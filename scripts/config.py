@@ -109,7 +109,7 @@ COMPASSX_METHODS = [
   # "CompassPcaQicg",
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
-BASE_METHODS = ["Prefiltering", "Postfiltering", "CompassPostK", "CompassPostKTh", "Ivf", "CompassGraph", "Navix"]
+BASE_METHODS = ["Prefiltering", "Postfiltering", "CompassPostK", "CompassPostKTh", "CompassPostKNavix", "Ivf", "CompassGraph", "Navix"]
 METHODS = COMPASS_METHODS + SOTA_METHODS + BASE_METHODS
 SOTA_POST_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
 
@@ -146,6 +146,7 @@ M_DA_RUN = {
   "Postfiltering": postfiltering_da_interval,
   "CompassPostK": compass_da_interval,
   "CompassPostKTh": compass_da_interval,
+  "CompassPostKNavix": compass_da_interval,
   "Ivf": ivf_da_interval,
   "CompassGraph": compass_graph_da_interval,
   "Navix": navix_da_interval,
@@ -184,6 +185,7 @@ M_GROUP_DATASET = {
   },
   "CompassPostK": compass_post_group_dataset,
   "CompassPostKTh": compass_post_group_dataset,
+  "CompassPostKNavix": compass_post_group_dataset,
   "Ivf": compass_post_group_dataset,
 }
 
@@ -254,6 +256,7 @@ M_PARAM = {
   "Postfiltering": postfiltering_parameters,
   "CompassPostK": compass_post_parameters,
   "CompassPostKTh": compass_post_parameters,
+  "CompassPostKNavix": compass_post_parameters,
   "Ivf": ivf_parameters,
   "CompassGraph": compass_graph_parameters,
   "Navix": navix_parameters,
@@ -340,6 +343,7 @@ M_ARGS = {
   "Postfiltering": postfiltering_args,
   "CompassPostK": compass_post_args,
   "CompassPostKTh": compass_post_th_args,
+  "CompassPostKNavix": compass_post_th_args,
   "Ivf": ivf_args,
   "CompassGraph": compass_graph_args,
   "Navix": navix_args,
@@ -439,6 +443,9 @@ M_STYLE = {
   },
   "CompassPostKTh": {
     "marker": "o", "color": "red"
+  },
+  "CompassPostKNavix": {
+    "marker": "o", "color": "yellow"
   },
   "Ivf": {
     "marker": "^", "color": "pink"

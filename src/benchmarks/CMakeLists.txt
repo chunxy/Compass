@@ -11,6 +11,7 @@ add_executable(bench-postfiltering bench-postfiltering.cpp)
 add_executable(bench-prefiltering-1d bench-prefiltering-1d.cpp)
 add_executable(bench-compass-1d-post-k bench-compass-1d-post-k.cpp)
 add_executable(bench-compass-1d-post-k-th bench-compass-1d-post-k-th.cpp)
+add_executable(bench-compass-1d-post-k-navix bench-compass-1d-post-k-navix.cpp)
 add_executable(bench-compass-post-k bench-compass-post-k.cpp)
 # add_executable(bench-compass-nsg bench-compass-nsg.cpp)
 
