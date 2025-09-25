@@ -139,8 +139,8 @@ int main(int argc, char **argv) {
       );
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-      // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
-      fs::path log_root(fmt::format(LOGS, args.k));
+      fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      // fs::path log_root(fmt::format(LOGS, args.k));
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
       for (int j = 0; j < nq; j += args.batchsz) {
         int b = j / args.batchsz;
         auto batch_start = high_resolution_clock::system_clock::now();
-        results[b] = comp.SearchKnn(
+        results[b] = comp.SearchKnnPostFiltered(
             xq + j * d,
             args.batchsz,
             args.k,
