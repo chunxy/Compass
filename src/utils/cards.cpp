@@ -30,6 +30,22 @@ static const std::string video_bpath = "/home/chunxy/datasets/video/video_base.f
 static const std::string video_qpath = "/home/chunxy/datasets/video/video_query.fvecs";
 static const std::string video_gpath = "/home/chunxy/datasets/video/video_groundtruth.ivecs";
 
+static const std::string audio_dedup_bpath = "/home/chunxy/datasets/audio-dedup/audio-dedup_base.fvecs";
+static const std::string audio_dedup_qpath = "/home/chunxy/datasets/audio-dedup/audio-dedup_query.fvecs";
+static const std::string audio_dedup_gpath = "/home/chunxy/datasets/audio-dedup/audio-dedup_groundtruth.ivecs";
+
+static const std::string video_dedup_bpath = "/home/chunxy/datasets/video-dedup/video-dedup_base.fvecs";
+static const std::string video_dedup_qpath = "/home/chunxy/datasets/video-dedup/video-dedup_query.fvecs";
+static const std::string video_dedup_gpath = "/home/chunxy/datasets/video-dedup/video-dedup_groundtruth.ivecs";
+
+static const std::string sift_dedup_bpath = "/home/chunxy/datasets/sift-dedup/sift-dedup_base.fvecs";
+static const std::string sift_dedup_qpath = "/home/chunxy/datasets/sift-dedup/sift-dedup_query.fvecs";
+static const std::string sift_dedup_gpath = "/home/chunxy/datasets/sift-dedup/sift-dedup_groundtruth.ivecs";
+
+static const std::string gist_dedup_bpath = "/home/chunxy/datasets/gist-dedup/gist-dedup_base.fvecs";
+static const std::string gist_dedup_qpath = "/home/chunxy/datasets/gist-dedup/gist-dedup_query.fvecs";
+static const std::string gist_dedup_gpath = "/home/chunxy/datasets/gist-dedup/gist-dedup_groundtruth.ivecs";
+
 DataCard siftsmall_1_10_int32{
     "siftsmall",
     siftsmall_bpath,
@@ -1010,6 +1026,342 @@ DataCard video_6_10000_float32{
     "float32",
 };
 
+DataCard audio_dedup_1_10000_float32{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    audio_dedup_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
+DataCard audio_dedup_2_10000_float32{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    audio_dedup_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    2,
+    10000,
+    "float32",
+};
+
+DataCard audio_dedup_3_10000_float32{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    audio_dedup_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard audio_dedup_4_10000_float32{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    audio_dedup_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    4,
+    10000,
+    "float32",
+};
+
+DataCard audio_dedup_5_10000_float32{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    audio_dedup_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard audio_dedup_6_10000_float32{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    audio_dedup_gpath,
+    128,
+    1'000'000,
+    10'000,
+    100,
+    6,
+    10000,
+    "float32",
+};
+
+DataCard video_dedup_1_10000_float32{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    video_dedup_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
+DataCard video_dedup_2_10000_float32{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    video_dedup_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    2,
+    10000,
+    "float32",
+};
+
+DataCard video_dedup_3_10000_float32{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    video_dedup_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard video_dedup_4_10000_float32{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    video_dedup_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    4,
+    10000,
+    "float32",
+};
+
+DataCard video_dedup_5_10000_float32{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    video_dedup_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard video_dedup_6_10000_float32{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    video_dedup_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    6,
+    10000,
+    "float32",
+};
+
+DataCard sift_dedup_1_10000_float32{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    sift_dedup_gpath,
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
+DataCard sift_dedup_2_10000_float32{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    sift_dedup_gpath,
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    2,
+    10000,
+    "float32",
+};
+
+DataCard sift_dedup_3_10000_float32{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    sift_dedup_gpath,
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard sift_dedup_4_10000_float32{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    sift_dedup_gpath,
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    4,
+    10000,
+    "float32",
+};
+
+DataCard sift_dedup_5_10000_float32{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    sift_dedup_gpath,
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard sift_dedup_6_10000_float32{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    sift_dedup_gpath,
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    6,
+    10000,
+    "float32",
+};
+
+DataCard gist_dedup_1_10000_float32{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    gist_dedup_gpath,
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
+DataCard gist_dedup_2_10000_float32{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    gist_dedup_gpath,
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    2,
+    10000,
+    "float32",
+};
+
+DataCard gist_dedup_3_10000_float32{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    gist_dedup_gpath,
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    3,
+    10000,
+    "float32",
+};
+
+DataCard gist_dedup_4_10000_float32{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    gist_dedup_gpath,
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    4,
+    10000,
+    "float32",
+};
+
+DataCard gist_dedup_5_10000_float32{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    gist_dedup_gpath,
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    5,
+    10000,
+    "float32",
+};
+
+DataCard gist_dedup_6_10000_float32{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    gist_dedup_gpath,
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    6,
+    10000,
+    "float32",
+};
+
 // DataCard deep10m_1_10000_float32{
 //     "crawl",
 //     crawl_bpath,
@@ -1095,4 +1447,28 @@ std::map<std::string, DataCard> name_to_card{
     {"video_4_10000_float32", video_4_10000_float32},
     {"video_5_10000_float32", video_5_10000_float32},
     {"video_6_10000_float32", video_6_10000_float32},
+    {"audio-dedup_1_10000_float32", audio_dedup_1_10000_float32},
+    {"audio-dedup_2_10000_float32", audio_dedup_2_10000_float32},
+    {"audio-dedup_3_10000_float32", audio_dedup_3_10000_float32},
+    {"audio-dedup_4_10000_float32", audio_dedup_4_10000_float32},
+    {"audio-dedup_5_10000_float32", audio_dedup_5_10000_float32},
+    {"audio-dedup_6_10000_float32", audio_dedup_6_10000_float32},
+    {"video-dedup_1_10000_float32", video_dedup_1_10000_float32},
+    {"video-dedup_2_10000_float32", video_dedup_2_10000_float32},
+    {"video-dedup_3_10000_float32", video_dedup_3_10000_float32},
+    {"video-dedup_4_10000_float32", video_dedup_4_10000_float32},
+    {"video-dedup_5_10000_float32", video_dedup_5_10000_float32},
+    {"video-dedup_6_10000_float32", video_dedup_6_10000_float32},
+    {"sift-dedup_1_10000_float32", sift_dedup_1_10000_float32},
+    {"sift-dedup_2_10000_float32", sift_dedup_2_10000_float32},
+    {"sift-dedup_3_10000_float32", sift_dedup_3_10000_float32},
+    {"sift-dedup_4_10000_float32", sift_dedup_4_10000_float32},
+    {"sift-dedup_5_10000_float32", sift_dedup_5_10000_float32},
+    {"sift-dedup_6_10000_float32", sift_dedup_6_10000_float32},
+    {"gist-dedup_1_10000_float32", gist_dedup_1_10000_float32},
+    {"gist-dedup_2_10000_float32", gist_dedup_2_10000_float32},
+    {"gist-dedup_3_10000_float32", gist_dedup_3_10000_float32},
+    {"gist-dedup_4_10000_float32", gist_dedup_4_10000_float32},
+    {"gist-dedup_5_10000_float32", gist_dedup_5_10000_float32},
+    {"gist-dedup_6_10000_float32", gist_dedup_6_10000_float32},
 };
