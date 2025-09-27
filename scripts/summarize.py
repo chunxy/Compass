@@ -120,7 +120,11 @@ def summarize():
         continue
       jsons.sort()
       with open(jsons[-1]) as f:
-        stat = json.load(f)
+        try:
+          stat = json.load(f)
+        except:
+          print(e[0])
+          exit()
         # sel.append(f'{stat["aggregated"]["selectivity"]:.2f}')
         rec.append(stat["aggregated"]["recall"])
         qps.append(stat["aggregated"]["qps"])
