@@ -1,6 +1,8 @@
 #include <array>
 #include <boost/filesystem.hpp>
 #include "faiss/Index.h"
+#include "faiss/IndexFlat.h"
+#include "faiss/IndexIVFFlat.h"
 #include "faiss/index_io.h"
 #include "fc/btree.h"
 #include "hnswlib/hnswlib.h"
@@ -51,7 +53,7 @@ class CompassPost {
         btrees_(nlist),
         base_cluster_rank_(new faiss::idx_t[n]) {
     cg_.SetSearchParam(batch_k, initial_efs, delta_efs);
-    ivf_ = nullptr;
+    ivf_ = new faiss::IndexIVFFlat(new faiss::IndexFlatL2(d), d, nlist);
   }
 
   virtual void SaveGraph(fs::path path) {
