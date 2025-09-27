@@ -33,6 +33,10 @@ if __name__ == "__main__":
     "video": "/home/chunxy/datasets/video/video_base.fvecs",
     "audio": "/home/chunxy/datasets/audio/audio_base.fvecs",
     "sift": "/home/chunxy/datasets/sift/sift_base.fvecs",
+    "sift-dedup": "/home/chunxy/datasets/sift-dedup/sift-dedup_base.fvecs",
+    "gist-dedup": "/home/chunxy/datasets/gist-dedup/gist-dedup_base.fvecs",
+    "video-dedup": "/home/chunxy/datasets/video-dedup/video-dedup_base.fvecs",
+    "audio-dedup": "/home/chunxy/datasets/audio-dedup/audio-dedup_base.fvecs",
   }  # Replace with your file path
   for d, path in file_paths.items():
     entries = read_entries(path)

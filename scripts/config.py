@@ -1,6 +1,6 @@
 from functools import reduce
 
-DATASETS = ["sift", "audio", "crawl", "gist", "video", "glove100"]
+DATASETS = ["sift", "sift-dedup", "audio", "audio-dedup", "crawl", "gist", "gist-dedup", "video", "video-dedup", "glove100"]
 
 DA_S = [1]
 
@@ -169,6 +169,12 @@ compass_post_group_dataset = {
   "4": ["glove100"],
   "5": ["sift"],
   "6": ["gist"],
+}
+compass_post_group_dataset = {
+  "1": ["audio-dedup"],
+  "2": ["video-dedup"],
+  "3": ["sift-dedup"],
+  "4": ["gist-dedup"],
 }
 M_GROUP_DATASET = {
   **{
@@ -383,6 +389,10 @@ D_ARGS = {
     "M_cg": [8],
   }
 }
+D_ARGS["sift-dedup"] = D_ARGS["sift"]
+D_ARGS["gist-dedup"] = D_ARGS["gist"]
+D_ARGS["audio-dedup"] = D_ARGS["audio"]
+D_ARGS["video-dedup"] = D_ARGS["video"]
 
 M_STYLE = {
   "CompassK": {
