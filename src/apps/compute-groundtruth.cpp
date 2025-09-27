@@ -60,7 +60,7 @@ void compute_groundtruth(
   hnswlib::L2Space space(d);
   auto compute_start = high_resolution_clock::now();
   omp_set_num_threads(omp_get_max_threads() - 4);
-#pragma omp for schedule(static)
+#pragma omp parallel for schedule(static)
   for (int i = 0; i < nq; i++) {
     const float *query = xq + i * d;
 
