@@ -79,6 +79,7 @@ int main(int argc, char **argv) {
     if (name.find("-") != std::string::npos) {
       name = name.replace(name.find("-"), 1, "_");
     }
+    name += fmt::format("_{}", c.attr_dim);
     std::string query = fmt::format(
         "MATCH (e:{}) WHERE {} "
         "CALL ANN_SEARCH(e.embedding, {}, <maxK>, <efsearch>, <useQ>, "
