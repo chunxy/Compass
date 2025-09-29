@@ -17,7 +17,7 @@ class Compass1dPost {
   IterativeSearch<dist_t> cg_;
   faiss::Index *ivf_;
   // vector<btree::btree_map<attr_t, labeltype>> btrees_;
-  vector<fc::BTreeMap<dist_t, labeltype, 32>> btrees_;
+  vector<fc::BTreeMap<attr_t, labeltype, 32>> btrees_;
   faiss::idx_t *base_cluster_rank_;
   // faiss::idx_t *query_cluster_rank_;
   // dist_t *distances_;
