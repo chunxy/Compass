@@ -48,7 +48,7 @@ xlim = [0.6, 1]
 
 
 def summarize():
-  for da in [1]:
+  for da in [1, 2, 3, 4]:
     entries = []
     for m in SOTA_POST_METHODS + BASE_METHODS + SOTA_METHODS:
       if da not in M_DA_RUN[m]: continue  # noqa: E701
@@ -72,22 +72,22 @@ def summarize():
               if path.exists():
                 entries.append((path, m, w, d, nrg, sel, b, s))
 
-    if da not in M_DA_RUN["Navix"]: continue  # noqa: E701
-    for d in DATASETS:
-      for itvl in M_DA_RUN["Navix"][da]:
-        w = M_WORKLOAD["Navix"].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
-        nrg = "-".join([f"{(r - l) // 10000}" for l, r in zip(*itvl)])  # noqa: E741
-        sel = f"{reduce(lambda a, b: a * b, [(r - l) / 1000000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
+    if da in M_DA_RUN["Navix"]:
+      for d in DATASETS:
+        for itvl in M_DA_RUN["Navix"][da]:
+          w = M_WORKLOAD["Navix"].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
+          nrg = "-".join([f"{(r - l) // 10000}" for l, r in zip(*itvl)])  # noqa: E741
+          sel = f"{reduce(lambda a, b: a * b, [(r - l) / 1000000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
 
-        bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM["Navix"]["build"]])
-        st = "_".join([f"{sp}_{{}}" for sp in M_PARAM["Navix"]["search"]])
-        for ba in product(*[D_ARGS[d].get(bp, M_ARGS["Navix"][bp]) for bp in M_PARAM["Navix"]["build"]]):
-          b = bt.format(*ba)
-          for sa in product(*[D_ARGS[d].get(sp, M_ARGS["Navix"][sp]) for sp in M_PARAM["Navix"]["search"]]):
-            s = st.format(*sa)
-            path = LOG_ROOT / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
-            if path.exists():
-              entries.append((path, "Navix", w, d, nrg, sel, b, s))
+          bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM["Navix"]["build"]])
+          st = "_".join([f"{sp}_{{}}" for sp in M_PARAM["Navix"]["search"]])
+          for ba in product(*[D_ARGS[d].get(bp, M_ARGS["Navix"][bp]) for bp in M_PARAM["Navix"]["build"]]):
+            b = bt.format(*ba)
+            for sa in product(*[D_ARGS[d].get(sp, M_ARGS["Navix"][sp]) for sp in M_PARAM["Navix"]["search"]]):
+              s = st.format(*sa)
+              path = LOG_ROOT / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
+              if path.exists():
+                entries.append((path, "Navix", w, d, nrg, sel, b, s))
 
     df = pd.DataFrame.from_records(
       entries, columns=[
