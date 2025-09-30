@@ -2,7 +2,7 @@ from functools import reduce
 
 DATASETS = ["sift", "sift-dedup", "audio", "audio-dedup", "crawl", "gist", "gist-dedup", "video", "video-dedup", "glove100"]
 
-DA_S = [1]
+DA_S = [1, 2, 3, 4]
 
 # attribute dimension - intervals, for reading JSON files of Compass result
 compass_da_interval = {
@@ -109,7 +109,16 @@ COMPASSX_METHODS = [
   # "CompassPcaQicg",
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF"]
-BASE_METHODS = ["Prefiltering", "Postfiltering", "CompassPostK", "CompassPostKTh", "CompassPostKNavix", "Ivf", "CompassGraph", "Navix"]
+BASE_METHODS = [
+  "Prefiltering",
+  "Postfiltering",
+  # "CompassPostK",
+  "CompassPostKTh",
+  "CompassPostKNavix",
+  "Ivf",
+  "CompassGraph",
+  "Navix",
+]
 METHODS = COMPASS_METHODS + SOTA_METHODS + BASE_METHODS
 SOTA_POST_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
 
@@ -171,10 +180,12 @@ compass_post_group_dataset = {
   "6": ["gist"],
 }
 compass_post_group_dataset = {
-  "1": ["audio-dedup"],
-  "2": ["video-dedup"],
-  "3": ["sift-dedup"],
-  "4": ["gist-dedup"],
+  "1": ["sift-dedup"],
+  "2": ["gist-dedup"],
+  "3": ["crawl"],
+  "4": ["glove100"],
+  "5": ["audio-dedup"],
+  "6": ["video-dedup"],
 }
 M_GROUP_DATASET = {
   **{
