@@ -76,8 +76,8 @@ def summarize():
       for d in DATASETS:
         for itvl in M_DA_RUN["Navix"][da]:
           w = M_WORKLOAD["Navix"].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
-          nrg = "-".join([f"{(r - l) // 10000}" for l, r in zip(*itvl)])  # noqa: E741
-          sel = f"{reduce(lambda a, b: a * b, [(r - l) / 1000000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
+          nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
+          sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
 
           bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM["Navix"]["build"]])
           st = "_".join([f"{sp}_{{}}" for sp in M_PARAM["Navix"]["search"]])
@@ -85,7 +85,10 @@ def summarize():
             b = bt.format(*ba)
             for sa in product(*[D_ARGS[d].get(sp, M_ARGS["Navix"][sp]) for sp in M_PARAM["Navix"]["search"]]):
               s = st.format(*sa)
-              path = LOG_ROOT / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
+              if da == 1:
+                path = LOG_ROOT / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
+              else:
+                path = LOG_ROOT / "Navix" / d / f"output_{int(float(sel) * 100)}_{sa[0]}_navix.json"
               if path.exists():
                 entries.append((path, "Navix", w, d, nrg, sel, b, s))
 
@@ -445,7 +448,7 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
     plt.close()
 
 
-def draw_qps_comp_fixing_selectivity_by_dimension_away(d_m_b, d_m_s, anno, prefix):
+def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
   sel_s = [0.01, 0.1, 0.2, 0.4, 0.6]
   interval = {
     0.01: ["0.01", "0.01", "0.008", "0.0081"],
@@ -471,7 +474,10 @@ def draw_qps_comp_fixing_selectivity_by_dimension_away(d_m_b, d_m_s, anno, prefi
         for sel in sel_s:
           for m in d_m_b[d].keys():
             for b in d_m_b[d][m]:
-              data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+              if m == "SeRF" or m == "iRangeGraph":
+                data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+              else:
+                data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -538,7 +544,7 @@ def draw_qps_comp_fixing_selectivity_by_dimension_away(d_m_b, d_m_s, anno, prefi
       plt.close()
 
 
-def draw_qps_comp_fixing_selectivity_by_dimension_home(d_m_b, d_m_s, anno, prefix):
+def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
   sel_s = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
   interval = {
     0.3: ["0.3", "0.09", "0.027", "0.0081"],
@@ -566,7 +572,10 @@ def draw_qps_comp_fixing_selectivity_by_dimension_home(d_m_b, d_m_s, anno, prefi
         for sel in sel_s:
           for m in d_m_b[d].keys():
             for b in d_m_b[d][m]:
-              data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+              if m == "SeRF" or m == "iRangeGraph":
+                data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+              else:
+                data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
