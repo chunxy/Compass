@@ -88,7 +88,7 @@ def summarize():
               if da == 1:
                 path = LOG_ROOT / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
               else:
-                path = LOG_ROOT / "Navix" / d / f"output_{int(float(sel) * 100)}_{sa[0]}_navix.json"
+                path = LOG_ROOT / "Navix" / d / f"{da}d" / f"output_{int(float(sel) * 100)}_{sa[0]}_navix.json"
               if path.exists():
                 entries.append((path, "Navix", w, d, nrg, sel, b, s))
 
