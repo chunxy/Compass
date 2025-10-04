@@ -188,7 +188,7 @@ void load_filter_data(
   blabels.resize(_blabels.size());
   for (size_t i = 0; i < blabels.size(); i++) blabels[i] = _blabels[i][0];
 
-  std::string qlabel_path = fmt::format(BLABEL_PATH_TMPL, c.name, c.attr_range);
+  std::string qlabel_path = fmt::format(QLABEL_PATH_TMPL, c.name, c.attr_range);
   AttrReaderToVector<int32_t> qlabel_reader(qlabel_path);
   auto _qlabels = qlabel_reader.GetAttrs();
   qlabels.resize(_qlabels.size());
@@ -196,21 +196,29 @@ void load_filter_data(
 }
 
 void load_filter_query_gt(const DataCard &c, const int k, vector<vector<labeltype>> &hybrid_topks) {
-  std::string gt_path = fmt::format(FILTER_GT_PATH_TMPL, c.name, c.attr_range, k);
+  std::string gt_path = fmt::format(FILTER_GT_PATH_TMPL, c.name, c.attr_range, 100);
+  std::ifstream gt_file(gt_path);
+  if (!gt_file.good()) {
+    gt_path = fmt::format(FILTER_GT_PATH_TMPL, c.name, c.attr_range, k);
+  }
 
   hybrid_topks.resize(c.n_queries);
   int i = 0;
   IVecItrReader groundtruth_it(gt_path);
   while (!groundtruth_it.HasEnded()) {
     auto topk = groundtruth_it.Next();
-    hybrid_topks[i].resize(topk.size());
-    for (int j = 0; j < topk.size(); j++) {
+    if (k > topk.size()) {
+      throw fmt::format("k ({}) is greater than the size of the ground truth ({})", k, topk.size());
+    }
+    hybrid_topks[i].resize(k);
+    for (int j = 0; j < k; j++) {
       hybrid_topks[i][j] = topk[j];
     }
     i++;
   }
 }
 
+// 1D attribute
 void stat_selectivity(const vector<float> &attrs, const int l_bound, const int u_bound, int &nsat) {
   nsat = 0;
   for (int i = 0; i < attrs.size(); i++) {
@@ -463,4 +471,31 @@ nlohmann::json collate_stat(
       {"latency_ivf_in_ns", (double)sum_of_ivf_latency / nq},
   };
   return json;
+}
+
+void collate_acorn_stats(
+    const long time_in_ms,
+    const vector<float> &rec_at_ks,
+    const vector<float> &pre_at_ks,
+    const std::string &out_json,
+    FILE *out
+) {
+  int nq = rec_at_ks.size();
+  auto sum_of_rec = std::accumulate(rec_at_ks.begin(), rec_at_ks.end(), 0.);
+  auto sum_of_pre = std::accumulate(pre_at_ks.begin(), pre_at_ks.end(), 0.);
+  fmt::print(out, "Average Recall    : {:5.2f}%\n", sum_of_rec / nq * 100);
+  fmt::print(out, "Average Precision : {:5.2f}%\n", sum_of_pre / nq * 100);
+
+  nlohmann::json json;
+  json["recall"] = rec_at_ks;
+  json["precision"] = pre_at_ks;
+  json["aggregated"] = {
+      {"recall", sum_of_rec / nq},
+      {"precision", sum_of_pre / nq},
+      {"num_queries", nq},
+      {"time_in_s", time_in_ms / 1000.},
+      {"qps", (double)nq / time_in_ms * 1000},
+  };
+  std::ofstream ofs(out_json);
+  ofs.write(json.dump(4).c_str(), json.dump(4).length());
 }

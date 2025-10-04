@@ -87,3 +87,11 @@ nlohmann::json collate_stat(
     const int nthread,
     FILE *out
 );
+
+void collate_acorn_stats(
+    const long time_in_ms,
+    const vector<float> &rec_at_ks,
+    const vector<float> &pre_at_ks,
+    const std::string &out_json,
+    FILE *out
+);

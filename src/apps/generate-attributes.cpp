@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     std::string qlabel_path = fmt::format(QLABEL_PATH_TMPL, name, attr_range);
     fmt::print("Saving to {}", qlabel_path);
     AttrReaderToVector<int32_t>::GenerateRandomAttrs(qlabel_path, n, attr_d, attr_range);
-    AttrReaderToVector<int32_t> qlabel_reader(blabel_path);
+    AttrReaderToVector<int32_t> qlabel_reader(qlabel_path);
     auto qlabels = qlabel_reader.GetAttrs();
     for (auto label : qlabels) {
       for (auto num : label) {
