@@ -174,13 +174,13 @@ void load_filter_data(
     memcpy(xq + i * d, next.data(), d * sizeof(float));
     i++;
   }
-  IVecItrReader groundtruth_it(c.groundtruth_path);
-  i = 0;
-  while (!groundtruth_it.HasEnded()) {
-    auto next = groundtruth_it.Next();
-    memcpy(gt + i * ng, next.data(), ng * sizeof(uint32_t));
-    i++;
-  }
+  // IVecItrReader groundtruth_it(c.groundtruth_path);
+  // i = 0;
+  // while (!groundtruth_it.HasEnded()) {
+  //   auto next = groundtruth_it.Next();
+  //   memcpy(gt + i * ng, next.data(), ng * sizeof(uint32_t));
+  //   i++;
+  // }
 
   std::string blabel_path = fmt::format(BLABEL_PATH_TMPL, c.name, c.attr_range);
   AttrReaderToVector<int32_t> blabel_reader(blabel_path);
