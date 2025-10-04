@@ -970,7 +970,7 @@ DataCard video_6_10000_float32{
     "float32",
 };
 
-DataCard sift_dedeup_1_2_int32{
+DataCard sift_dedup_1_2_int32{
     "sift-dedup",
     sift_dedup_bpath,
     sift_dedup_qpath,
@@ -984,7 +984,7 @@ DataCard sift_dedeup_1_2_int32{
     "int32",
 };
 
-DataCard sift_dedeup_1_5_int32{
+DataCard sift_dedup_1_5_int32{
     "sift-dedup",
     sift_dedup_bpath,
     sift_dedup_qpath,
@@ -998,7 +998,7 @@ DataCard sift_dedeup_1_5_int32{
     "int32",
 };
 
-DataCard sift_dedeup_1_10_int32{
+DataCard sift_dedup_1_10_int32{
     "sift-dedup",
     sift_dedup_bpath,
     sift_dedup_qpath,
@@ -1012,7 +1012,7 @@ DataCard sift_dedeup_1_10_int32{
     "int32",
 };
 
-DataCard sift_dedeup_1_20_int32{
+DataCard sift_dedup_1_20_int32{
     "sift-dedup",
     sift_dedup_bpath,
     sift_dedup_qpath,
@@ -1026,7 +1026,7 @@ DataCard sift_dedeup_1_20_int32{
     "int32",
 };
 
-DataCard sift_dedeup_1_50_int32{
+DataCard sift_dedup_1_50_int32{
     "sift-dedup",
     sift_dedup_bpath,
     sift_dedup_qpath,
@@ -1040,7 +1040,7 @@ DataCard sift_dedeup_1_50_int32{
     "int32",
 };
 
-DataCard sift_dedeup_1_100_int32{
+DataCard sift_dedup_1_100_int32{
     "sift-dedup",
     sift_dedup_bpath,
     sift_dedup_qpath,
@@ -1138,7 +1138,7 @@ DataCard audio_dedup_6_10000_float32{
     "float32",
 };
 
-DataCard audio_dedeup_1_2_int32{
+DataCard audio_dedup_1_2_int32{
     "audio-dedup",
     audio_dedup_bpath,
     audio_dedup_qpath,
@@ -1152,7 +1152,7 @@ DataCard audio_dedeup_1_2_int32{
     "int32",
 };
 
-DataCard audio_dedeup_1_5_int32{
+DataCard audio_dedup_1_5_int32{
     "audio-dedup",
     audio_dedup_bpath,
     audio_dedup_qpath,
@@ -1166,7 +1166,7 @@ DataCard audio_dedeup_1_5_int32{
     "int32",
 };
 
-DataCard audio_dedeup_1_10_int32{
+DataCard audio_dedup_1_10_int32{
     "audio-dedup",
     audio_dedup_bpath,
     audio_dedup_qpath,
@@ -1180,7 +1180,7 @@ DataCard audio_dedeup_1_10_int32{
     "int32",
 };
 
-DataCard audio_dedeup_1_20_int32{
+DataCard audio_dedup_1_20_int32{
     "audio-dedup",
     audio_dedup_bpath,
     audio_dedup_qpath,
@@ -1194,7 +1194,7 @@ DataCard audio_dedeup_1_20_int32{
     "int32",
 };
 
-DataCard audio_dedeup_1_50_int32{
+DataCard audio_dedup_1_50_int32{
     "audio-dedup",
     audio_dedup_bpath,
     audio_dedup_qpath,
@@ -1208,7 +1208,7 @@ DataCard audio_dedeup_1_50_int32{
     "int32",
 };
 
-DataCard audio_dedeup_1_100_int32{
+DataCard audio_dedup_1_100_int32{
     "audio-dedup",
     audio_dedup_bpath,
     audio_dedup_qpath,
@@ -1222,7 +1222,7 @@ DataCard audio_dedeup_1_100_int32{
     "int32",
 };
 
-DataCard video_dedeup_1_2_int32{
+DataCard video_dedup_1_2_int32{
     "video-dedup",
     video_dedup_bpath,
     video_dedup_qpath,
@@ -1236,7 +1236,7 @@ DataCard video_dedeup_1_2_int32{
     "int32",
 };
 
-DataCard video_dedeup_1_5_int32{
+DataCard video_dedup_1_5_int32{
     "video-dedup",
     video_dedup_bpath,
     video_dedup_qpath,
@@ -1250,7 +1250,7 @@ DataCard video_dedeup_1_5_int32{
     "int32",
 };
 
-DataCard video_dedeup_1_10_int32{
+DataCard video_dedup_1_10_int32{
     "video-dedup",
     video_dedup_bpath,
     video_dedup_qpath,
@@ -1264,7 +1264,7 @@ DataCard video_dedeup_1_10_int32{
     "int32",
 };
 
-DataCard video_dedeup_1_20_int32{
+DataCard video_dedup_1_20_int32{
     "video-dedup",
     video_dedup_bpath,
     video_dedup_qpath,
@@ -1278,7 +1278,7 @@ DataCard video_dedeup_1_20_int32{
     "int32",
 };
 
-DataCard video_dedeup_1_50_int32{
+DataCard video_dedup_1_50_int32{
     "video-dedup",
     video_dedup_bpath,
     video_dedup_qpath,
@@ -1292,7 +1292,7 @@ DataCard video_dedeup_1_50_int32{
     "int32",
 };
 
-DataCard video_dedeup_1_100_int32{
+DataCard video_dedup_1_100_int32{
     "video-dedup",
     video_dedup_bpath,
     video_dedup_qpath,
@@ -1475,7 +1475,7 @@ DataCard sift_dedup_6_10000_float32{
     "float32",
 };
 
-DataCard gist_dedeup_1_2_int32{
+DataCard gist_dedup_1_2_int32{
     "gist-dedup",
     gist_dedup_bpath,
     gist_dedup_qpath,
@@ -1489,7 +1489,7 @@ DataCard gist_dedeup_1_2_int32{
     "int32",
 };
 
-DataCard gist_dedeup_1_5_int32{
+DataCard gist_dedup_1_5_int32{
     "gist-dedup",
     gist_dedup_bpath,
     gist_dedup_qpath,
@@ -1503,7 +1503,7 @@ DataCard gist_dedeup_1_5_int32{
     "int32",
 };
 
-DataCard gist_dedeup_1_10_int32{
+DataCard gist_dedup_1_10_int32{
     "gist-dedup",
     gist_dedup_bpath,
     gist_dedup_qpath,
@@ -1517,7 +1517,7 @@ DataCard gist_dedeup_1_10_int32{
     "int32",
 };
 
-DataCard gist_dedeup_1_20_int32{
+DataCard gist_dedup_1_20_int32{
     "gist-dedup",
     gist_dedup_bpath,
     gist_dedup_qpath,
@@ -1531,7 +1531,7 @@ DataCard gist_dedeup_1_20_int32{
     "int32",
 };
 
-DataCard gist_dedeup_1_50_int32{
+DataCard gist_dedup_1_50_int32{
     "gist-dedup",
     gist_dedup_bpath,
     gist_dedup_qpath,
@@ -1545,7 +1545,7 @@ DataCard gist_dedeup_1_50_int32{
     "int32",
 };
 
-DataCard gist_dedeup_1_100_int32{
+DataCard gist_dedup_1_100_int32{
     "gist-dedup",
     gist_dedup_bpath,
     gist_dedup_qpath,
@@ -1724,48 +1724,48 @@ std::map<std::string, DataCard> name_to_card{
     {"video_4_10000_float32", video_4_10000_float32},
     {"video_5_10000_float32", video_5_10000_float32},
     {"video_6_10000_float32", video_6_10000_float32},
-    {"audio-dedup_1_2_int32", audio_dedeup_1_2_int32},
-    {"audio-dedup_1_5_int32", audio_dedeup_1_5_int32},
-    {"audio-dedup_1_10_int32", audio_dedeup_1_10_int32},
-    {"audio-dedup_1_20_int32", audio_dedeup_1_20_int32},
-    {"audio-dedup_1_50_int32", audio_dedeup_1_50_int32},
-    {"audio-dedup_1_100_int32", audio_dedeup_1_100_int32},
+    {"audio-dedup_1_2_int32", audio_dedup_1_2_int32},
+    {"audio-dedup_1_5_int32", audio_dedup_1_5_int32},
+    {"audio-dedup_1_10_int32", audio_dedup_1_10_int32},
+    {"audio-dedup_1_20_int32", audio_dedup_1_20_int32},
+    {"audio-dedup_1_50_int32", audio_dedup_1_50_int32},
+    {"audio-dedup_1_100_int32", audio_dedup_1_100_int32},
     {"audio-dedup_1_10000_float32", audio_dedup_1_10000_float32},
     {"audio-dedup_2_10000_float32", audio_dedup_2_10000_float32},
     {"audio-dedup_3_10000_float32", audio_dedup_3_10000_float32},
     {"audio-dedup_4_10000_float32", audio_dedup_4_10000_float32},
     {"audio-dedup_5_10000_float32", audio_dedup_5_10000_float32},
     {"audio-dedup_6_10000_float32", audio_dedup_6_10000_float32},
-    {"video-dedup_1_2_int32", video_dedeup_1_2_int32},
-    {"video-dedup_1_5_int32", video_dedeup_1_5_int32},
-    {"video-dedup_1_10_int32", video_dedeup_1_10_int32},
-    {"video-dedup_1_20_int32", video_dedeup_1_20_int32},
-    {"video-dedup_1_50_int32", video_dedeup_1_50_int32},
-    {"video-dedup_1_100_int32", video_dedeup_1_100_int32},
+    {"video-dedup_1_2_int32", video_dedup_1_2_int32},
+    {"video-dedup_1_5_int32", video_dedup_1_5_int32},
+    {"video-dedup_1_10_int32", video_dedup_1_10_int32},
+    {"video-dedup_1_20_int32", video_dedup_1_20_int32},
+    {"video-dedup_1_50_int32", video_dedup_1_50_int32},
+    {"video-dedup_1_100_int32", video_dedup_1_100_int32},
     {"video-dedup_1_10000_float32", video_dedup_1_10000_float32},
     {"video-dedup_2_10000_float32", video_dedup_2_10000_float32},
     {"video-dedup_3_10000_float32", video_dedup_3_10000_float32},
     {"video-dedup_4_10000_float32", video_dedup_4_10000_float32},
     {"video-dedup_5_10000_float32", video_dedup_5_10000_float32},
     {"video-dedup_6_10000_float32", video_dedup_6_10000_float32},
-    {"sift-dedup_1_2_int32", sift_dedeup_1_2_int32},
-    {"sift-dedup_1_5_int32", sift_dedeup_1_5_int32},
-    {"sift-dedup_1_10_int32", sift_dedeup_1_10_int32},
-    {"sift-dedup_1_20_int32", sift_dedeup_1_20_int32},
-    {"sift-dedup_1_50_int32", sift_dedeup_1_50_int32},
-    {"sift-dedup_1_100_int32", sift_dedeup_1_100_int32},
+    {"sift-dedup_1_2_int32", sift_dedup_1_2_int32},
+    {"sift-dedup_1_5_int32", sift_dedup_1_5_int32},
+    {"sift-dedup_1_10_int32", sift_dedup_1_10_int32},
+    {"sift-dedup_1_20_int32", sift_dedup_1_20_int32},
+    {"sift-dedup_1_50_int32", sift_dedup_1_50_int32},
+    {"sift-dedup_1_100_int32", sift_dedup_1_100_int32},
     {"sift-dedup_1_10000_float32", sift_dedup_1_10000_float32},
     {"sift-dedup_2_10000_float32", sift_dedup_2_10000_float32},
     {"sift-dedup_3_10000_float32", sift_dedup_3_10000_float32},
     {"sift-dedup_4_10000_float32", sift_dedup_4_10000_float32},
     {"sift-dedup_5_10000_float32", sift_dedup_5_10000_float32},
     {"sift-dedup_6_10000_float32", sift_dedup_6_10000_float32},
-    {"gist-dedup_1_2_int32", gist_dedeup_1_2_int32},
-    {"gist-dedup_1_5_int32", gist_dedeup_1_5_int32},
-    {"gist-dedup_1_10_int32", gist_dedeup_1_10_int32},
-    {"gist-dedup_1_20_int32", gist_dedeup_1_20_int32},
-    {"gist-dedup_1_50_int32", gist_dedeup_1_50_int32},
-    {"gist-dedup_1_100_int32", gist_dedeup_1_100_int32},
+    {"gist-dedup_1_2_int32", gist_dedup_1_2_int32},
+    {"gist-dedup_1_5_int32", gist_dedup_1_5_int32},
+    {"gist-dedup_1_10_int32", gist_dedup_1_10_int32},
+    {"gist-dedup_1_20_int32", gist_dedup_1_20_int32},
+    {"gist-dedup_1_50_int32", gist_dedup_1_50_int32},
+    {"gist-dedup_1_100_int32", gist_dedup_1_100_int32},
     {"gist-dedup_1_10000_float32", gist_dedup_1_10000_float32},
     {"gist-dedup_2_10000_float32", gist_dedup_2_10000_float32},
     {"gist-dedup_3_10000_float32", gist_dedup_3_10000_float32},
