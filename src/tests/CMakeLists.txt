@@ -22,3 +22,7 @@ target_link_libraries(test-iterative-hnsw-batch PRIVATE Boost::filesystem)
 target_link_libraries(test-iterative-hnsw-neo PRIVATE Boost::filesystem)
 target_link_libraries(test-iterative-hnsw-batch-neo PRIVATE Boost::filesystem)
 target_link_libraries(test-iterative-hnsw-against-gt PRIVATE Boost::filesystem)
+
+find_library(SIMDCompressionAndIntersection ${PROJECT_SOURCE_DIR}/thirdparty)
+find_library(LIBBIT NAMES SIMDCompressionAndIntersection HINTS ${PROJECT_SOURCE_DIR}/thirdparty)
+target_link_libraries(test-intersection PRIVATE ${LIBBIT})
