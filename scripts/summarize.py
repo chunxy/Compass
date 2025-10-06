@@ -54,7 +54,7 @@ def summarize():
       if da not in M_DA_RUN[m]: continue  # noqa: E701
       for d in DATASETS:
         for itvl in M_DA_RUN[m][da]:
-          if m in COMPASS_METHODS or m in BASE_METHODS:
+          if m != "ACORN" and (m in COMPASS_METHODS or m in BASE_METHODS):
             w = M_WORKLOAD[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
             nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
             sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
@@ -174,7 +174,10 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+          if m == "SeRF" or m == "iRangeGraph":
+            data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          else:
+            data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -257,7 +260,10 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+          if m == "SeRF" or m == "iRangeGraph":
+            data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          else:
+            data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -337,7 +343,10 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+          if m == "SeRF" or m == "iRangeGraph":
+            data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          else:
+            data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -397,7 +406,10 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+          if m == "SeRF" or m == "iRangeGraph":
+            data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          else:
+            data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
