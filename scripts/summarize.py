@@ -177,7 +177,7 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
           if m == "SeRF" or m == "iRangeGraph":
             data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
           else:
-            data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+            data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -501,6 +501,8 @@ def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, pr
                   grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity",
                                                                                                     as_index=False)["total_ncomp"].min()
                   pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
+                  if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][da - 1]:
+                    pos = -1
                   label = f"{m}-{b}-{nrel}-{rec}"
                   if label not in d_m_sel[d][m][sel]:  # a list by dimension
                     d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
@@ -512,6 +514,8 @@ def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, pr
                 grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
                 grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
                 pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
+                if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][da - 1]:
+                  pos = -1
                 label = f"{m}-{b}-{rec}"
                 if label not in d_m_sel[d][m][sel]:
                   d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
@@ -599,6 +603,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, 
                   grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity",
                                                                                                     as_index=False)["total_ncomp"].min()
                   pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
+                  if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][da - 1]:
+                    pos = -1
                   label = f"{m}-{b}-{nrel}-{rec}"
                   if label not in d_m_sel[d][m][sel]:  # a list by dimension
                     d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
@@ -610,6 +616,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, 
                 grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
                 grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
                 pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
+                if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][da - 1]:
+                  pos = -1
                 label = f"{m}-{b}-{rec}"
                 if label not in d_m_sel[d][m][sel]:
                   d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
