@@ -132,6 +132,7 @@ struct QueryMetric {
   long long cg_latency;
   long long graph_latency;
   long long ivf_latency;
+  long long misc_latency;
   int ncomp_cg;
   int nround;
   int ncomp;
@@ -147,6 +148,7 @@ struct QueryMetric {
         cg_latency(0),
         graph_latency(0),
         ivf_latency(0),
+        misc_latency(0),
         ncomp_cg(0),
         nround(0),
         ncomp(0),
@@ -194,6 +196,7 @@ struct Stat {
   vector<long long> cg_latencies;
   vector<long long> btree_latencies;
   vector<long long> graph_latencies;
+  vector<long long> misc_latencies;
   // per-batch stat
   vector<long long> batch_time;
   vector<long long> batch_overhead;
@@ -232,5 +235,6 @@ struct Stat {
         cg_latencies(nq, 0),
         btree_latencies(nq, 0),
         graph_latencies(nq, 0),
-        ivf_latencies(nq, 0) {}
+        ivf_latencies(nq, 0),
+        misc_latencies(nq, 0) {}
 };

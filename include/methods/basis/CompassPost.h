@@ -696,6 +696,8 @@ class CompassPost {
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].misc_latency += state.out_.btree_time;
+      bm.qmetrics[q].misc_latency += cg_state.out_.btree_time;
 
       graph_.Close(&state);
       cg_.Close(&cg_state);

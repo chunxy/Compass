@@ -346,6 +346,7 @@ void collect_batch_metric(
     stat.cg_latencies[j] = metric.cg_latency;
     stat.btree_latencies[j] = metric.btree_latency;
     stat.graph_latencies[j] = metric.graph_latency;
+    stat.misc_latencies[j] = metric.misc_latency;
   }
   stat.batch_time.push_back(bm.time);
   stat.batch_overhead.push_back(bm.overhead);
@@ -434,6 +435,7 @@ nlohmann::json collate_stat(
   auto sum_of_btree_latency = std::accumulate(s.btree_latencies.begin(), s.btree_latencies.end(), 0ll);
   auto sum_of_graph_latency = std::accumulate(s.graph_latencies.begin(), s.graph_latencies.end(), 0ll);
   auto sum_of_ivf_latency = std::accumulate(s.ivf_latencies.begin(), s.ivf_latencies.end(), 0ll);
+  auto sum_of_misc_latency = std::accumulate(s.misc_latencies.begin(), s.misc_latencies.end(), 0ll);
   auto sum_of_cg_ncomp = std::accumulate(s.cg_num_computations.begin(), s.cg_num_computations.end(), 0ll);
 
   auto sum_of_cluster_search_time =
@@ -469,6 +471,7 @@ nlohmann::json collate_stat(
       {"latency_btree_in_ns", (double)sum_of_btree_latency / nq},
       {"latency_graph_in_ns", (double)sum_of_graph_latency / nq},
       {"latency_ivf_in_ns", (double)sum_of_ivf_latency / nq},
+      {"latency_misc_in_ns", (double)sum_of_misc_latency / nq},
   };
   return json;
 }
