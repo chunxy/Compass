@@ -549,12 +549,12 @@ class Compass1dPost {
           }
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
           state.sel_ = 1;  // restart graph
-          continue;
 #ifndef BENCH
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
 #endif
+          continue;
         }
         // Believe in graph when the first-hop selectivity is not low.
         // "state.sel_ >=" means we do not always rely on graph.
@@ -730,12 +730,12 @@ class Compass1dPost {
           }
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
           state.sel_ = 1;  // restart graph
-          continue;
 #ifndef BENCH
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
 #endif
+          continue;
         }
         // Believe in graph when the first-hop selectivity is not low.
         // "state.sel_ >=" means we do not always rely on graph.

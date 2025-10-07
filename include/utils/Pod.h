@@ -190,7 +190,7 @@ struct Stat {
   vector<long> num_clusters;
   vector<long> num_recycled;
   vector<long long> latencies;
-  vector<long long> ivf_latencies;  // IVF latency partically includes CG latency and btree latency
+  vector<long long> ivf_latencies;  // IVF latency includes CG latency and btree latency
   vector<long long> cg_latencies;
   vector<long long> btree_latencies;
   vector<long long> graph_latencies;
