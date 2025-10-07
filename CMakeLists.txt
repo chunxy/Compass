@@ -60,6 +60,25 @@ include_directories(${PROJECT_SOURCE_DIR}/thirdparty/btree)
 # include_directories(${PROJECT_SOURCE_DIR}/thirdparty/DiskANN/include)
 # link_libraries(diskann)
 
+# add_subdirectory(thirdparty/CRoaring EXCLUDE_FROM_ALL)
+# include_directories(${PROJECT_SOURCE_DIR}/thirdparty/CRoaring/cpp)
+
+include(FetchContent)
+
+FetchContent_Declare(
+  roaring
+  GIT_REPOSITORY https://github.com/RoaringBitmap/CRoaring.git
+  GIT_TAG v2.0.4
+  GIT_SHALLOW TRUE)
+
+set(ENABLE_ROARING_TESTS OFF CACHE INTERNAL "")
+set(ROARING_BUILD_STATIC ON CACHE INTERNAL "")
+FetchContent_MakeAvailable(roaring)
+FetchContent_GetProperties(roaring)
+SET(CPP_ROARING_HEADERS ${roaring_SOURCE_DIR}/cpp/roaring64map.hh  ${roaring_SOURCE_DIR}/cpp/roaring.hh)
+file(COPY  ${CPP_ROARING_HEADERS} DESTINATION ${roaring_SOURCE_DIR}/include/roaring)
+include_directories(${roaring_SOURCE_DIR}/include/roaring)
+
 include_directories(${PROJECT_SOURCE_DIR}/include)
 link_libraries(fmt::fmt-header-only Boost::program_options)
 
@@ -71,7 +90,7 @@ link_libraries(fmt::fmt-header-only Boost::program_options)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -ftree-vectorize -DBENCH")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} -march=native -ftree-vectorize -DBENCH -O1 -g")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} -march=native -ftree-vectorize -O3")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g -DCOMPASS_DEBUG")
 
 add_subdirectory(src)

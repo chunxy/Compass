@@ -1,4 +1,5 @@
 link_libraries(Boost::filesystem)
+link_libraries(roaring)
 
 # Baseline
 add_executable(bench-compass-1d-ivf bench-compass-1d-ivf.cpp)
@@ -13,6 +14,7 @@ add_executable(bench-compass-1d-post-k bench-compass-1d-post-k.cpp)
 add_executable(bench-compass-1d-post-k-th bench-compass-1d-post-k-th.cpp)
 add_executable(bench-compass-1d-post-k-navix bench-compass-1d-post-k-navix.cpp)
 add_executable(bench-compass-post-k-th bench-compass-post-k-th.cpp)
+add_executable(bench-compass-post-k-thb bench-compass-post-k-thb.cpp)
 add_executable(bench-acorn bench-acorn.cpp)
 target_link_libraries(bench-acorn ACORN)
 # add_executable(bench-compass-nsg bench-compass-nsg.cpp)
