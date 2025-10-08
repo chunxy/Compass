@@ -221,7 +221,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
       VisitedList *vl,
       int &ncomp,
-      float &sel
+      float &sel,
+      Out *out = nullptr
   ) {
     size_t efs = std::max(k, this->ef_);
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
@@ -305,7 +306,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         auto estimatedFullTwoHopDistanceComp = (size * satisfied_count + satisfied_count) * 0.4;
         auto estimatedDirectedDistanceComp = size + (size - satisfied_count);
-        int remaining = 10000000;
+        int remaining = this->maxM0_;
         // if (selectivity >= 0.2) {  // directed two-hop
         if (estimatedFullTwoHopDistanceComp > estimatedDirectedDistanceComp) {
           while (other_onehop_neighbors.size() > 0) {
@@ -383,8 +384,10 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             }
           }
         }
-
-        while (other_onehop_neighbors.size() > 0) {
+#ifndef BENCH
+        auto twohop_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+        while (other_onehop_neighbors.size() > 0 && remaining > 0) {
           // Means we are running full two-hop search.
           // So we don't restrict on the number, i.e. `remaining`.
           tableint cand_nbr = *other_onehop_neighbors.begin();
@@ -432,6 +435,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             }
           }
         }
+#ifndef BENCH
+        auto twohop_stop = std::chrono::high_resolution_clock::system_clock::now();
+        if (out != nullptr) {
+          out->twohop_time += std::chrono::duration_cast<std::chrono::nanoseconds>(twohop_stop - twohop_start).count();
+        }
+#endif
       }
 
       // Assess remaining one-hop neighbors.
@@ -545,9 +554,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         }
       }
 
-#ifndef BENCH
-      auto twohop_start = std::chrono::high_resolution_clock::system_clock::now();
-#endif
       // TODO: The ratio is a tuning point.
       // adaptive local
       // float selectivity = checked_count == 0 ? 0 : (float)added_count / checked_count;
@@ -556,7 +562,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         auto estimatedFullTwoHopDistanceComp = (size * satisfied_count + satisfied_count) * 0.4;
         auto estimatedDirectedDistanceComp = size + (size - satisfied_count);
-        int remaining = 10000000;
+        int remaining = this->maxM0_;
         // if (selectivity >= 0.2) {  // directed two-hop
         if (estimatedFullTwoHopDistanceComp > estimatedDirectedDistanceComp) {
           while (other_onehop_neighbors.size() > 0) {
@@ -634,8 +640,10 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             }
           }
         }
-
-        while (other_onehop_neighbors.size() > 0) {
+#ifndef BENCH
+        auto twohop_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+        while (other_onehop_neighbors.size() > 0 && remaining > 0) {
           // Means we are running full two-hop search.
           // So we don't restrict on the number, i.e. `remaining`.
           tableint cand_nbr = *other_onehop_neighbors.begin();
@@ -683,6 +691,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             }
           }
         }
+#ifndef BENCH
+        auto twohop_stop = std::chrono::high_resolution_clock::system_clock::now();
+        if (out != nullptr) {
+          out->twohop_time += std::chrono::duration_cast<std::chrono::nanoseconds>(twohop_stop - twohop_start).count();
+        }
+#endif
       }
 
       // Assess remaining one-hop neighbors.
@@ -698,12 +712,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 
       total_added_count += added_count;
       total_checked_count += checked_count;
-#ifndef BENCH
-      auto twohop_stop = std::chrono::high_resolution_clock::system_clock::now();
-      if (out != nullptr) {
-        out->twohop_time += std::chrono::duration_cast<std::chrono::nanoseconds>(twohop_stop - twohop_start).count();
-      }
-#endif
     }
     sel = total_checked_count == 0 ? 0 : float(total_added_count) / total_checked_count;
   }

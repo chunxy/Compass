@@ -128,7 +128,8 @@ class IterativeSearch {
         state->result_set_,
         state->vl_,
         state->ncomp_,
-        state->sel_
+        state->sel_,
+        &state->out_
     );
 #ifndef BENCH
     end = std::chrono::high_resolution_clock::now();
