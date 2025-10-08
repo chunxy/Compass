@@ -185,7 +185,7 @@ class CompassPost {
             while (itr_beg != itr_end) {
               auto arr = itr_beg->second.second;
               bool good = true;
-              for (int i = 0; i < this->da_; i++) {
+              for (int i = 1; i < this->da_; i++) {
                 if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
                   good = false;
                   break;
@@ -219,6 +219,21 @@ class CompassPost {
               }
               itr_beg = btrees_[clus].lower_bound(l_bound[0]);
               itr_end = btrees_[clus].upper_bound(u_bound[0]);
+              while (itr_beg != itr_end) {
+                auto arr = itr_beg->second.second;
+                bool good = true;
+                for (int i = 1; i < this->da_; i++) {
+                  if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
+                    good = false;
+                    break;
+                  }
+                }
+                if (good) {
+                  break;
+                } else {
+                  itr_beg++;
+                }
+              }
               clus_cnt++;
               continue;
             }
@@ -227,7 +242,7 @@ class CompassPost {
             while (itr_beg != itr_end) {
               auto arr = itr_beg->second.second;
               bool good = true;
-              for (int i = 0; i < this->da_; i++) {
+              for (int i = 1; i < this->da_; i++) {
                 if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
                   good = false;
                   break;
@@ -376,7 +391,7 @@ class CompassPost {
             while (itr_beg != itr_end) {
               auto arr = itr_beg->second.second;
               bool good = true;
-              for (int i = 0; i < this->da_; i++) {
+              for (int i = 1; i < this->da_; i++) {
                 if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
                   good = false;
                   break;
@@ -409,6 +424,21 @@ class CompassPost {
               }
               itr_beg = btrees_[clus].lower_bound(l_bound[0]);
               itr_end = btrees_[clus].upper_bound(u_bound[0]);
+              while (itr_beg != itr_end) {
+                auto arr = itr_beg->second.second;
+                bool good = true;
+                for (int i = 1; i < this->da_; i++) {
+                  if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
+                    good = false;
+                    break;
+                  }
+                }
+                if (good) {
+                  break;
+                } else {
+                  itr_beg++;
+                }
+              }
               clus_cnt++;
               continue;
             }
@@ -417,7 +447,7 @@ class CompassPost {
             while (itr_beg != itr_end) {
               auto arr = itr_beg->second.second;
               bool good = true;
-              for (int i = 0; i < this->da_; i++) {
+              for (int i = 1; i < this->da_; i++) {
                 if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
                   good = false;
                   break;
@@ -570,12 +600,15 @@ class CompassPost {
             bm.qmetrics[q].cg_latency += cg_time;
 #endif
             int clus = next.second;
+#ifndef BENCH
+            auto btree_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             itr_beg = btrees_[clus].lower_bound(l_bound[0]);
             itr_end = btrees_[clus].upper_bound(u_bound[0]);
             while (itr_beg != itr_end) {
               auto arr = itr_beg->second.second;
               bool good = true;
-              for (int i = 0; i < this->da_; i++) {
+              for (int i = 1; i < this->da_; i++) {
                 if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
                   good = false;
                   break;
@@ -587,6 +620,11 @@ class CompassPost {
                 itr_beg++;
               }
             }
+#ifndef BENCH
+            auto btree_end = std::chrono::high_resolution_clock::system_clock::now();
+            auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
+            bm.qmetrics[q].btree_latency += btree_time;
+#endif
             initialized = true;
             clus_cnt++;
           }
@@ -606,17 +644,43 @@ class CompassPost {
               if (clus == -1) {
                 break;
               }
+#ifndef BENCH
+              auto btree_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
               itr_beg = btrees_[clus].lower_bound(l_bound[0]);
               itr_end = btrees_[clus].upper_bound(u_bound[0]);
+              while (itr_beg != itr_end) {
+                auto arr = itr_beg->second.second;
+                bool good = true;
+                for (int i = 1; i < this->da_; i++) {
+                  if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
+                    good = false;
+                    break;
+                  }
+                }
+                if (good) {
+                  break;
+                } else {
+                  itr_beg++;
+                }
+              }
+#ifndef BENCH
+              auto btree_end = std::chrono::high_resolution_clock::system_clock::now();
+              auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
+              bm.qmetrics[q].btree_latency += btree_time;
+#endif
               clus_cnt++;
               continue;
             }
             tableint tableid = itr_beg->second.first;
             itr_beg++;
+#ifndef BENCH
+            auto btree_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             while (itr_beg != itr_end) {
               auto arr = itr_beg->second.second;
               bool good = true;
-              for (int i = 0; i < this->da_; i++) {
+              for (int i = 1; i < this->da_; i++) {
                 if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
                   good = false;
                   break;
@@ -628,6 +692,11 @@ class CompassPost {
                 itr_beg++;
               }
             }
+#ifndef BENCH
+            auto btree_end = std::chrono::high_resolution_clock::system_clock::now();
+            auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
+            bm.qmetrics[q].btree_latency += btree_time;
+#endif
 #ifdef USE_SSE
             if (itr_beg != itr_end)
               _mm_prefetch(this->graph_.hnsw_->getDataByInternalId(itr_beg->second.first), _MM_HINT_T0);
@@ -697,7 +766,9 @@ class CompassPost {
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
       bm.qmetrics[q].misc_latency += state.out_.btree_time;
+      bm.qmetrics[q].misc_latency += state.out_.search_time;
       bm.qmetrics[q].misc_latency += cg_state.out_.btree_time;
+      bm.qmetrics[q].misc_latency += cg_state.out_.search_time;
 
       graph_.Close(&state);
       cg_.Close(&cg_state);
@@ -1012,7 +1083,7 @@ class CompassPost {
             while (itr_beg != itr_end) {
               auto arr = itr_beg->second.second;
               bool good = true;
-              for (int i = 0; i < this->da_; i++) {
+              for (int i = 1; i < this->da_; i++) {
                 if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
                   good = false;
                   break;
@@ -1045,6 +1116,21 @@ class CompassPost {
               }
               itr_beg = btrees_[clus].lower_bound(l_bound[0]);
               itr_end = btrees_[clus].upper_bound(u_bound[0]);
+              while (itr_beg != itr_end) {
+                auto arr = itr_beg->second.second;
+                bool good = true;
+                for (int i = 1; i < this->da_; i++) {
+                  if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
+                    good = false;
+                    break;
+                  }
+                }
+                if (good) {
+                  break;
+                } else {
+                  itr_beg++;
+                }
+              }
               clus_cnt++;
               continue;
             }
@@ -1053,7 +1139,7 @@ class CompassPost {
             while (itr_beg != itr_end) {
               auto arr = itr_beg->second.second;
               bool good = true;
-              for (int i = 0; i < this->da_; i++) {
+              for (int i = 1; i < this->da_; i++) {
                 if (arr[i] < l_bound[i] || arr[i] > u_bound[i]) {
                   good = false;
                   break;
