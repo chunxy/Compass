@@ -463,7 +463,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   void IterativeReentrantSearchKnnTwoHopGivenBitset(
       const void *query_data,
       const size_t k,
-      BitsetQuery<float> *is_id_allowed,
+      BitsetQuery<float> *bitset,
       std::priority_queue<std::pair<dist_t, int64_t>> &recycled_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
@@ -507,7 +507,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
-        bool is_satisfied = is_id_allowed == nullptr || (*is_id_allowed)(cand_nbr);
+        bool is_satisfied = bitset == nullptr || (*bitset)(cand_nbr);
         if (is_satisfied) {
           satisfied_count++;
         }
@@ -605,10 +605,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #ifdef USE_SSE
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            if (!added_onehop_neighbors.empty())
+              _mm_prefetch(this->get_linklist0(added_onehop_neighbors.top().second), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             checked_count++;
-            if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+            if (bitset != nullptr && !(*bitset)(twohop_nbr)) continue;
             vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
             remaining--;
@@ -653,10 +655,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #ifdef USE_SSE
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            if (!other_onehop_neighbors.empty())
+              _mm_prefetch(this->get_linklist0(*other_onehop_neighbors.begin()), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             checked_count++;
-            if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+            if (bitset != nullptr && !(*bitset)(twohop_nbr)) continue;
             vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
             remaining--;
