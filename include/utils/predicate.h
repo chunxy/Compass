@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 #include "../hnswlib/hnswlib.h"
+#include "roaring/roaring.hh"
 
 using namespace hnswlib;
 using std::vector;
@@ -90,5 +91,34 @@ class RangedQueryStopCondition : public hnswlib::BaseSearchStopCondition<dist_t>
       }
     }
     return stop_search;
+  }
+};
+
+template <typename attr_t>
+class BitsetQuery : public hnswlib::BaseFilterFunctor {
+ private:
+  roaring::Roaring bitset;
+  size_t n_, d_;
+
+ public:
+  BitsetQuery(const attr_t *l_bound, const attr_t *u_bound, const attr_t *attrs, size_t n, size_t d) : n_(n), d_(d) {
+    for (int i = 0; i < n; i++) {
+      bool ok = true;
+      for (int j = 0; j < d; j++) {
+        if (attrs[i * d + j] < l_bound[j] || attrs[i * d + j] > u_bound[j]) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        bitset.add(i);
+      }
+    }
+  }
+  bool operator()(hnswlib::labeltype label) override {
+    if (label < n_) {
+      return bitset.contains(label);
+    }
+    return false;
   }
 };

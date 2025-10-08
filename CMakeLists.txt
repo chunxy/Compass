@@ -77,7 +77,7 @@ FetchContent_MakeAvailable(roaring)
 FetchContent_GetProperties(roaring)
 SET(CPP_ROARING_HEADERS ${roaring_SOURCE_DIR}/cpp/roaring64map.hh  ${roaring_SOURCE_DIR}/cpp/roaring.hh)
 file(COPY  ${CPP_ROARING_HEADERS} DESTINATION ${roaring_SOURCE_DIR}/include/roaring)
-include_directories(${roaring_SOURCE_DIR}/include/roaring)
+include_directories(${roaring_SOURCE_DIR}/include)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 link_libraries(fmt::fmt-header-only Boost::program_options)
