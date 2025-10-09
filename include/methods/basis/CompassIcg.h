@@ -122,7 +122,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
       }
       auto btree_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_stop - btree_start).count();
-      bm.qmetrics[q].btree_latency += btree_time;
+      bm.qmetrics[q].filter_latency += btree_time;
 
       while (true) {
         int crel = 0;
@@ -149,7 +149,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
                 auto btree_stop = std::chrono::high_resolution_clock::system_clock::now();
                 auto btree_time =
                     std::chrono::duration_cast<std::chrono::nanoseconds>(btree_stop - btree_start).count();
-                bm.qmetrics[q].btree_latency += btree_time;
+                bm.qmetrics[q].filter_latency += btree_time;
                 continue;
               }
             }
@@ -161,7 +161,7 @@ class CompassIcg : public Compass<dist_t, attr_t> {
             } while (itr_beg != itr_end && !pred(itr_beg->second.second));
             auto btree_stop = std::chrono::high_resolution_clock::system_clock::now();
             auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_stop - btree_start).count();
-            bm.qmetrics[q].btree_latency += btree_time;
+            bm.qmetrics[q].filter_latency += btree_time;
 #ifdef USE_SSE
             if (itr_beg != itr_end) _mm_prefetch(this->hnsw_.getDataByInternalId(itr_beg->second.first), _MM_HINT_T0);
 #endif
