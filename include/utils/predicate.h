@@ -114,6 +114,7 @@ class BitsetQuery : public hnswlib::BaseFilterFunctor {
         bitset.add(i);
       }
     }
+    bitset.runOptimize();
   }
   bool operator()(hnswlib::labeltype label) override {
     if (label < n_) {
