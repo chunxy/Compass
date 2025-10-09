@@ -128,11 +128,13 @@ struct QueryMetric {
   std::vector<bool> is_graph_ppsl;
   std::vector<float> cand_dist;
   long long latency;
-  long long btree_latency;
+  long long filter_latency;
   long long cg_latency;
   long long graph_latency;
   long long ivf_latency;
-  long long misc_latency;
+  long long twohop_latency;
+  long long ihnsw_latency;
+  long long comp_latency;
   int ncomp_cg;
   int nround;
   int ncomp;
@@ -144,11 +146,13 @@ struct QueryMetric {
       : is_ivf_ppsl(nb, false),
         is_graph_ppsl(nb, false),
         latency(0),
-        btree_latency(0),
+        filter_latency(0),
         cg_latency(0),
         graph_latency(0),
         ivf_latency(0),
-        misc_latency(0),
+        twohop_latency(0),
+        ihnsw_latency(0),
+        comp_latency(0),
         ncomp_cg(0),
         nround(0),
         ncomp(0),
@@ -194,9 +198,11 @@ struct Stat {
   vector<long long> latencies;
   vector<long long> ivf_latencies;  // IVF latency includes CG latency and btree latency
   vector<long long> cg_latencies;
-  vector<long long> btree_latencies;
+  vector<long long> filter_latencies;
   vector<long long> graph_latencies;
+  vector<long long> twohop_latencies;
   vector<long long> misc_latencies;
+  vector<long long> comp_latencies;
   // per-batch stat
   vector<long long> batch_time;
   vector<long long> batch_overhead;
@@ -233,8 +239,10 @@ struct Stat {
         num_recycled(nq, 0),
         latencies(nq, 0),
         cg_latencies(nq, 0),
-        btree_latencies(nq, 0),
+        filter_latencies(nq, 0),
         graph_latencies(nq, 0),
         ivf_latencies(nq, 0),
-        misc_latencies(nq, 0) {}
+        twohop_latencies(nq, 0),
+        misc_latencies(nq, 0),
+        comp_latencies(nq, 0) {}
 };

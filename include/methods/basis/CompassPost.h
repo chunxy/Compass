@@ -623,7 +623,7 @@ class CompassPost {
 #ifndef BENCH
             auto btree_end = std::chrono::high_resolution_clock::system_clock::now();
             auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
-            bm.qmetrics[q].btree_latency += btree_time;
+            bm.qmetrics[q].filter_latency += btree_time;
 #endif
             initialized = true;
             clus_cnt++;
@@ -667,7 +667,7 @@ class CompassPost {
 #ifndef BENCH
               auto btree_end = std::chrono::high_resolution_clock::system_clock::now();
               auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
-              bm.qmetrics[q].btree_latency += btree_time;
+              bm.qmetrics[q].filter_latency += btree_time;
 #endif
               clus_cnt++;
               continue;
@@ -695,7 +695,7 @@ class CompassPost {
 #ifndef BENCH
             auto btree_end = std::chrono::high_resolution_clock::system_clock::now();
             auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
-            bm.qmetrics[q].btree_latency += btree_time;
+            bm.qmetrics[q].filter_latency += btree_time;
 #endif
 #ifdef USE_SSE
             if (itr_beg != itr_end)
@@ -765,9 +765,12 @@ class CompassPost {
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
-      bm.qmetrics[q].misc_latency += state.out_.twohop_time;
-      bm.qmetrics[q].misc_latency += state.out_.pop_time;
-      bm.qmetrics[q].misc_latency += cg_state.out_.pop_time;
+      bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
+      bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
+      bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].filter_latency += state.out_.filter_time;
 
       graph_.Close(&state);
       cg_.Close(&cg_state);
@@ -870,7 +873,7 @@ class CompassPost {
 #ifndef BENCH
             auto btree_end = std::chrono::high_resolution_clock::system_clock::now();
             auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
-            bm.qmetrics[q].btree_latency += btree_time;
+            bm.qmetrics[q].filter_latency += btree_time;
 #endif
             initialized = true;
             clus_cnt++;
@@ -906,7 +909,7 @@ class CompassPost {
 #ifndef BENCH
               auto btree_end = std::chrono::high_resolution_clock::system_clock::now();
               auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
-              bm.qmetrics[q].btree_latency += btree_time;
+              bm.qmetrics[q].filter_latency += btree_time;
 #endif
               clus_cnt++;
               continue;
@@ -926,7 +929,7 @@ class CompassPost {
 #ifndef BENCH
             auto btree_end = std::chrono::high_resolution_clock::system_clock::now();
             auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
-            bm.qmetrics[q].btree_latency += btree_time;
+            bm.qmetrics[q].filter_latency += btree_time;
 #endif
 #ifdef USE_SSE
             if (itr_beg != itr_end)
@@ -996,9 +999,12 @@ class CompassPost {
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
-      bm.qmetrics[q].misc_latency += state.out_.twohop_time;
-      bm.qmetrics[q].misc_latency += state.out_.pop_time;
-      bm.qmetrics[q].misc_latency += cg_state.out_.pop_time;
+      bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
+      bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
+      bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].filter_latency += state.out_.filter_time;
 
       graph_.Close(&state);
       cg_.Close(&cg_state);

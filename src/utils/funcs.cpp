@@ -344,9 +344,11 @@ void collect_batch_metric(
     stat.latencies[j] = metric.latency;
     stat.ivf_latencies[j] = metric.ivf_latency;
     stat.cg_latencies[j] = metric.cg_latency;
-    stat.btree_latencies[j] = metric.btree_latency;
+    stat.filter_latencies[j] = metric.filter_latency;
     stat.graph_latencies[j] = metric.graph_latency;
-    stat.misc_latencies[j] = metric.misc_latency;
+    stat.twohop_latencies[j] = metric.twohop_latency;
+    stat.misc_latencies[j] = metric.ihnsw_latency;
+    stat.comp_latencies[j] = metric.comp_latency;
   }
   stat.batch_time.push_back(bm.time);
   stat.batch_overhead.push_back(bm.overhead);
@@ -380,8 +382,10 @@ nlohmann::json collate_stat(
     fmt::print(out, "\tBatch overhead in ns  : {:d}\n", s.batch_overhead[j / batch_sz] / batch_sz);
     fmt::print(out, "\tCG Latency in ns      : {:d}\n", s.cg_latencies[j]);
     fmt::print(out, "\tIVF Latency in ns     : {:d}\n", s.ivf_latencies[j]);
-    fmt::print(out, "\tBtree Latency in ns   : {:d}\n", s.btree_latencies[j]);
+    fmt::print(out, "\tFilter Latency in ns  : {:d}\n", s.filter_latencies[j]);
     fmt::print(out, "\tGraph Latency in ns   : {:d}\n", s.graph_latencies[j]);
+    fmt::print(out, "\tMisc Latency in ns    : {:d}\n", s.misc_latencies[j]);
+    fmt::print(out, "\tTwohop Comp Lat. in ns: {:d}\n", s.comp_latencies[j]);
     fmt::print(out, "\tNo. IVF Ppsl Rounds   : {:3d}\n", s.num_rounds[j]);
     fmt::print(out, "\tNo. IVF Ppsl          : {:3d}\n", s.ivf_ppsl_nums[j]);
     fmt::print(out, "\tNo. Graph Ppsl        : {:3d}\n", s.graph_ppsl_nums[j]);
@@ -432,10 +436,12 @@ nlohmann::json collate_stat(
   };
   auto sum_of_latency = std::accumulate(s.latencies.begin(), s.latencies.end(), 0ll);
   auto sum_of_cg_latency = std::accumulate(s.cg_latencies.begin(), s.cg_latencies.end(), 0ll);
-  auto sum_of_btree_latency = std::accumulate(s.btree_latencies.begin(), s.btree_latencies.end(), 0ll);
-  auto sum_of_graph_latency = std::accumulate(s.graph_latencies.begin(), s.graph_latencies.end(), 0ll);
+  auto sum_of_filter_latency = std::accumulate(s.filter_latencies.begin(), s.filter_latencies.end(), 0ll);
   auto sum_of_ivf_latency = std::accumulate(s.ivf_latencies.begin(), s.ivf_latencies.end(), 0ll);
+  auto sum_of_graph_latency = std::accumulate(s.graph_latencies.begin(), s.graph_latencies.end(), 0ll);
+  auto sum_of_twohop_latency = std::accumulate(s.twohop_latencies.begin(), s.twohop_latencies.end(), 0ll);
   auto sum_of_misc_latency = std::accumulate(s.misc_latencies.begin(), s.misc_latencies.end(), 0ll);
+  auto sum_of_comp_latency = std::accumulate(s.comp_latencies.begin(), s.comp_latencies.end(), 0ll);
   auto sum_of_cg_ncomp = std::accumulate(s.cg_num_computations.begin(), s.cg_num_computations.end(), 0ll);
 
   auto sum_of_cluster_search_time =
@@ -467,11 +473,13 @@ nlohmann::json collate_stat(
       {"num_recycled", (double)sum_of_num_recycled / nq},
       {"batch_sz", batch_sz},
       {"latency_in_ns", (double)sum_of_latency / nq},
-      {"latency_cg_in_ns", (double)sum_of_cg_latency / nq},
-      {"latency_btree_in_ns", (double)sum_of_btree_latency / nq},
-      {"latency_graph_in_ns", (double)sum_of_graph_latency / nq},
       {"latency_ivf_in_ns", (double)sum_of_ivf_latency / nq},
+      {"latency_cg_in_ns", (double)sum_of_cg_latency / nq},
+      {"latency_filter_in_ns", (double)sum_of_filter_latency / nq},
+      {"latency_graph_in_ns", (double)sum_of_graph_latency / nq},
+      {"latency_twohop_in_ns", (double)sum_of_twohop_latency / nq},
       {"latency_misc_in_ns", (double)sum_of_misc_latency / nq},
+      {"latency_twohop_comp_in_ns", (double)sum_of_comp_latency / nq},
   };
   return json;
 }
