@@ -357,6 +357,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
             _mm_prefetch((char *)(is_id_allowed->prefetch(*(twohop_nbrs + j + 1))), _MM_HINT_T0);
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            if (!added_onehop_neighbors.empty())
+              _mm_prefetch(this->get_linklist0(added_onehop_neighbors.top().second), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             checked_count++;
@@ -404,21 +406,45 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
 
           for (int j = 0; j < twohop_size; j++) {
+#ifndef BENCH
+            auto prep_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             tableint twohop_nbr = twohop_nbrs[j];
 #ifdef USE_SSE
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
             _mm_prefetch((char *)(is_id_allowed->prefetch(*(twohop_nbrs + j + 1))), _MM_HINT_T0);
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            if (!other_onehop_neighbors.empty())
+              _mm_prefetch(this->get_linklist0(*other_onehop_neighbors.begin()), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             checked_count++;
-            if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+            bool is_allowed = is_id_allowed == nullptr || (*is_id_allowed)(twohop_nbr);
+#ifndef BENCH
+            auto prep_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(prep_stop - prep_start).count();
+            }
+#endif
+            if (!is_allowed) continue;
             vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
             remaining--;
+#ifndef BENCH
+            auto comp_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             dist_t twohop_nbr_dist =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
+#ifndef BENCH
+            auto comp_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_stop - comp_start).count();
+            }
+#endif
             added_count++;
+#ifndef BENCH
+            auto bk_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             result_set.emplace(-twohop_nbr_dist, twohop_nbr);
 
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
@@ -433,6 +459,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             } else {
               recycled_candidates.emplace(-twohop_nbr_dist, -(int64_t)twohop_nbr);
             }
+#ifndef BENCH
+            auto bk_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->bk_time += std::chrono::duration_cast<std::chrono::nanoseconds>(bk_stop - bk_start).count();
+            }
+#endif
           }
         }
 #ifndef BENCH
@@ -659,6 +691,9 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
 
           for (int j = 0; j < twohop_size; j++) {
+#ifndef BENCH
+            auto prep_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             tableint twohop_nbr = twohop_nbrs[j];
 #ifdef USE_SSE
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
@@ -668,13 +703,32 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             checked_count++;
-            if (bitset != nullptr && !(*bitset)(twohop_nbr)) continue;
+            bool is_allowed = bitset == nullptr || (*bitset)(twohop_nbr);
+#ifndef BENCH
+            auto prep_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(prep_stop - prep_start).count();
+            }
+#endif
+            if (!is_allowed) continue;
             vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
             remaining--;
+#ifndef BENCH
+            auto comp_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             dist_t twohop_nbr_dist =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
+#ifndef BENCH
+            auto comp_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_stop - comp_start).count();
+            }
+#endif
             added_count++;
+#ifndef BENCH
+            auto bk_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             result_set.emplace(-twohop_nbr_dist, twohop_nbr);
 
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
@@ -689,6 +743,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             } else {
               recycled_candidates.emplace(-twohop_nbr_dist, -(int64_t)twohop_nbr);
             }
+#ifndef BENCH
+            auto bk_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(bk_stop - bk_start).count();
+            }
+#endif
           }
         }
 #ifndef BENCH
@@ -987,7 +1047,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         upper_bound = otree.getValueGivenIndex(idx)->el.first;
       }
       auto otree_stop = std::chrono::high_resolution_clock::now();
-      out.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(otree_stop - otree_start).count();
+      out.filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(otree_stop - otree_start).count();
     }
 
     while (!candidate_set.empty()) {
@@ -1038,7 +1098,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             upper_bound = otree.getValueGivenIndex(otree.size())->el.first;
           }
           auto otree_stop = std::chrono::high_resolution_clock::now();
-          out.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(otree_stop - otree_start).count();
+          out.filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(otree_stop - otree_start).count();
         }
       }
     }
@@ -1066,7 +1126,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         upper_bound = btree.kth(idx - 1).first;
       }
       auto btree_stop = std::chrono::high_resolution_clock::now();
-      out.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(btree_stop - btree_start).count();
+      out.filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(btree_stop - btree_start).count();
     }
 
     while (!candidate_set.empty()) {
@@ -1117,7 +1177,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             upper_bound = btree.kth(btree.size() - 1).first;
           }
           auto btree_stop = std::chrono::high_resolution_clock::now();
-          out.btree_time += std::chrono::duration_cast<std::chrono::nanoseconds>(btree_stop - btree_start).count();
+          out.filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(btree_stop - btree_start).count();
         }
       }
     }
