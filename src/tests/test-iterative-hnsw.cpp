@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
       }
 
       ncomp += comp->GetNcomp(&state);
-      btree_time += state.out_.btree_time;
+      btree_time += state.out_.filter_time;
       internal_search_time += state.out_.search_time;
       comp->Close(&state);
 
