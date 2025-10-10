@@ -28,7 +28,7 @@ class CompassPostK : public CompassPost<dist_t, attr_t> {
       for (int j = 0; j < this->da_; j++) {
         arr[j] = attrs[i * this->da_ + j];
       }
-      this->btrees_[assigned_cluster][attrs[i]] = std::make_pair(i, arr);
+      this->btrees_[assigned_cluster][attrs[i * this->da_]] = std::make_pair(i, arr);
     }
   }
 

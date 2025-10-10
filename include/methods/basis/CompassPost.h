@@ -112,7 +112,7 @@ class CompassPost {
         arr[j] = attrs[i * this->da_ + j];
         mbtrees_[this->base_cluster_rank_[i] * this->da_ + j][attrs[i * this->da_ + j]] = labels[i];
       }
-      btrees_[this->base_cluster_rank_[i]][attrs[i]] = std::make_pair(labels[i], arr);
+      btrees_[this->base_cluster_rank_[i]][attrs[i * this->da_]] = std::make_pair(labels[i], arr);
     }
   }
 
