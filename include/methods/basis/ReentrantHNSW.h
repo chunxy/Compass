@@ -691,9 +691,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
 
           for (int j = 0; j < twohop_size; j++) {
-#ifndef BENCH
-            auto prep_start = std::chrono::high_resolution_clock::system_clock::now();
-#endif
             tableint twohop_nbr = twohop_nbrs[j];
 #ifdef USE_SSE
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
@@ -703,6 +700,9 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
             checked_count++;
+#ifndef BENCH
+            auto prep_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             bool is_allowed = bitset == nullptr || (*bitset)(twohop_nbr);
 #ifndef BENCH
             auto prep_stop = std::chrono::high_resolution_clock::system_clock::now();
@@ -774,6 +774,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       total_checked_count += checked_count;
     }
     sel = total_checked_count == 0 ? 0 : float(total_added_count) / total_checked_count;
+    out->checked_count += total_checked_count;
   }
 
   void IterativeReentrantSearchKnnNavix(

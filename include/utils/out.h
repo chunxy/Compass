@@ -8,4 +8,6 @@ struct Out {
   long long filter_time = 0;
   long long comp_time = 0;
   long long bk_time = 0;
+
+  long long checked_count = 0;
 };
