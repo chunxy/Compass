@@ -99,9 +99,11 @@ class BitsetQuery : public hnswlib::BaseFilterFunctor {
  private:
   roaring::Roaring bitset;
   size_t n_, d_;
+  bool flipped_;
 
  public:
-  BitsetQuery(const attr_t *l_bound, const attr_t *u_bound, const attr_t *attrs, size_t n, size_t d) : n_(n), d_(d) {
+  BitsetQuery(const attr_t *l_bound, const attr_t *u_bound, const attr_t *attrs, size_t n, size_t d)
+      : n_(n), d_(d), flipped_(false) {
     for (int i = 0; i < n; i++) {
       bool ok = true;
       for (int j = 0; j < d; j++) {
@@ -115,10 +117,14 @@ class BitsetQuery : public hnswlib::BaseFilterFunctor {
       }
     }
     bitset.runOptimize();
+    if (bitset.cardinality() < 100000) {
+      bitset.flip(0, bitset.maximum() + 1);
+      flipped_ = true;
+    }
   }
   bool operator()(hnswlib::labeltype label) override {
     if (label < n_) {
-      return bitset.contains(label);
+      return flipped_ ? !bitset.contains(label) : bitset.contains(label);
     }
     return false;
   }
