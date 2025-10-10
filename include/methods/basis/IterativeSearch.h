@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "ReentrantHNSW.h"
+#include "hnswlib/hnswlib.h"
 #include "utils/out.h"
 #include "utils/predicate.h"
 
@@ -147,7 +148,7 @@ class IterativeSearch {
     return cnt;
   }
 
-  int UpdateNextTwoHop(IterativeSearchState<dist_t> *state, BitsetQuery<float> *bitset) {
+  int UpdateNextTwoHop(IterativeSearchState<dist_t> *state, BaseFilterFunctor *bitset) {
 #ifndef BENCH
     auto start = std::chrono::high_resolution_clock::now();
 #endif
@@ -506,7 +507,7 @@ class IterativeSearch {
   }
 
   IterativeSearchState<dist_t>
-  OpenTwoHop(const void *query, int k, BitsetQuery<float> *bitset, VisitedList *vl = nullptr) {
+  OpenTwoHop(const void *query, int k, BaseFilterFunctor *bitset, VisitedList *vl = nullptr) {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
@@ -709,7 +710,7 @@ class IterativeSearch {
   }
 
   priority_queue<pair<dist_t, labeltype>>
-  NextBatchTwoHop(IterativeSearchState<dist_t> *state, BitsetQuery<float> *bitset) {
+  NextBatchTwoHop(IterativeSearchState<dist_t> *state, BaseFilterFunctor *bitset) {
     if (state->total_ >= state->k_) {
       return {};
     }

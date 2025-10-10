@@ -5,6 +5,7 @@ link_libraries(UTILS)
 
 add_executable(binary-to-ascii binary-to-ascii.cpp)
 add_executable(compute-groundtruth compute-groundtruth.cpp)
+add_executable(compute-groundtruth-cheating compute-groundtruth-cheating.cpp)
 add_executable(compute-filter-groundtruth compute-filter-groundtruth.cpp)
 add_executable(generate-attributes generate-attributes.cpp)
 add_executable(top-k-in-cluster-hist top-k-in-cluster-hist.cpp)

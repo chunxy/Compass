@@ -27,7 +27,15 @@ void load_hybrid_query_gt(
     vector<vector<labeltype>> &hybrid_topks
 );
 
-void load_hybrid_query_gt(
+void load_hybrid_query_gt_packed(
+    const DataCard &c,
+    const vector<float> &l_bounds,
+    const vector<float> &u_bounds,
+    const int k,
+    vector<vector<labeltype>> &hybrid_topks
+);
+
+void load_hybrid_query_gt_percents(
     const DataCard &c,
     const vector<int> &percents,
     const int k,

@@ -129,3 +129,16 @@ class BitsetQuery : public hnswlib::BaseFilterFunctor {
     return false;
   }
 };
+
+template <typename attr_t>
+class InplaceRangeQuery : public hnswlib::BaseFilterFunctor {
+ private:
+  const attr_t *l_bound_, *u_bound_;  // of dimension d_
+  const attr_t *attrs_;               // index should be the labeltype
+  size_t n_, d_;
+
+ public:
+  InplaceRangeQuery(const attr_t *l_bound, const attr_t *u_bound, const attr_t *attrs, size_t n, size_t d)
+      : l_bound_(l_bound), u_bound_(u_bound), attrs_(attrs), n_(n), d_(d) {}
+  bool operator()(hnswlib::labeltype label) override { return l_bound_[0] <= label && label <= u_bound_[0]; }
+};

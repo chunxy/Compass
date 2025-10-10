@@ -504,7 +504,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   void IterativeReentrantSearchKnnTwoHopGivenBitset(
       const void *query_data,
       const size_t k,
-      BitsetQuery<float> *bitset,
+      BaseFilterFunctor *bitset,
       std::priority_queue<std::pair<dist_t, int64_t>> &recycled_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,

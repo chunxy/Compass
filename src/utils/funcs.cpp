@@ -111,7 +111,41 @@ void load_hybrid_query_gt(
   }
 }
 
-void load_hybrid_query_gt(
+void load_hybrid_query_gt_packed(
+    const DataCard &c,
+    const vector<float> &l_bounds,
+    const vector<float> &u_bounds,
+    const int k,
+    vector<vector<labeltype>> &hybrid_topks
+) {
+  std::string gt_path;
+  if (l_bounds.size() == 1 || l_bounds.size() == 2) {  // Because the groundtruth was computed with k=100 for 1D and 2D.
+    gt_path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, 100);
+  } else {
+    gt_path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, 100);
+    std::ifstream gt_file(gt_path);
+    if (!gt_file.good()) {
+      gt_path = gt_path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, k);
+    }
+  }
+
+  hybrid_topks.resize(c.n_queries);
+  int i = 0;
+  IVecItrReader groundtruth_it(gt_path);
+  while (!groundtruth_it.HasEnded()) {
+    auto topk = groundtruth_it.Next();
+    if (k > topk.size()) {
+      throw fmt::format("k ({}) is greater than the size of the ground truth ({})", k, topk.size());
+    }
+    hybrid_topks[i].resize(k);
+    for (int j = 0; j < k; j++) {
+      hybrid_topks[i][j] = topk[j];
+    }
+    i++;
+  }
+}
+
+void load_hybrid_query_gt_percents(
     const DataCard &c,
     const vector<int> &percents,
     const int k,

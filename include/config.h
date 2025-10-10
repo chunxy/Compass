@@ -15,6 +15,7 @@ const std::string DATA = WORKSPACE + "/data";
 const std::string RAW_DATA = DATA + "/raw";
 const std::string ATTR_DATA = DATA + "/attr";
 const std::string GT_DATA = DATA + "/gt";
+const std::string GT_DATA_CHEATING = DATA + "/gt-cheating";
 const std::string RG_DATA = DATA + "/range";
 
 // attribute paths
@@ -22,7 +23,8 @@ const std::string VALUE_PATH_TMPL = ATTR_DATA + "/{}_{:d}_{:d}.value.bin";    //
 const std::string BLABEL_PATH_TMPL = ATTR_DATA + "/{}_base_{:d}.label.bin";   // {name}_base_{range}
 const std::string QLABEL_PATH_TMPL = ATTR_DATA + "/{}_query_{:d}.label.bin";  // {name}_query_{range}
 // groundtruth paths
-const std::string HYBRID_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}_{}_{}.hybrid.gt";   // {name}_{range}_{l}_{r}_{k}
+const std::string HYBRID_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}_{}_{}.hybrid.gt";  // {name}_{range}_{l}_{r}_{k}
+const std::string HYBRID_GT_CHEATING_PATH_TMPL = GT_DATA_CHEATING + "/{}_{}_{}_{}.hybrid.gt";  // {name}_{l}_{r}_{k}
 const std::string HYBRID_GT_PATH_TMPL_NEO = GT_DATA + "/{}_{}_{}_{}.hybrid.gt";  // {name}_{range}_{percentages}_{k}
 const std::string FILTER_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}.filter.gt";         // {name}_{range}_{k}
 const std::string HYBRID_RG_PATH_TMPL = RG_DATA + "/{}_{}_{}.hybrid.rg";         // {name}_{range}_{percentages}
