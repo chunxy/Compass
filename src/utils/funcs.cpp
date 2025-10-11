@@ -116,6 +116,8 @@ void load_hybrid_query_gt_packed(
     const vector<float> &l_bounds,
     const vector<float> &u_bounds,
     const int k,
+    vector<int32_t> &l_ranges,
+    vector<int32_t> &u_ranges,
     vector<vector<labeltype>> &hybrid_topks
 ) {
   std::string gt_path;
@@ -143,6 +145,16 @@ void load_hybrid_query_gt_packed(
     }
     i++;
   }
+
+  l_ranges.resize(c.n_queries);
+  u_ranges.resize(c.n_queries);
+  std::string rg_path = fmt::format(HYBRID_RG_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, 100);
+  std::ifstream rg_file(rg_path);
+  if (!rg_file.good()) {
+    throw fmt::format("Failed to open file: {}", rg_path);
+  }
+  rg_file.read((char *)l_ranges.data(), sizeof(int32_t) * c.n_queries);
+  rg_file.read((char *)u_ranges.data(), sizeof(int32_t) * c.n_queries);
 }
 
 void load_hybrid_query_gt_percents(

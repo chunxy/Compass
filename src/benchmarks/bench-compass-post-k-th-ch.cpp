@@ -46,11 +46,16 @@ int main(int argc, char **argv) {
   uint32_t *gt;
   float *attrs;
   load_hybrid_data(c, xb, xq, gt, attrs);
+  for (int i = 0; i < nb; i++) {
+    attrs[i * c.attr_dim] = i;
+  }
   fmt::print("Finished loading data.\n");
 
   // Load groundtruth for hybrid search.
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt_packed(c, args.l_bounds, args.u_bounds, args.k, hybrid_topks);
+  vector<int32_t> l_ranges(nq);
+  vector<int32_t> u_ranges(nq);
+  load_hybrid_query_gt_packed(c, args.l_bounds, args.u_bounds, args.k, l_ranges, u_ranges, hybrid_topks);
   fmt::print("Finished loading groundtruth.\n");
 
   // Compute selectivity.
@@ -145,7 +150,7 @@ int main(int argc, char **argv) {
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());
       FILE *out = stdout;
-      nq = args.fast ? 200 : nq;
+      nq = args.fast ? 1000 : nq;
 #ifndef COMPASS_DEBUG
       fmt::print("Writing to {}.\n", (log_dir / out_text).string());
       out = fopen((log_dir / out_text).c_str(), "w");
@@ -168,8 +173,8 @@ int main(int argc, char **argv) {
             args.batchsz,
             args.k,
             attrs,
-            args.l_bounds.data(),
-            args.u_bounds.data(),
+            l_ranges.data() + j,
+            u_ranges.data() + j,
             efs,
             nrel,
             args.nthread,

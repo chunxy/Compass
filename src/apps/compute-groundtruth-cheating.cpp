@@ -30,6 +30,8 @@ void compute_groundtruth(
     const int nq,
     const size_t d,
     const size_t da,
+    const vector<int> &l_ranges,
+    const vector<int> &u_ranges,
     const vector<float> &l_bounds,
     const vector<float> &u_bounds,
     const vector<vector<float>> &attrs,
@@ -46,10 +48,10 @@ void compute_groundtruth(
   for (int i = 0; i < nq; i++) {
     const float *query = xq + i * d;
 
-    for (int j = l_bounds[0]; j <= u_bounds[0]; j++) {
+    for (int j = l_ranges[i]; j <= u_ranges[i]; j++) {
       bool ok = true;
       for (int dim = 1; dim < da; dim++) {
-        if (attrs[j][dim] < l_bounds[dim] || attrs[j][dim] > u_bounds[dim]) {
+        if (attrs[j][dim] < l_bounds[i * da + dim] || attrs[j][dim] > u_bounds[i * da + dim]) {
           ok = false;
           break;
         }
@@ -95,6 +97,17 @@ int main(int argc, char **argv) {
     return -1;
   }
 
+  int diff = u_bounds[0] - l_bounds[0];
+  std::mt19937 rng;
+  rng.seed(0);
+  std::uniform_int_distribution<int> distrib_int(0, c.n_base - diff);
+  vector<int32_t> l_ranges(c.n_queries);
+  vector<int32_t> u_ranges(c.n_queries);
+  for (int i = 0; i < c.n_queries; i++) {
+    l_ranges[i] = distrib_int(rng);
+    u_ranges[i] = l_ranges[i] + diff;
+  }
+
   float *xb, *xq;
   uint32_t *gt;
   vector<vector<float>> attrs;
@@ -102,7 +115,9 @@ int main(int argc, char **argv) {
 
   vector<vector<pair<float, uint32_t>>> hybrid_topks(nq);
   int nsat;
-  compute_groundtruth(xb, nb, xq, nq, d, c.attr_dim, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks);
+  compute_groundtruth(
+      xb, nb, xq, nq, d, c.attr_dim, l_ranges, u_ranges, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks
+  );
 
   std::string path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, k);
   fmt::print("Saving to {}\n", path);
@@ -114,6 +129,12 @@ int main(int argc, char **argv) {
       ofs.write((char *)&hybrid_topks[i][j].second, 4);
     }
   }
+
+  std::string rg_path = fmt::format(HYBRID_RG_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, k);
+  fmt::print("Saving to {}\n", rg_path);
+  std::ofstream rg_ofs(rg_path, std::ios_base::binary & std::ios_base::out);
+  rg_ofs.write((char *)l_ranges.data(), sizeof(int32_t) * nq);
+  rg_ofs.write((char *)u_ranges.data(), sizeof(int32_t) * nq);
 
   return 0;
 }
