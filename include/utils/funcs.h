@@ -32,6 +32,8 @@ void load_hybrid_query_gt_packed(
     const vector<float> &l_bounds,
     const vector<float> &u_bounds,
     const int k,
+    vector<int32_t> &l_ranges,
+    vector<int32_t> &u_ranges,
     vector<vector<labeltype>> &hybrid_topks
 );
 
