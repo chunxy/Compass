@@ -717,7 +717,8 @@ class CompassPost {
             num_ivf_ppsl++;
           }
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
-          state.sel_ = 1;  // restart graph
+          state.sel_ = 1;        // restart graph
+          graph_last_round = 1;  // restart graph
 #ifndef BENCH
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
@@ -753,15 +754,16 @@ class CompassPost {
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+#ifndef BENCH
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
-
-      graph_.Close(&state);
-      cg_.Close(&cg_state);
+#endif
+      // graph_.Close(&state);
+      // cg_.Close(&cg_state);
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
       auto q_stop = std::chrono::high_resolution_clock::system_clock::now();
@@ -936,7 +938,8 @@ class CompassPost {
             num_ivf_ppsl++;
           }
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
-          state.sel_ = 1;  // restart graph
+          state.sel_ = 1;        // restart graph
+          graph_last_round = 1;  // restart graph
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
@@ -970,15 +973,16 @@ class CompassPost {
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+#ifndef BENCH
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
-
-      graph_.Close(&state);
-      cg_.Close(&cg_state);
+#endif
+      // graph_.Close(&state);
+      // cg_.Close(&cg_state);
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
       auto q_stop = std::chrono::high_resolution_clock::system_clock::now();
@@ -1154,7 +1158,8 @@ class CompassPost {
             num_ivf_ppsl++;
           }
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
-          state.sel_ = 1;  // restart graph
+          state.sel_ = 1;        // restart graph
+          graph_last_round = 1;  // restart graph
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
@@ -1188,15 +1193,16 @@ class CompassPost {
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+#ifndef BENCH
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
-
-      graph_.Close(&state);
-      cg_.Close(&cg_state);
+#endif
+      // graph_.Close(&state);
+      // cg_.Close(&cg_state);
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
       auto q_stop = std::chrono::high_resolution_clock::system_clock::now();

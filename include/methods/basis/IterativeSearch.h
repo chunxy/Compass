@@ -169,7 +169,7 @@ class IterativeSearch {
 #ifndef BENCH
     start = std::chrono::high_resolution_clock::now();
 #endif
-    hnsw_->IterativeReentrantSearchKnnTwoHopGivenBitset(
+    hnsw_->IterativeReentrantSearchKnnTwoHop(
         state->query_,
         this->batch_k_,
         bitset,
