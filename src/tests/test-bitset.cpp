@@ -6,7 +6,7 @@
 #include <vector>
 #include "roaring/roaring.hh"
 
-void test_1m(int nset, int ntest) {
+void test(int nset, int ntest) {
   std::cout << "Start testing with " << nset << " set out of 1000000 elements" << std::endl;
   roaring::Roaring bitset;
   std::set<int> set;
@@ -77,7 +77,7 @@ void test_1m(int nset, int ntest) {
 int main() {
   int neles[] = {100000, 10000, 500000, 900000, 990000};
   for (int nele : neles) {
-    test_1m(nele, 3000);
+    test(nele, 3000);
   }
 
   std::cout << "Start testing with binary search on 1000000 elements" << std::endl;
