@@ -36,11 +36,11 @@ best_d_m_b = {d: {} for d in DATASETS}
 # best_d_m_b["crawl"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_128_M_cg_4"]
 # best_d_m_b["glove100"]["CompassKIcg"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 
-for d in ("sift", "audio", "sift-dedup", "audio-dedup"):
+for d in ("sift-dedup", "audio-dedup"):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
-for d in ("gist", "gist-dedup"):
+for d in ("gist-dedup",):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
@@ -48,7 +48,7 @@ for d in ("crawl",):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
-for d in ("video", "video-dedup", "glove100"):
+for d in ("video-dedup", "glove100"):
   # best_d_m_b[d]["CompassPostK"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
