@@ -404,6 +404,38 @@ def compare_best_with_sotas_by_dimension():
   draw_qps_comp_fixing_dimension_selectivity_by_dimension(best_d_m_b, best_d_m_s, "dim", "fixing-dimension-selectivity")
 
 
+def compare_disjunction():
+  best_d_m_b = {d: {} for d in DATASETS}
+  for d in ("sift-dedup", "audio-dedup"):
+    best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
+  for d in ("gist-dedup", ):
+    best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  for d in ("crawl", ):
+    best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
+  for d in ("video-dedup", "glove100"):
+    best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  for d in DATASETS:
+    # best_d_m_b[d]["iRangeGraph+OR"] = ["M_32_efc_200"]
+    best_d_m_b[d]["SeRF+OR"] = ["M_32_efc_200_efmax_500"]
+    best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
+
+  best_d_m_s = {d: {} for d in DATASETS}
+  for d in DATASETS:
+    best_d_m_s[d]["CompassPostKTh"] = {"nrel": [50]}
+    best_d_m_s[d]["CompassGraph"] = {"nrel": [100, 200]}
+  best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [100]}
+
+  draw_qps_comp_fixing_recall_by_selectivity(
+    da=1,
+    datasets=DATASETS,
+    methods=METHODS,
+    anno="MoM",
+    d_m_b=best_d_m_b,
+    d_m_s=best_d_m_s,
+    prefix="disjunction",
+  )
+
+
 if __name__ == "__main__":
   # pick_clustering_methods()
   # pick_cluster_search_methods()
@@ -414,3 +446,4 @@ if __name__ == "__main__":
   compare_best_with_sotas_by_dimension()
   # compare_with_sotas() # slow?
   compare_best_with_sotas()
+  compare_disjunction()
