@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
   vector<int32_t> u_ranges(c.n_queries);
   for (int i = 0; i < c.n_queries; i++) {
     l_ranges[i] = distrib_int(rng);
-    u_ranges[i] = l_ranges[i] + diff;
+    u_ranges[i] = l_ranges[i] + diff - 1;
   }
 
   float *xb, *xq;
