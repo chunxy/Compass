@@ -71,12 +71,13 @@ int main(int argc, char **argv) {
   auto tm = localtime(&ts);
   std::string method = "ACORN";
   std::string workload = fmt::format(FILTER_WORKLOAD_TMPL, c.name, c.attr_range, k);
-  std::string param = fmt::format("M_{}_beta_{}_efc_{}_gamma_{}_efs_{}", M, M_beta, efc, gamma, efs);
+  std::string build = fmt::format("M_{}_beta_{}_efc_{}_gamma_{}", M, M_beta, efc, gamma);
+  std::string search = fmt::format("efs_{}", efs);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
   // fs::path log_root(fmt::format(LOGS, k) + "_special");
   fs::path log_root(fmt::format(LOGS, k));
-  fs::path log_dir = log_root / method / workload / param;
+  fs::path log_dir = log_root / method / workload / build / search;
 
   // Load data.
   float *xb, *xq;
