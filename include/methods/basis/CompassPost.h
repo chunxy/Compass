@@ -550,19 +550,25 @@ class CompassPost {
     // cg_.SetSearchParam(20, 20, 20);
 
     for (int q = 0; q < nq; q++) {
+#ifndef BENCH
       auto q_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
       vl->reset();
       priority_queue<pair<dist_t, labeltype>> top_candidates;
       priority_queue<pair<dist_t, labeltype>> top_ivf;
       const void *query_q = (char *)query + (q * graph_.hnsw_->data_size_);
+#ifndef BENCH
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
       graph_.SetSearchParam(k, k, k);
       // graph_.SetSearchParam(k, efs, k); // For testing non-iterative version.
       auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
       graph_.SetSearchParam(k / 2, k + k / 2, k / 2);
+#ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
       bm.qmetrics[q].graph_latency += graph_time;
+#endif
 
       decltype(btrees_[0].lower_bound(0)) itr_beg, itr_end;
       IterativeSearchState<dist_t> cg_state(query_q, k);
@@ -712,7 +718,9 @@ class CompassPost {
             // state.result_set_.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             state.top_candidates_.emplace(-top.first, top.second);
+#ifndef BENCH
             bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
+#endif
             vl->mass[top.second] = vl->curV;
             num_ivf_ppsl++;
           }
@@ -738,23 +746,27 @@ class CompassPost {
             batch.pop();
             // if (pred(label)) {
             top_candidates.push(std::make_pair(-dist, label));
+#ifndef BENCH
             bm.qmetrics[q].is_graph_ppsl[label] = true;
+#endif
             // }
           }
           auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
+#ifndef BENCH
           bm.qmetrics[q].graph_latency += graph_time;
+#endif
           nround_graph++;
         }
         nround++;
       }
 
-      bm.qmetrics[q].nround = nround;
-      bm.qmetrics[q].ncluster = clus_cnt;
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].nround = nround;
 #ifndef BENCH
+      bm.qmetrics[q].ncluster = clus_cnt;
+      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
@@ -766,9 +778,11 @@ class CompassPost {
       // cg_.Close(&cg_state);
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
+#ifndef BENCH
       auto q_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto q_time = std::chrono::duration_cast<std::chrono::nanoseconds>(q_stop - q_start).count();
       bm.qmetrics[q].latency = q_time;
+#endif
     }
     return results;
   }
@@ -795,19 +809,25 @@ class CompassPost {
 
     for (int q = 0; q < nq; q++) {
       InplaceRangeQuery<attr_t> pred(l_ranges[q], u_ranges[q], this->n_, this->da_);
+#ifndef BENCH
       auto q_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
       vl->reset();
       priority_queue<pair<dist_t, labeltype>> top_candidates;
       priority_queue<pair<dist_t, labeltype>> top_ivf;
       const void *query_q = (char *)query + (q * graph_.hnsw_->data_size_);
+#ifndef BENCH
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
       graph_.SetSearchParam(k, k, k);
       // graph_.SetSearchParam(k, efs, k); // For testing non-iterative version.
       auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
       graph_.SetSearchParam(k / 2, k + k / 2, k / 2);
+#ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
       bm.qmetrics[q].graph_latency += graph_time;
+#endif
 
       decltype(btrees_[0].lower_bound(0)) itr_beg, itr_end;
       IterativeSearchState<dist_t> cg_state(query_q, k);
@@ -823,7 +843,9 @@ class CompassPost {
         // IVF is responsible for negative clustering and extremely low passrate.
         // Otherwise, post-filtering on graph should do.
         if ((nround_graph >= 1 && (state.sel_ <= breaktie || graph_last_round == 0))) {
+#ifndef BENCH
           auto ivf_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
           if (!initialized) {
             vl_cg->reset();
 #ifndef BENCH
@@ -940,15 +962,19 @@ class CompassPost {
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
           state.sel_ = 1;        // restart graph
           graph_last_round = 1;  // restart graph
+#ifndef BENCH
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
+#endif
           continue;
         }
         // Believe in graph when the first-hop selectivity is not low.
         // "state.sel_ >=" means we do not always rely on graph.
         if (nround_graph == 0 || state.sel_ >= breaktie) {
+#ifndef BENCH
           auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
           priority_queue<pair<dist_t, labeltype>> batch = graph_.NextBatchTwoHop(&state, &pred);
           num_graph_ppsl += batch.size();
           graph_last_round = batch.size();
@@ -957,23 +983,27 @@ class CompassPost {
             batch.pop();
             // if (pred(label)) {
             top_candidates.push(std::make_pair(-dist, label));
+#ifndef BENCH
             bm.qmetrics[q].is_graph_ppsl[label] = true;
+#endif
             // }
           }
           auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
+#ifndef BENCH
           bm.qmetrics[q].graph_latency += graph_time;
+#endif
           nround_graph++;
         }
         nround++;
       }
 
-      bm.qmetrics[q].nround = nround;
-      bm.qmetrics[q].ncluster = clus_cnt;
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].nround = nround;
 #ifndef BENCH
+      bm.qmetrics[q].ncluster = clus_cnt;
+      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
@@ -985,9 +1015,11 @@ class CompassPost {
       // cg_.Close(&cg_state);
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
+#ifndef BENCH
       auto q_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto q_time = std::chrono::duration_cast<std::chrono::nanoseconds>(q_stop - q_start).count();
       bm.qmetrics[q].latency = q_time;
+#endif
     }
     return results;
   }
