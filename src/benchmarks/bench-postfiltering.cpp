@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
       stat.batch_time.push_back(q_time);
       stat.batch_overhead.push_back(0);
       stat.batch_cluster_search_time.push_back(0);
-      search_time += q_time;
+      search_time +=  duration_cast<microseconds>(q_stop - q_start).count();
     }
 
     // statistics
