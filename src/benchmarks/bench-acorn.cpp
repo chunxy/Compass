@@ -205,5 +205,5 @@ int main(int argc, char **argv) {
   }
 
   fmt::print(out, "Selectivity       : {}/{} = {:5.2f}%\n", nsat, nb, (double)nsat / nb * 100);
-  collate_acorn_stats(search_time, rec_at_ks, pre_at_ks, (log_dir / out_json).string(), out);
+  collate_acorn_stats(search_time, acorn::acorn_stats.n3, rec_at_ks, pre_at_ks, (log_dir / out_json).string(), out);
 }

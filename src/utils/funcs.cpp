@@ -532,6 +532,7 @@ nlohmann::json collate_stat(
 
 void collate_acorn_stats(
     const long time_in_ms,
+    const long ndis,
     const vector<float> &rec_at_ks,
     const vector<float> &pre_at_ks,
     const std::string &out_json,
@@ -549,6 +550,7 @@ void collate_acorn_stats(
   json["aggregated"] = {
       {"recall", sum_of_rec / nq},
       {"precision", sum_of_pre / nq},
+      {"num_computations", double(ndis) / nq},
       {"num_queries", nq},
       {"time_in_s", time_in_ms / 1000.},
       {"qps", (double)nq / time_in_ms * 1000},
