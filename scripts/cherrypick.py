@@ -40,11 +40,11 @@ for d in ("sift-dedup", "audio-dedup"):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
-for d in ("gist-dedup",):
+for d in ("gist-dedup", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
-for d in ("crawl",):
+for d in ("crawl", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
@@ -255,7 +255,8 @@ def pick_nlist():
           dx = 64
         elif d == "crawl":
           dx = 128
-        d_m_b_nlist[d][m] = [(f"M_16_efc_200_nlist_{nlist}_dx_{dx}" + ("_M_cg_4" if m.endswith("cg") else "")) for nlist in [1000, 2000, 5000, 10000, 20000]]
+        d_m_b_nlist[d][m] = [(f"M_16_efc_200_nlist_{nlist}_dx_{dx}" + ("_M_cg_4" if m.endswith("cg") else ""))
+                              for nlist in [1000, 2000, 5000, 10000, 20000]]
       else:
         d_m_b_nlist[d][m] = [(f"M_16_efc_200_nlist_{nlist}" + ("_M_cg_4" if m.endswith("cg") else "")) for nlist in [1000, 2000, 5000, 10000, 20000]]
 
