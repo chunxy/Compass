@@ -45,7 +45,14 @@ types = {
 }
 
 xlim = [0.6, 1]
-
+dataset_comp_ylim = {
+  "sift-dedup": 6000,
+  "audio-dedup": 6000,
+  "crawl": 6000,
+  "gist-dedup": 6000,
+  "video-dedup": 15000,
+  "glove100": 11000,
+}
 
 def summarize():
   for da in [1, 2, 3, 4]:
@@ -379,8 +386,10 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
       axs[0].set_title(f"{d.upper()}, Recall-{rec:.3g}")
       axs[1].set_xticks(np.arange(len(selectivities)))
       axs[1].set_xticklabels(selectivities)
-      axs[1].set_ylabel('# Comp')
       axs[1].set_xlabel('Selectivity')
+      axs[1].set_ylabel('# Comp')
+      auto_bottom, auto_top = axs[1].get_ylim()
+      axs[1].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
       axs[1].set_title(f"{d.upper()}, Recall-{rec:.3g}")
 
       fig.set_size_inches(14, 5)
@@ -442,8 +451,10 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
       axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
       axs[1][i].set_xticks(np.arange(len(selectivities)))
       axs[1][i].set_xticklabels(selectivities)
-      axs[1][i].set_ylabel('# Comp')
       axs[1][i].set_xlabel('Selectivity')
+      axs[1][i].set_ylabel('# Comp')
+      auto_bottom, auto_top = axs[1][i].get_ylim()
+      axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
       axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
 
     fig.set_size_inches(26, 7)
@@ -537,14 +548,16 @@ def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, pr
               axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["total_ncomp"], label=label, **marker)
               axs[1][i].plot(das, d_m_sel[d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0], linestyle="--")
 
-          axs[0][i].set_xlabel('Dimension')
-          axs[0][i].set_xticks(DA_S)
-          axs[0][i].set_ylabel('QPS')
-          axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
-          axs[1][i].set_xlabel('Dimension')
-          axs[1][i].set_xticks(DA_S)
-          axs[1][i].set_ylabel('# Comp')
-          axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+        axs[0][i].set_xlabel('Dimension')
+        axs[0][i].set_xticks(DA_S)
+        axs[0][i].set_ylabel('QPS')
+        axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+        axs[1][i].set_xlabel('Dimension')
+        axs[1][i].set_ylabel('# Comp')
+        axs[1][i].set_xticks(DA_S)
+        auto_bottom, auto_top = axs[1][i].get_ylim()
+        axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+        axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
 
       fig.set_size_inches(26, 7)
       unique_labels = {}
@@ -639,14 +652,16 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, 
               axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["total_ncomp"], label=label, **marker)
               axs[1][i].plot(das, d_m_sel[d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0], linestyle="--")
 
-          axs[0][i].set_xlabel('Dimension')
-          axs[0][i].set_xticks(DA_S)
-          axs[0][i].set_ylabel('QPS')
-          axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
-          axs[1][i].set_xlabel('Dimension')
-          axs[1][i].set_xticks(DA_S)
-          axs[1][i].set_ylabel('# Comp')
-          axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+        axs[0][i].set_xlabel('Dimension')
+        axs[0][i].set_xticks(DA_S)
+        axs[0][i].set_ylabel('QPS')
+        axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+        axs[1][i].set_xlabel('Dimension')
+        axs[1][i].set_ylabel('# Comp')
+        auto_bottom, auto_top = axs[1][i].get_ylim()
+        axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+        axs[1][i].set_xticks(DA_S)
+        axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
 
       fig.set_size_inches(26, 7)
       unique_labels = {}
