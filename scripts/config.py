@@ -1,6 +1,7 @@
 from functools import reduce
 
 DATASETS = ["sift", "sift-dedup", "audio", "audio-dedup", "crawl", "gist", "gist-dedup", "video", "video-dedup", "glove100"]
+DATASETS = ["sift-dedup", "audio-dedup", "crawl", "gist-dedup", "video-dedup", "glove100"]
 
 DA_S = [1, 2, 3, 4]
 
@@ -79,6 +80,9 @@ navix_da_interval = {
           [3400, 3900, 4400, 4900, 5400, 5900, 6400, 6900, 7400, 7900, 8400, 8900, 9400, 9900])],
   ],
 }
+acorn_da_interval = {
+  1: [(nlabel,) for nlabel in [100, 50, 20, 10, 5, 2]]
+}
 
 # attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
 DA_RANGE = {
@@ -135,10 +139,11 @@ BASE_METHODS = [
   "Postfiltering",
   # "CompassPostK",
   "CompassPostKTh",
-  "CompassPostKNavix",
+  # "CompassPostKNavix",
   "Ivf",
   "CompassGraph",
   "Navix",
+  "ACORN"
 ]
 METHODS = COMPASS_METHODS + SOTA_METHODS + BASE_METHODS
 SOTA_POST_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
@@ -157,6 +162,7 @@ M_WORKLOAD = {
     m: "{}_{}_10"
     for m in SOTA_POST_METHODS
   },
+  "ACORN": "{}_{}_10",
 }
 
 M_DA_RUN = {
@@ -180,6 +186,7 @@ M_DA_RUN = {
   "Ivf": ivf_da_interval,
   "CompassGraph": compass_graph_da_interval,
   "Navix": navix_da_interval,
+  "ACORN": acorn_da_interval,
 }
 
 compass_group_dataset = {
@@ -202,10 +209,10 @@ compass_post_group_dataset = {
 }
 compass_post_group_dataset = {
   "1": ["sift-dedup"],
-  "2": ["gist-dedup"],
+  "2": ["audio-dedup"],
   "3": ["crawl"],
   "4": ["glove100"],
-  "5": ["audio-dedup"],
+  "5": ["gist-dedup"],
   "6": ["video-dedup"],
 }
 M_GROUP_DATASET = {
@@ -225,6 +232,7 @@ M_GROUP_DATASET = {
   "CompassPostKTh": compass_post_group_dataset,
   "CompassPostKNavix": compass_post_group_dataset,
   "Ivf": compass_post_group_dataset,
+  "ACORN": compass_post_group_dataset,
 }
 
 irangegraph_parameters = {
@@ -271,6 +279,7 @@ prefiltering_parameters = {"build": [], "search": []}
 postfiltering_parameters = {"build": ["M", "efc"], "search": ["efs"]}
 compass_graph_parameters = {"build": ["M", "efc"], "search": ["efs", "nrel"]}
 navix_parameters = {"build": ["M", "efc"], "search": ["efs"]}
+acorn_parameters = {"build": ["M", "beta", "efc", "gamma"], "search": ["efs"]}
 
 # method - parameter
 M_PARAM = {
@@ -298,6 +307,7 @@ M_PARAM = {
   "Ivf": ivf_parameters,
   "CompassGraph": compass_graph_parameters,
   "Navix": navix_parameters,
+  "ACORN": acorn_parameters,
 }
 
 compass_args = {
@@ -368,6 +378,14 @@ navix_args = {
   "efc": [200],
   "efs": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200],
 }
+acorn_args = {
+  "M": [32],
+  "beta": [64],
+  "efc": [200],
+  "gamma": [12],
+  "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 350, 400, 450, 500],
+}
+
 M_ARGS = {
   **{
     m: compass_args
@@ -385,6 +403,7 @@ M_ARGS = {
   "Ivf": ivf_args,
   "CompassGraph": compass_graph_args,
   "Navix": navix_args,
+  "ACORN": acorn_args,
 }
 
 D_ARGS = {
@@ -498,5 +517,8 @@ M_STYLE = {
   },
   "Navix": {
     "marker": "^", "color": "purple"
+  },
+  "ACORN": {
+    "marker": "d", "color": "brown"
   },
 }
