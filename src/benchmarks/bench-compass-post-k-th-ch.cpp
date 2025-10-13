@@ -35,9 +35,19 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
+  if (args.l_bounds.size() + 1 != c.attr_dim) {
+    fmt::print("Attribute dimension mismatch: {} != {}\n", args.l_bounds.size() + 1, c.attr_dim);
+    return 1;
+  }
+
   std::string method = "CompassPostKThCh";
   std::string workload = fmt::format(
-      HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, fmt::join(args.l_bounds, "-"), fmt::join(args.u_bounds, "-"), args.k
+      HYBRID_CHEATING_WORKLOAD_TMPL,
+      c.name,
+      args.percents[0],
+      fmt::join(args.l_bounds, "-"),
+      fmt::join(args.u_bounds, "-"),
+      args.k
   );
   std::string build_param = fmt::format("M_{}_efc_{}_nlist_{}_M_cg_{}", args.M, args.efc, args.nlist, args.M_cg);
 
@@ -55,12 +65,14 @@ int main(int argc, char **argv) {
   vector<vector<labeltype>> hybrid_topks(nq);
   vector<int32_t> l_ranges(nq);
   vector<int32_t> u_ranges(nq);
-  load_hybrid_query_gt_packed(c, args.l_bounds, args.u_bounds, args.k, l_ranges, u_ranges, hybrid_topks);
+  load_hybrid_query_gt_packed(
+      c, args.percents[0], args.l_bounds, args.u_bounds, args.k, l_ranges, u_ranges, hybrid_topks
+  );
   fmt::print("Finished loading groundtruth.\n");
 
   // Compute selectivity.
-  int nsat;
-  stat_selectivity(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
+  int nsat = (double)c.n_base * args.percents[0] / 100;
+  // stat_selectivity(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
 
   CompassPostK<float, float> comp(
       nb, d, c.attr_dim, args.M, args.efc, args.nlist, args.M_cg, args.batch_k, args.initial_efs, args.delta_efs
@@ -144,8 +156,8 @@ int main(int argc, char **argv) {
       );
       std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
       std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-      fs::path log_root(fmt::format(LOGS, args.k) + "_special");
-      // fs::path log_root(fmt::format(LOGS, args.k));
+      // fs::path log_root(fmt::format(LOGS, args.k) + "_special");
+      fs::path log_root(fmt::format(LOGS, args.k));
       fs::path log_dir = log_root / method / workload / build_param / search_param;
       fs::create_directories(log_dir);
       fmt::print("Saving to {}.\n", (log_dir / out_json).string());

@@ -113,6 +113,7 @@ void load_hybrid_query_gt(
 
 void load_hybrid_query_gt_packed(
     const DataCard &c,
+    const int perc,
     const vector<float> &l_bounds,
     const vector<float> &u_bounds,
     const int k,
@@ -122,12 +123,12 @@ void load_hybrid_query_gt_packed(
 ) {
   std::string gt_path;
   if (l_bounds.size() == 1 || l_bounds.size() == 2) {  // Because the groundtruth was computed with k=100 for 1D and 2D.
-    gt_path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, 100);
+    gt_path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, perc, l_bounds, u_bounds, 100);
   } else {
-    gt_path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, 100);
+    gt_path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, perc, l_bounds, u_bounds, 100);
     std::ifstream gt_file(gt_path);
     if (!gt_file.good()) {
-      gt_path = gt_path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, k);
+      gt_path = gt_path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, perc, l_bounds, u_bounds, k);
     }
   }
 
@@ -148,7 +149,7 @@ void load_hybrid_query_gt_packed(
 
   l_ranges.resize(c.n_queries);
   u_ranges.resize(c.n_queries);
-  std::string rg_path = fmt::format(HYBRID_RG_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, 100);
+  std::string rg_path = fmt::format(HYBRID_RG_CHEATING_PATH_TMPL, c.name, perc, l_bounds, u_bounds, 100);
   std::ifstream rg_file(rg_path);
   if (!rg_file.good()) {
     throw fmt::format("Failed to open file: {}", rg_path);

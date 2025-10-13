@@ -51,7 +51,7 @@ void compute_groundtruth(
     for (int j = l_ranges[i]; j <= u_ranges[i]; j++) {
       bool ok = true;
       for (int dim = 1; dim < da; dim++) {
-        if (attrs[j][dim] < l_bounds[i * da + dim] || attrs[j][dim] > u_bounds[i * da + dim]) {
+        if (attrs[j][dim] < l_bounds[i * (da - 1) + dim] || attrs[j][dim] > u_bounds[i * (da - 1) + dim]) {
           ok = false;
           break;
         }
@@ -76,13 +76,15 @@ void compute_groundtruth(
 int main(int argc, char **argv) {
   std::string dataname;
   vector<float> l_bounds, u_bounds;
+  int perc;
 
   uint32_t k;
 
   po::options_description configs;
   configs.add_options()("datacard", po::value<decltype(dataname)>(&dataname)->required());
-  configs.add_options()("l", po::value<decltype(l_bounds)>(&l_bounds)->required()->multitoken());
-  configs.add_options()("r", po::value<decltype(u_bounds)>(&u_bounds)->required()->multitoken());
+  configs.add_options()("l", po::value<decltype(l_bounds)>(&l_bounds)->multitoken());
+  configs.add_options()("r", po::value<decltype(u_bounds)>(&u_bounds)->multitoken());
+  configs.add_options()("p", po::value<decltype(perc)>(&perc)->required());
   configs.add_options()("k", po::value<decltype(k)>(&k)->required());
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, configs), vm);
@@ -97,15 +99,15 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  int diff = u_bounds[0] - l_bounds[0];
   std::mt19937 rng;
   rng.seed(0);
-  std::uniform_int_distribution<int> distrib_int(0, c.n_base - diff);
+  int length = c.n_base * double(perc) / 100;
+  std::uniform_int_distribution<int> distrib_int(0, c.n_base - length);
   vector<int32_t> l_ranges(c.n_queries);
   vector<int32_t> u_ranges(c.n_queries);
   for (int i = 0; i < c.n_queries; i++) {
     l_ranges[i] = distrib_int(rng);
-    u_ranges[i] = l_ranges[i] + diff - 1;
+    u_ranges[i] = l_ranges[i] + length - 1;
   }
 
   float *xb, *xq;
@@ -119,7 +121,7 @@ int main(int argc, char **argv) {
       xb, nb, xq, nq, d, c.attr_dim, l_ranges, u_ranges, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks
   );
 
-  std::string path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, k);
+  std::string path = fmt::format(HYBRID_GT_CHEATING_PATH_TMPL, c.name, perc, l_bounds, u_bounds, k);
   fmt::print("Saving to {}\n", path);
   std::ofstream ofs(path, std::ios_base::binary & std::ios_base::out);
   for (int i = 0; i < nq; i++) {
@@ -130,7 +132,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  std::string rg_path = fmt::format(HYBRID_RG_CHEATING_PATH_TMPL, c.name, l_bounds, u_bounds, k);
+  std::string rg_path = fmt::format(HYBRID_RG_CHEATING_PATH_TMPL, c.name, perc, l_bounds, u_bounds, k);
   fmt::print("Saving to {}\n", rg_path);
   std::ofstream rg_ofs(rg_path, std::ios_base::binary & std::ios_base::out);
   rg_ofs.write((char *)l_ranges.data(), sizeof(int32_t) * nq);

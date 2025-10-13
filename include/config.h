@@ -24,16 +24,18 @@ const std::string BLABEL_PATH_TMPL = ATTR_DATA + "/{}_base_{:d}.label.bin";   //
 const std::string QLABEL_PATH_TMPL = ATTR_DATA + "/{}_query_{:d}.label.bin";  // {name}_query_{range}
 // groundtruth paths
 const std::string HYBRID_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}_{}_{}.hybrid.gt";  // {name}_{range}_{l}_{r}_{k}
-const std::string HYBRID_GT_CHEATING_PATH_TMPL = GT_DATA_CHEATING + "/{}_{}_{}_{}.hybrid.gt";  // {name}_{l}_{r}_{k}
-const std::string HYBRID_RG_CHEATING_PATH_TMPL = GT_DATA_CHEATING + "/{}_{}_{}_{}.rg";         // {name}_{l}_{r}_{k}
+const std::string HYBRID_GT_CHEATING_PATH_TMPL =
+    GT_DATA_CHEATING + "/{}_{}_{}_{}_{}.hybrid.gt";                                        // {name}_{perc}_{l}_{r}_{k}
+const std::string HYBRID_RG_CHEATING_PATH_TMPL = GT_DATA_CHEATING + "/{}_{}_{}_{}_{}.rg";  // {name}_{perc}_{l}_{r}_{k}
 const std::string HYBRID_GT_PATH_TMPL_NEO = GT_DATA + "/{}_{}_{}_{}.hybrid.gt";  // {name}_{range}_{percentages}_{k}
 const std::string FILTER_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}.filter.gt";         // {name}_{range}_{k}
 const std::string HYBRID_RG_PATH_TMPL = RG_DATA + "/{}_{}_{}.hybrid.rg";         // {name}_{range}_{percentages}
 
 // workload names
-const std::string HYBRID_WORKLOAD_TMPL = "{}_{}_{}_{}_{}";   // {method}_{range}_{l}_{r}_{k}
-const std::string HYBRID_WORKLOAD_TMPL_NEO = "{}_{}_{}_{}";  // {method}_{range}_{percentages}_{k}
-const std::string FILTER_WORKLOAD_TMPL = "{}_{}_{}";         // {method}_{range}_{k}
+const std::string HYBRID_WORKLOAD_TMPL = "{}_{}_{}_{}_{}";           // {method}_{range}_{l}_{r}_{k}
+const std::string HYBRID_CHEATING_WORKLOAD_TMPL = "{}_{}_{}_{}_{}";  // {method}_{perc}_{l}_{r}_{k}
+const std::string HYBRID_WORKLOAD_TMPL_NEO = "{}_{}_{}_{}";          // {method}_{range}_{percentages}_{k}
+const std::string FILTER_WORKLOAD_TMPL = "{}_{}_{}";                 // {method}_{range}_{k}
 // index-related names
 const std::string COMPASS_IVF_CHECKPOINT_TMPL = "{}.ivf";                        // {nlist}
 const std::string COMPASS_IVF_IMI_CHECKPOINT_TMPL = "{}_{}.imi";                 // {nsub}_{nbits}

@@ -29,6 +29,7 @@ void load_hybrid_query_gt(
 
 void load_hybrid_query_gt_packed(
     const DataCard &c,
+    const int perc,
     const vector<float> &l_bounds,
     const vector<float> &u_bounds,
     const int k,
