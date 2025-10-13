@@ -25,6 +25,8 @@ done'''
 def compose():
   for da in DA_S:
     for m in COMPASS_METHODS + BASE_METHODS:
+      if m == "ACORN":
+        continue
       if da not in M_DA_RUN[m]:
         continue
       idx = 0
