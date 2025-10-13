@@ -563,7 +563,7 @@ class CompassPost {
       graph_.SetSearchParam(k, k, k);
       // graph_.SetSearchParam(k, efs, k); // For testing non-iterative version.
       auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
-      graph_.SetSearchParam(k / 2, k + k / 2, k / 2);
+      // graph_.SetSearchParam(k / 2, k + k / 2, k / 2);
 #ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
@@ -988,9 +988,9 @@ class CompassPost {
 #endif
             // }
           }
+#ifndef BENCH
           auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
-#ifndef BENCH
           bm.qmetrics[q].graph_latency += graph_time;
 #endif
           nround_graph++;
