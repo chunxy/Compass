@@ -154,6 +154,14 @@ def summarize():
           initial_ncomp.append(0)
         else:
           initial_ncomp.append(0)
+      if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS:
+        nsample, averaged_qps = min(len(jsons), 3), qps[-1]
+        for i in range(2, nsample + 1):
+          with open(jsons[-i]) as f:
+            stat = json.load(f)
+            averaged_qps += stat["aggregated"]["qps"]
+        averaged_qps /= nsample
+        qps[-1] = averaged_qps
 
     df["recall"] = rec
     df["qps"] = qps
