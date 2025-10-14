@@ -65,7 +65,7 @@ void compute_groundtruth(
 
   hnswlib::L2Space space(d);
   auto compute_start = high_resolution_clock::now();
-#ifdef DCOMPASS_DEBUG
+#ifndef DCOMPASS_DEBUG
   omp_set_num_threads(omp_get_max_threads() - 4);
 #pragma omp parallel for schedule(static)
 #endif
@@ -216,7 +216,7 @@ void compute_groundtruth(
 
   hnswlib::L2Space space(d);
   auto compute_start = high_resolution_clock::now();
-#ifdef DCOMPASS_DEBUG
+#ifndef DCOMPASS_DEBUG
   omp_set_num_threads(omp_get_max_threads() - 4);
 #pragma omp parallel for schedule(static)
 #endif
