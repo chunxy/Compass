@@ -84,6 +84,10 @@ acorn_da_interval = {
   1: [(nlabel,) for nlabel in [100, 50, 20, 10, 5, 2]]
 }
 
+cheating_da_interval = {
+  1: [(perc,) for perc in [1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90]]
+}
+
 # attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
 DA_RANGE = {
   da: [
@@ -133,12 +137,13 @@ COMPASSX_METHODS = [
   "CompassPcaIcg",
   # "CompassPcaQicg",
 ]
-SOTA_METHODS = ["iRangeGraph", "SeRF"]
+SOTA_METHODS = ["iRangeGraph", "SeRF", "SeRF+OR"]
 BASE_METHODS = [
   "Prefiltering",
   "Postfiltering",
   # "CompassPostK",
   "CompassPostKTh",
+  "CompassPostKThCh",
   # "CompassPostKNavix",
   "Ivf",
   "CompassGraph",
@@ -163,6 +168,7 @@ M_WORKLOAD = {
     for m in SOTA_POST_METHODS
   },
   "ACORN": "{}_{}_10",
+  "CompassPostKThCh": "{}_{}___10",
 }
 
 M_DA_RUN = {
@@ -183,6 +189,7 @@ M_DA_RUN = {
   "CompassPostK": compass_da_interval,
   "CompassPostKTh": compass_da_interval,
   "CompassPostKNavix": compass_da_interval,
+  "CompassPostKThCh": cheating_da_interval,
   "Ivf": ivf_da_interval,
   "CompassGraph": compass_graph_da_interval,
   "Navix": navix_da_interval,
@@ -230,6 +237,7 @@ M_GROUP_DATASET = {
   },
   "CompassPostK": compass_post_group_dataset,
   "CompassPostKTh": compass_post_group_dataset,
+  "CompassPostKThCh": compass_post_group_dataset,
   "CompassPostKNavix": compass_post_group_dataset,
   "Ivf": compass_post_group_dataset,
   "ACORN": compass_post_group_dataset,
@@ -296,13 +304,15 @@ M_PARAM = {
   "CompassPcaIcg": compass_x_icg_parameters,
   "CompassPcaQicg": compass_x_icg_parameters,
   "iRangeGraph": irangegraph_parameters,
-  "SeRF": serf_parameters,
   "iRangeGraph+Post": irangegraph_parameters,
+  "SeRF": serf_parameters,
+  "SeRF+OR": serf_parameters,
   "SeRF+Post": serf_parameters,
   "Prefiltering": prefiltering_parameters,
   "Postfiltering": postfiltering_parameters,
   "CompassPostK": compass_post_parameters,
   "CompassPostKTh": compass_post_parameters,
+  "CompassPostKThCh": compass_post_parameters,
   "CompassPostKNavix": compass_post_parameters,
   "Ivf": ivf_parameters,
   "CompassGraph": compass_graph_parameters,
@@ -392,13 +402,15 @@ M_ARGS = {
     for m in COMPASS_METHODS
   },
   "iRangeGraph": irangegraph_args,
-  "SeRF": serf_args,
   "iRangeGraph+Post": irangegraph_args,
+  "SeRF": serf_args,
+  "SeRF+OR": serf_args,
   "SeRF+Post": serf_args,
   "Prefiltering": prefiltering_args,
   "Postfiltering": postfiltering_args,
   "CompassPostK": compass_post_args,
   "CompassPostKTh": compass_post_th_args,
+  "CompassPostKThCh": compass_post_th_args,
   "CompassPostKNavix": compass_post_th_args,
   "Ivf": ivf_args,
   "CompassGraph": compass_graph_args,
@@ -485,11 +497,14 @@ M_STYLE = {
   "iRangeGraph": {
     "marker": "^", "color": "black"
   },
+  "iRangeGraph+Post": {
+    "marker": "^", "color": "black"
+  },
   "SeRF": {
     "marker": "p", "color": "gray"
   },
-  "iRangeGraph+Post": {
-    "marker": "^", "color": "black"
+  "SeRF+OR": {
+    "marker": "p", "color": "gray"
   },
   "SeRF+Post": {
     "marker": "p", "color": "gray"
@@ -505,6 +520,9 @@ M_STYLE = {
   },
   "CompassPostKTh": {
     "marker": "o", "color": "red"
+  },
+  "CompassPostKThCh": {
+    "marker": "o", "color": "green"
   },
   "CompassPostKNavix": {
     "marker": "o", "color": "yellow"
