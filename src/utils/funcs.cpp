@@ -510,7 +510,7 @@ nlohmann::json collate_stat(
       {"selectivity", (double)nsat / nb},
       {"time_in_s", (double)search_time / 1000000},
       {"qps", (double)nq / search_time * 1000000},
-      {"tampered_qps", (double)nq / (search_time - sum_of_cluster_search_time) * 1000000},
+      {"tampered_qps", (double)nq / (search_time - sum_of_cluster_search_time / 1000) * 1000000},
       {"num_threads", nthread},
       {"num_computations", (double)sum_of_num_comp / nq},
       {"num_computations_graph", (double)sum_of_num_comp_graph / nq},
