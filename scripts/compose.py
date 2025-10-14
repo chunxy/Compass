@@ -57,7 +57,7 @@ def compose():
   --p {} --k 10 {} {}'''
                 inner = '\n'.join([
                   inner_tmpl.format(
-                    ("1d-" if da == 1 else "") + "-".join(parts[1:]),
+                    "-".join(parts[1:]),
                     da,
                     " ".join(map(str, itvl)),
                     build_string,

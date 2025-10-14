@@ -61,7 +61,11 @@ def summarize():
       if da not in M_DA_RUN[m]: continue  # noqa: E701
       for d in DATASETS:
         for itvl in M_DA_RUN[m][da]:
-          if m != "ACORN" and (m in COMPASS_METHODS or m in BASE_METHODS):
+          if m == "CompassPostKThCh":
+            w = M_WORKLOAD[m].format(d, itvl[0])
+            nrg = str(itvl[0])  # noqa: E741
+            sel = f"{itvl[0] / 100:.3g}"  # noqa: E741
+          elif m != "ACORN" and (m in COMPASS_METHODS or m in BASE_METHODS):
             w = M_WORKLOAD[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
             nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
             sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
