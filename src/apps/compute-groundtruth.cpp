@@ -170,7 +170,7 @@ void compute_groundtruth(
   vector<priority_queue<pair<float, uint32_t>>> pq_topks(nq);
   hybrid_topks.resize(nq);
 
-  vector<btree::btree_map<float, uint32_t>> btrees(da);
+  vector<btree::btree_multimap<float, uint32_t>> btrees(da);
   auto btrees_start = high_resolution_clock::now();
   for (int i = 0; i < nb; i++) {
     for (int j = 0; j < da; j++) {
