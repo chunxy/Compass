@@ -23,8 +23,8 @@ class CompassPost {
   IterativeSearch<dist_t> cg_;
   faiss::Index *ivf_;
   // vector<btree::btree_map<attr_t, labeltype>> btrees_;
-  vector<fc::BTreeMap<attr_t, pair<labeltype, array<attr_t, 4>>, 32>> btrees_;
-  vector<fc::BTreeMap<attr_t, labeltype>> mbtrees_;
+  vector<fc::BTreeMultiMap<attr_t, pair<labeltype, array<attr_t, 4>>, 32>> btrees_;
+  vector<fc::BTreeMultiMap<attr_t, labeltype>> mbtrees_;
   faiss::idx_t *base_cluster_rank_;
   // faiss::idx_t *query_cluster_rank_;
   // dist_t *distances_;
@@ -104,15 +104,19 @@ class CompassPost {
       faiss::idx_t *assigned_clusters,
       float *distances = nullptr
   ) = 0;
-  virtual void AddPointsToIvf(const size_t n, const void *data, const labeltype *labels, const attr_t *attrs) {
+  virtual void AddPointsToIvf(const size_t n, const void *data, const labeltype *labels, attr_t *attrs) {
     AssignPoints(n, data, 1, this->base_cluster_rank_);
     for (int i = 0; i < n; i++) {
       array<attr_t, 4> arr{0, 0, 0, 0};
       for (int j = 0; j < this->da_; j++) {
         arr[j] = attrs[i * this->da_ + j];
-        mbtrees_[this->base_cluster_rank_[i] * this->da_ + j][attrs[i * this->da_ + j]] = labels[i];
+        mbtrees_[this->base_cluster_rank_[i] * this->da_ + j].insert(
+            frozenca::BTreePair<attr_t, labeltype>(std::move(attrs[i * this->da_ + j]), (labeltype)i)
+        );
       }
-      btrees_[this->base_cluster_rank_[i]][attrs[i * this->da_]] = std::make_pair(labels[i], arr);
+      btrees_[this->base_cluster_rank_[i]].insert(frozenca::BTreePair<attr_t, pair<labeltype, array<attr_t, 4>>>(
+          std::move(attrs[i * this->da_]), {(labeltype)i, arr}
+      ));
     }
   }
 
