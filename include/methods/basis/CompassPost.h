@@ -768,8 +768,9 @@ class CompassPost {
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
       bm.qmetrics[q].nround = nround;
-#ifndef BENCH
       bm.qmetrics[q].ncluster = clus_cnt;
+#ifndef BENCH
+      bm.qmetrics[q].nrecycled += state.out_.checked_count;
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
@@ -959,7 +960,9 @@ class CompassPost {
             // state.result_set_.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             state.top_candidates_.emplace(-top.first, top.second);
+#ifndef BENCH
             bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
+#endif
             vl->mass[top.second] = vl->curV;
             num_ivf_ppsl++;
           }
@@ -1005,9 +1008,10 @@ class CompassPost {
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
       bm.qmetrics[q].nround = nround;
-#ifndef BENCH
       bm.qmetrics[q].ncluster = clus_cnt;
+#ifndef BENCH
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
+      bm.qmetrics[q].nrecycled += state.out_.checked_count;
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
@@ -1228,8 +1232,9 @@ class CompassPost {
       bm.qmetrics[q].ncluster = clus_cnt;
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
-      bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
 #ifndef BENCH
+      bm.qmetrics[q].nrecycled += state.out_.checked_count;
+      bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
