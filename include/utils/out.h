@@ -10,4 +10,5 @@ struct Out {
   long long bk_time = 0;
 
   long long checked_count = 0;
+  int twohop_count = 0;
 };

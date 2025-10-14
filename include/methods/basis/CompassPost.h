@@ -1,3 +1,4 @@
+#include <fmt/core.h>
 #include <array>
 #include <boost/filesystem.hpp>
 #include "faiss/Index.h"
@@ -564,7 +565,8 @@ class CompassPost {
 #ifndef BENCH
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
-      graph_.SetSearchParam(k, k, k);
+      // Enlarge the search to reduce overhead.
+      graph_.SetSearchParam(2 * k, 2 * k, 2 * k);
       // graph_.SetSearchParam(k, efs, k); // For testing non-iterative version.
       auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
       // graph_.SetSearchParam(k / 2, k + k / 2, k / 2);
@@ -706,7 +708,8 @@ class CompassPost {
             if (vl->mass[tableid] == vl->curV) {
               continue;
             }
-            vl->mass[tableid] = vl->curV;
+            // Should prioritize the graph search? No idea yet... Leave it this first.
+            // vl->mass[tableid] = vl->curV;
             auto vect = this->graph_.hnsw_->getDataByInternalId(tableid);
             auto dist = this->graph_.hnsw_->fstdistfunc_(query_q, vect, this->graph_.hnsw_->dist_func_param_);
             bm.qmetrics[q].ncomp++;
@@ -714,9 +717,15 @@ class CompassPost {
             crel++;
           }
           int i = 0;
+          // Restart is good with graph early stopping.
+          bool restart = -top_ivf.top().first > -state.candidate_set_.top().first;
           for (; i < k / 2 && !top_ivf.empty(); i++) {
             auto top = top_ivf.top();
             top_ivf.pop();
+            if (vl->mass[top.second] == vl->curV) {
+              continue;
+            }
+            vl->mass[top.second] = vl->curV;
             // TODO: consider bounding by the top of top_candidates
             state.candidate_set_.emplace(top.first, top.second);
             // state.result_set_.emplace(top.first, top.second);
@@ -725,18 +734,18 @@ class CompassPost {
 #ifndef BENCH
             bm.qmetrics[q].is_ivf_ppsl[top.second] = true;
 #endif
-            vl->mass[top.second] = vl->curV;
             num_ivf_ppsl++;
           }
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
-          state.sel_ = 1;        // restart graph
-          graph_last_round = 1;  // restart graph
+          if (restart) {
+            state.sel_ = 1;        // restart graph
+            graph_last_round = 1;  // restart graph
+          }
 #ifndef BENCH
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
 #endif
-          continue;
         }
         // Believe in graph when the first-hop selectivity is not low.
         // "state.sel_ >=" means we do not always rely on graph.
@@ -770,6 +779,7 @@ class CompassPost {
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
 #ifndef BENCH
+      fmt::print("twohop_count: {}\n", state.out_.twohop_count);
       bm.qmetrics[q].nrecycled += state.out_.checked_count;
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
@@ -1010,6 +1020,7 @@ class CompassPost {
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
 #ifndef BENCH
+      fmt::print("twohop_count: {}\n", state.out_.twohop_count);
       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nrecycled += state.out_.checked_count;
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;

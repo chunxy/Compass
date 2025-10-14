@@ -61,6 +61,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       tableint *cand_nbrs = (tableint *)(cand_info + 1);
 #ifdef USE_SSE
       _mm_prefetch((char *)(vl->mass + *(cand_nbrs)), _MM_HINT_T0);
+      _mm_prefetch((char *)(vl->mass + *(cand_nbrs + 1)), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
       _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
 #endif
@@ -69,6 +70,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         tableint cand_nbr = cand_nbrs[i];
 #ifdef USE_SSE
         _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
+        _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 2)), _MM_HINT_T0);
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
         if (vl->mass[cand_nbr] == vl->curV) continue;
@@ -262,17 +264,17 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         _mm_prefetch((char *)(is_id_allowed->prefetch(*(cand_nbrs + i + 1))), _MM_HINT_T0);
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
+        if (vl->mass[cand_nbr] == vl->curV) continue;
+        vl->mass[cand_nbr] = vl->curV;
+        // Better let local selectivity be determined with unvisited neighbors.
+        checked_count++;
         bool is_satisfied = is_id_allowed == nullptr || (*is_id_allowed)(cand_nbr);
         if (is_satisfied) {
           satisfied_count++;
-        }
-        if (vl->mass[cand_nbr] == vl->curV) continue;
-        checked_count++;
-        if (!is_satisfied) {
+        } else {
           other_onehop_neighbors.insert(cand_nbr);
           continue;
         };
-        vl->mass[cand_nbr] = vl->curV;
 
         ncomp++;
 #ifndef BENCH
@@ -323,11 +325,11 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       // adaptive local
       // float selectivity = checked_count == 0 ? 0 : (float)added_count / checked_count;
       float selectivity = checked_count == 0 ? 1 : float(satisfied_count) / checked_count;
-      if (selectivity <= 0.4) {
+      if (selectivity <= 1) { // Always directed or onehop-all.
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         auto estimatedFullTwoHopDistanceComp = (size * satisfied_count + satisfied_count) * 0.4;
         auto estimatedDirectedDistanceComp = size + (size - satisfied_count);
-        int remaining = 10000000;
+        int remaining = this->M_; // This should be enough to maintain connectivity.
         // if (selectivity >= 0.2) {  // directed two-hop
         if (estimatedFullTwoHopDistanceComp > estimatedDirectedDistanceComp) {
           auto beg = other_onehop_neighbors.begin();
@@ -375,7 +377,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
           }
           other_onehop_neighbors = {};
-          remaining = size;
         }
         // }
         // undirected two-hop
