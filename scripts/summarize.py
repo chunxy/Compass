@@ -483,10 +483,10 @@ def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, pr
   sel_s = [0.01, 0.1, 0.2, 0.4, 0.6]
   interval = {
     0.01: ["0.01", "0.01", "0.008", "0.0081"],
-    0.1: ["0.1", "0.16", "0.125", "0.1296"],
-    0.2: ["0.2", "0.25", "0.216", "0.2401"],
-    0.4: ["0.4", "0.36", "0.343", "0.4096"],
-    0.6: ["0.6", "0.64", "0.512", "0.6561"],
+    0.1: ["0.1", "0.09", "0.0911", "0.0915"],
+    0.2: ["0.2", "0.2025", "0.216", "0.2401"],
+    0.4: ["0.4", "0.4225", "0.4219", "0.4096"],
+    0.6: ["0.6", "0.64", "0.6141", "0.6561"],
   }
 
   for rec in [0.8, 0.9, 0.95]:
@@ -525,9 +525,9 @@ def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, pr
                   label = f"{m}-{b}-{nrel}-{rec}"
                   if label not in d_m_sel[d][m][sel]:  # a list by dimension
                     d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
-                  d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else -100)
-                  d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else -100)
-                  d_m_sel[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else -100)
+                  d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                  d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 20000)
+                  d_m_sel[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 20000)
               else:
                 rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
                 grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
@@ -538,8 +538,8 @@ def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, pr
                 label = f"{m}-{b}-{rec}"
                 if label not in d_m_sel[d][m][sel]:
                   d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
-                d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else -100)
-                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else -100)
+                d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 20000)
 
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
@@ -629,9 +629,9 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, 
                   label = f"{m}-{b}-{nrel}-{rec}"
                   if label not in d_m_sel[d][m][sel]:  # a list by dimension
                     d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
-                  d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else -100)
-                  d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else -100)
-                  d_m_sel[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else -100)
+                  d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                  d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 20000)
+                  d_m_sel[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 20000)
               else:
                 rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
                 grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
@@ -642,8 +642,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, 
                 label = f"{m}-{b}-{rec}"
                 if label not in d_m_sel[d][m][sel]:
                   d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
-                d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else -100)
-                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else -100)
+                d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 20000)
 
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
