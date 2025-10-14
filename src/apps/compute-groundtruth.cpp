@@ -41,12 +41,18 @@ void compute_groundtruth(
   vector<priority_queue<pair<float, uint32_t>>> pq_topks(nq);
   hybrid_topks.resize(nq);
 
-  btree::btree_map<float, uint32_t> btree;
+  btree::btree_multimap<float, uint32_t> btree;
   auto btree_start = high_resolution_clock::now();
   for (int i = 0; i < attrs.size(); i++) {
     btree.insert(pair<float, uint32_t>{attrs[i], i});
   }
   auto btree_stop = high_resolution_clock::now();
+
+  if (btree.size() != attrs.size()) {
+    fmt::print("B-tree has different size with attrs\n");
+    fmt::print("B-tree size: {}\n", btree.size());
+    exit(-1);
+  }
 
   fmt::print(
       "B-tree construction and search took {} microseconds\n",
@@ -59,8 +65,10 @@ void compute_groundtruth(
 
   hnswlib::L2Space space(d);
   auto compute_start = high_resolution_clock::now();
+#ifdef DCOMPASS_DEBUG
   omp_set_num_threads(omp_get_max_threads() - 4);
 #pragma omp parallel for schedule(static)
+#endif
   for (int i = 0; i < nq; i++) {
     const float *query = xq + i * d;
 
@@ -81,69 +89,69 @@ void compute_groundtruth(
   fmt::print("Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count());
 }
 
-void compute_groundtruth(
-    const float *xb,
-    const int nb,
-    const float *xq,
-    const int nq,
-    const size_t d,
-    const vector<float> &l_bounds,
-    const vector<float> &u_bounds,
-    const vector<vector<float>> &attrs,
-    const int k,
-    int &nsat,
-    vector<vector<pair<float, uint32_t>>> &hybrid_topks
-) {
-  vector<priority_queue<pair<float, uint32_t>>> pq_topks(nq);
-  hybrid_topks.resize(nq);
-  namespace geo = boost::geometry;
-  using point = geo::model::point<double, 2, geo::cs::cartesian>;
-  using box = geo::model::box<point>;
-  using value = std::pair<point, unsigned>;
-  using rtree = geo::index::rtree<value, geo::index::quadratic<16>>;
+// void compute_groundtruth(
+//     const float *xb,
+//     const int nb,
+//     const float *xq,
+//     const int nq,
+//     const size_t d,
+//     const vector<float> &l_bounds,
+//     const vector<float> &u_bounds,
+//     const vector<vector<float>> &attrs,
+//     const int k,
+//     int &nsat,
+//     vector<vector<pair<float, uint32_t>>> &hybrid_topks
+// ) {
+//   vector<priority_queue<pair<float, uint32_t>>> pq_topks(nq);
+//   hybrid_topks.resize(nq);
+//   namespace geo = boost::geometry;
+//   using point = geo::model::point<double, 2, geo::cs::cartesian>;
+//   using box = geo::model::box<point>;
+//   using value = std::pair<point, unsigned>;
+//   using rtree = geo::index::rtree<value, geo::index::quadratic<16>>;
 
-  rtree rt;
-  auto rtree_start = high_resolution_clock::now();
-  for (int i = 0; i < attrs.size(); i++) {
-    rt.insert(value({point(attrs[i][0], attrs[i][1]), i}));
-  }
-  auto rtree_stop = high_resolution_clock::now();
-  fmt::print(
-      "R-tree construction took {} microseconds\n", duration_cast<microseconds>(rtree_stop - rtree_start).count()
-  );
+//   rtree rt;
+//   auto rtree_start = high_resolution_clock::now();
+//   for (int i = 0; i < attrs.size(); i++) {
+//     rt.insert(value({point(attrs[i][0], attrs[i][1]), i}));
+//   }
+//   auto rtree_stop = high_resolution_clock::now();
+//   fmt::print(
+//       "R-tree construction took {} microseconds\n", duration_cast<microseconds>(rtree_stop - rtree_start).count()
+//   );
 
-  box b(point(l_bounds[0], l_bounds[1]), point(u_bounds[0], u_bounds[1]));
-  auto beg = rt.qbegin(geo::index::covered_by(b));
-  auto end = rt.qend();
-  auto targets = vector<value>(beg, end);
+//   box b(point(l_bounds[0], l_bounds[1]), point(u_bounds[0], u_bounds[1]));
+//   auto beg = rt.qbegin(geo::index::covered_by(b));
+//   auto end = rt.qend();
+//   auto targets = vector<value>(beg, end);
 
-  hnswlib::L2Space space(d);
-  auto compute_start = high_resolution_clock::now();
-#pragma omp parallel for schedule(static)
-  for (int i = 0; i < nq; i++) {
-    const float *query = xq + i * d;
+//   hnswlib::L2Space space(d);
+//   auto compute_start = high_resolution_clock::now();
+// #pragma omp parallel for schedule(static)
+//   for (int i = 0; i < nq; i++) {
+//     const float *query = xq + i * d;
 
-    for (int j = 0; j < k; j++) {
-      auto idx = targets[j].second;
-      auto dist = space.get_dist_func()(query, xb + idx * d, &d);
-      pq_topks[i].emplace(dist, idx);
-    }
-    for (int j = k; j < targets.size(); j++) {
-      auto idx = targets[j].second;
-      auto dist = space.get_dist_func()(query, xb + idx * d, &d);
-      pq_topks[i].emplace(dist, idx);
-      pq_topks[i].pop();
-    }
-    hybrid_topks[i].resize(pq_topks[i].size());
-    int sz = pq_topks[i].size();
-    while (pq_topks[i].size() != 0) {
-      hybrid_topks[i][--sz] = pq_topks[i].top();
-      pq_topks[i].pop();
-    }
-  }
-  auto compute_end = high_resolution_clock::now();
-  fmt::print("Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count());
-}
+//     for (int j = 0; j < k; j++) {
+//       auto idx = targets[j].second;
+//       auto dist = space.get_dist_func()(query, xb + idx * d, &d);
+//       pq_topks[i].emplace(dist, idx);
+//     }
+//     for (int j = k; j < targets.size(); j++) {
+//       auto idx = targets[j].second;
+//       auto dist = space.get_dist_func()(query, xb + idx * d, &d);
+//       pq_topks[i].emplace(dist, idx);
+//       pq_topks[i].pop();
+//     }
+//     hybrid_topks[i].resize(pq_topks[i].size());
+//     int sz = pq_topks[i].size();
+//     while (pq_topks[i].size() != 0) {
+//       hybrid_topks[i][--sz] = pq_topks[i].top();
+//       pq_topks[i].pop();
+//     }
+//   }
+//   auto compute_end = high_resolution_clock::now();
+//   fmt::print("Computation took {} microseconds\n", duration_cast<microseconds>(compute_end - compute_start).count());
+// }
 
 void compute_groundtruth(
     const float *xb,
@@ -174,6 +182,14 @@ void compute_groundtruth(
       "B-trees construction took {} microseconds\n", duration_cast<microseconds>(btrees_stop - btrees_start).count()
   );
 
+  for (int i = 0; i < da; i++) {
+    if (btrees[i].size() != attrs.size()) {
+      fmt::print("B-trees have different size with attrs\n");
+      fmt::print("B-trees size: {}\n", btrees[i].size());
+      exit(-1);
+    }
+  }
+
   std::vector<std::unordered_set<uint32_t>> candidates_per_dim(da);
   for (int j = 0; j < da; ++j) {
     auto beg = btrees[j].lower_bound(l_bounds[j]);
@@ -200,7 +216,10 @@ void compute_groundtruth(
 
   hnswlib::L2Space space(d);
   auto compute_start = high_resolution_clock::now();
+#ifdef DCOMPASS_DEBUG
+  omp_set_num_threads(omp_get_max_threads() - 4);
 #pragma omp parallel for schedule(static)
+#endif
   for (int i = 0; i < nq; i++) {
     const float *query = xq + i * d;
 
@@ -257,8 +276,8 @@ int main(int argc, char **argv) {
     for (int i = 0; i < _attrs.size(); i++) _attrs[i] = attrs[i][0];
     float l_bound = l_bounds[0], u_bound = u_bounds[0];
     compute_groundtruth(xb, nb, xq, nq, d, l_bound, u_bound, _attrs, k, nsat, hybrid_topks);
-  } else if (c.attr_dim == 2) {
-    compute_groundtruth(xb, nb, xq, nq, d, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks);
+    // } else if (c.attr_dim == 2) {
+    //   compute_groundtruth(xb, nb, xq, nq, d, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks);
   } else {
     compute_groundtruth(xb, nb, xq, nq, d, c.attr_dim, l_bounds, u_bounds, attrs, k, nsat, hybrid_topks);
   }
