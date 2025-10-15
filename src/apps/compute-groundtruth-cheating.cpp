@@ -51,7 +51,7 @@ void compute_groundtruth(
     for (int j = l_ranges[i]; j <= u_ranges[i]; j++) {
       bool ok = true;
       for (int dim = 1; dim < da; dim++) {
-        if (attrs[j][dim] < l_bounds[i * (da - 1) + dim] || attrs[j][dim] > u_bounds[i * (da - 1) + dim]) {
+        if (attrs[j][dim] < l_bounds[dim - 1] || attrs[j][dim] > u_bounds[dim - 1]) {
           ok = false;
           break;
         }
@@ -93,11 +93,6 @@ int main(int argc, char **argv) {
   extern std::map<std::string, DataCard> name_to_card;
   DataCard c = name_to_card[dataname];
   int nb = c.n_base, nq = c.n_queries, d = c.dim;
-
-  if (c.attr_dim != 1) {
-    fmt::print("Handling 1D case only for now.\n");
-    return -1;
-  }
 
   std::mt19937 rng;
   rng.seed(0);

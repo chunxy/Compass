@@ -133,11 +133,33 @@ class BitsetQuery : public hnswlib::BaseFilterFunctor {
 template <typename attr_t>
 class InplaceRangeQuery : public hnswlib::BaseFilterFunctor {
  private:
-  const attr_t l_bound_, u_bound_;
+  const attr_t l_range_, u_range_;
+  const attr_t *l_bound_, *u_bound_;
+  const attr_t *attrs_;
   size_t n_, d_;
 
  public:
-  InplaceRangeQuery(const attr_t l_bound, const attr_t u_bound, size_t n, size_t d)
-      : l_bound_(l_bound), u_bound_(u_bound), n_(n), d_(d) {}
-  bool operator()(hnswlib::labeltype label) override { return l_bound_ <= label && label <= u_bound_; }
+  InplaceRangeQuery(const attr_t l_range, const attr_t u_range, size_t n, size_t d)
+      : l_range_(l_range), u_range_(u_range), n_(n), d_(d) {}
+  InplaceRangeQuery(
+      const attr_t l_range,
+      const attr_t u_range,
+      const attr_t *l_bound,
+      const attr_t *u_bound,
+      const attr_t *attrs,
+      size_t n,
+      size_t d
+  )
+      : l_range_(l_range), u_range_(u_range), l_bound_(l_bound), u_bound_(u_bound), attrs_(attrs), n_(n), d_(d) {}
+  bool operator()(hnswlib::labeltype label) override {
+    if (label < l_range_ || label > u_range_) {
+      return false;
+    }
+    for (int i = 1; i < d_; i++) {
+      if (attrs_[label * d_ + i] < l_bound_[i - 1] || attrs_[label * d_ + i] > u_bound_[i - 1]) {
+        return false;
+      }
+    }
+    return true;
+  }
 };

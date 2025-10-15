@@ -806,9 +806,11 @@ class CompassPost {
       const void *query,
       const int nq,
       const int k,
-      const attr_t *attrs,
+      const attr_t *attrs,  // The first dimension is a placeholder.
       const int32_t *l_ranges,
       const int32_t *u_ranges,
+      const attr_t *l_bounds,  // same dimension as attrs
+      const attr_t *u_bounds,
       const int efs,
       const int nrel,
       const int nthread,
@@ -823,7 +825,7 @@ class CompassPost {
     // cg_.SetSearchParam(20, 20, 20);
 
     for (int q = 0; q < nq; q++) {
-      InplaceRangeQuery<attr_t> pred(l_ranges[q], u_ranges[q], this->n_, this->da_);
+      InplaceRangeQuery<attr_t> pred(l_ranges[q], u_ranges[q], l_bounds, u_bounds, attrs, this->n_, this->da_);
 #ifndef BENCH
       auto q_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
