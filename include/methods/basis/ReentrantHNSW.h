@@ -325,11 +325,11 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       // adaptive local
       // float selectivity = checked_count == 0 ? 0 : (float)added_count / checked_count;
       float selectivity = checked_count == 0 ? 1 : float(satisfied_count) / checked_count;
-      if (selectivity <= 1 && selectivity > 0.05) { // Always directed or onehop-all when passrate is not low.
+      if (selectivity <= 1 && selectivity > 0.05) {  // Always directed or onehop-all when passrate is not low.
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         auto estimatedFullTwoHopDistanceComp = (size * satisfied_count + satisfied_count) * 0.4;
         auto estimatedDirectedDistanceComp = size + (size - satisfied_count);
-        int remaining = this->M_; // This should be enough to maintain connectivity.
+        int remaining = this->M_;  // This should be enough to maintain connectivity.
         // if (selectivity >= 0.2) {  // directed two-hop
         if (estimatedFullTwoHopDistanceComp > estimatedDirectedDistanceComp) {
           auto beg = other_onehop_neighbors.begin();
@@ -1123,7 +1123,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   void IterativeReentrantSearchKnnTwoHop(
       const void *query_data,
       const size_t k,
-      BaseFilterFunctor *bitset,
+      BaseFilterFunctor *is_id_allowed,
       std::priority_queue<std::pair<dist_t, int64_t>> &recycled_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
@@ -1138,7 +1138,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 
     int total_added_count = 0, total_checked_count = 0;
     while (!candidate_set.empty()) {
-      int added_count = 0, checked_count = 0, satisfied_count = 0;  // satisfied is for one-hop only.
+      int added_count = 0, checked_count = 0, satisfied_count = 0;
       auto curr_obj = candidate_set.top().second;
       auto curr_dist = -candidate_set.top().first;
       candidate_set.pop();
@@ -1171,8 +1171,9 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
         if (vl->mass[cand_nbr] == vl->curV) continue;
         vl->mass[cand_nbr] = vl->curV;
+        // Better let local selectivity be determined with unvisited neighbors.
         checked_count++;
-        bool is_satisfied = bitset == nullptr || (*bitset)(cand_nbr);
+        bool is_satisfied = is_id_allowed == nullptr || (*is_id_allowed)(cand_nbr);
         if (is_satisfied) {
           satisfied_count++;
         } else {
@@ -1228,12 +1229,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       // TODO: The ratio is a tuning point.
       // adaptive local
       // float selectivity = checked_count == 0 ? 0 : (float)added_count / checked_count;
-      float selectivity = checked_count == 0 ? 0 : float(satisfied_count) / checked_count;
-      if (selectivity <= 0.4) {
+      float selectivity = checked_count == 0 ? 1 : float(satisfied_count) / checked_count;
+      if (selectivity <= 1 && selectivity > 0.05) {  // Always directed or onehop-all when passrate is not low.
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         auto estimatedFullTwoHopDistanceComp = (size * satisfied_count + satisfied_count) * 0.4;
         auto estimatedDirectedDistanceComp = size + (size - satisfied_count);
-        int remaining = 10000000;
+        int remaining = this->M_;  // This should be enough to maintain connectivity.
         // if (selectivity >= 0.2) {  // directed two-hop
         if (estimatedFullTwoHopDistanceComp > estimatedDirectedDistanceComp) {
           auto beg = other_onehop_neighbors.begin();
@@ -1281,7 +1282,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
           }
           other_onehop_neighbors = {};
-          remaining = size;
         }
         // }
         // undirected two-hop
@@ -1305,13 +1305,13 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 2)), _MM_HINT_T0);
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
-            if (!added_onehop_neighbors.empty())
-              _mm_prefetch(this->get_linklist0(added_onehop_neighbors.top().second), _MM_HINT_T0);
+            // if (!added_onehop_neighbors.empty())
+            //   _mm_prefetch(this->get_linklist0(added_onehop_neighbors.top().second), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
-            vl->mass[twohop_nbr] = vl->curV;
             checked_count++;
-            if (bitset != nullptr && !(*bitset)(twohop_nbr)) continue;
+            if (is_id_allowed != nullptr && !(*is_id_allowed)(twohop_nbr)) continue;
+            vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
             remaining--;
 #ifndef BENCH
@@ -1371,29 +1371,28 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
 
           for (int j = 0; j < twohop_size; j++) {
+#ifndef BENCH
+            auto prep_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             tableint twohop_nbr = twohop_nbrs[j];
 #ifdef USE_SSE
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
             _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 2)), _MM_HINT_T0);
             _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
-            if (!other_onehop_neighbors.empty())
-              _mm_prefetch(this->get_linklist0(*other_onehop_neighbors.begin()), _MM_HINT_T0);
+            // if (!other_onehop_neighbors.empty())
+            //   _mm_prefetch(this->get_linklist0(*other_onehop_neighbors.begin()), _MM_HINT_T0);
 #endif
             if (vl->mass[twohop_nbr] == vl->curV) continue;
-            vl->mass[twohop_nbr] = vl->curV;
             checked_count++;
-            // #ifndef BENCH
-            //             auto prep_start = std::chrono::high_resolution_clock::system_clock::now();
-            // #endif
-            bool is_allowed = bitset == nullptr || (*bitset)(twohop_nbr);
-            // #ifndef BENCH
-            //             auto prep_stop = std::chrono::high_resolution_clock::system_clock::now();
-            //             if (out != nullptr) {
-            //               out->filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(prep_stop -
-            //               prep_start).count();
-            //             }
-            // #endif
+            bool is_allowed = is_id_allowed == nullptr || (*is_id_allowed)(twohop_nbr);
+#ifndef BENCH
+            auto prep_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(prep_stop - prep_start).count();
+            }
+#endif
             if (!is_allowed) continue;
+            vl->mass[twohop_nbr] = vl->curV;
             ncomp++;
             remaining--;
 #ifndef BENCH
@@ -1440,6 +1439,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         out->twohop_time += std::chrono::duration_cast<std::chrono::nanoseconds>(twohop_stop - twohop_start).count();
       }
 #endif
+
       // Assess remaining one-hop neighbors.
       while (added_onehop_neighbors.size()) {
         tableint cand_nbr = added_onehop_neighbors.top().second;
@@ -1453,8 +1453,13 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 
       total_added_count += added_count;
       total_checked_count += checked_count;
+      // sel should be local.
+      sel = checked_count == 0 ? 0 : float(added_count) / checked_count;
+      if (sel <= 0.1) {
+        sel = 0;
+        break;
+      }
     }
-    sel = total_checked_count == 0 ? 0 : float(total_added_count) / total_checked_count;
     out->checked_count += total_checked_count;
   }
 
