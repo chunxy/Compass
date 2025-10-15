@@ -187,6 +187,8 @@ int main(int argc, char **argv) {
             attrs,
             l_ranges.data() + j,
             u_ranges.data() + j,
+            args.l_bounds.data(),
+            args.u_bounds.data(),
             efs,
             nrel,
             args.nthread,
