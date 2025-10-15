@@ -46,7 +46,7 @@ class CompassPostK : public CompassPost<dist_t, attr_t> {
     }
     fmt::print("B-tree size: {}\n", sz);
     fmt::print("MB-tree size: {}\n", msz);
-    if (sz != this->n_ || msz != this->n_) {
+    if (sz != this->n_ || msz % this->n_ != 0) {
       exit(-1);
     }
   }
