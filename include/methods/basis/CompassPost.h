@@ -836,10 +836,10 @@ class CompassPost {
 #ifndef BENCH
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
-      graph_.SetSearchParam(k, k, k);
+      graph_.SetSearchParam(2 * k, 2 * k, 2 * k);
       // graph_.SetSearchParam(k, efs, k); // For testing non-iterative version.
       auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
-      graph_.SetSearchParam(k / 2, k + k / 2, k / 2);
+      // graph_.SetSearchParam(k / 2, k + k / 2, k / 2);
 #ifndef BENCH
       auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
       auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
@@ -956,20 +956,24 @@ class CompassPost {
             if (vl->mass[tableid] == vl->curV) {
               continue;
             }
-            vl->mass[tableid] = vl->curV;
+            // vl->mass[tableid] = vl->curV;
             auto vect = this->graph_.hnsw_->getDataByInternalId(tableid);
             auto dist = this->graph_.hnsw_->fstdistfunc_(query_q, vect, this->graph_.hnsw_->dist_func_param_);
             bm.qmetrics[q].ncomp++;
             top_ivf.push(std::make_pair(-dist, tableid));
             crel++;
           }
+          bool restart = -top_ivf.top().first > -state.candidate_set_.top().first;
           int i = 0;
           for (; i < k / 2 && !top_ivf.empty(); i++) {
             auto top = top_ivf.top();
             top_ivf.pop();
+            if (vl->mass[top.second] == vl->curV) {
+              continue;
+            }
+            vl->mass[top.second] = vl->curV;
             // TODO: consider bounding by the top of top_candidates
             state.candidate_set_.emplace(top.first, top.second);
-            // state.result_set_.emplace(top.first, top.second);
             top_candidates.emplace(-top.first, top.second);
             state.top_candidates_.emplace(-top.first, top.second);
 #ifndef BENCH
@@ -979,14 +983,15 @@ class CompassPost {
             num_ivf_ppsl++;
           }
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
-          state.sel_ = 1;        // restart graph
-          graph_last_round = 1;  // restart graph
+          if (restart) {
+            state.sel_ = 1;        // restart graph
+            graph_last_round = 1;  // restart graph
+          }
 #ifndef BENCH
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();
           bm.qmetrics[q].ivf_latency += ivf_time;
 #endif
-          continue;
         }
         // Believe in graph when the first-hop selectivity is not low.
         // "state.sel_ >=" means we do not always rely on graph.
