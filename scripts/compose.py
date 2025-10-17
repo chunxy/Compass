@@ -54,12 +54,14 @@ def compose():
                 inner_tmpl = \
   '''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-{} \
   --datacard ${{dataset}}_{}_10000_float32 \
-  --p {} --k 10 {} {}'''
+  --p {} {} {} --k 10 {} {}'''
                 inner = '\n'.join([
                   inner_tmpl.format(
                     "-".join(parts[1:]),
                     da,
-                    " ".join(map(str, itvl)),
+                    itvl[0],
+                    ("" if da == 1 else "--l ") + " ".join(map(str, range(200, 200 + 100 * (da - 1), 100))),
+                    ("" if da == 1 else "--r ") + " ".join(map(str, range(200 + 100 * itvl[0], 200 + 100 * (da - 1) + 100 * itvl[0], 100))),
                     build_string,
                     search_string,
                   ) for itvl in intervals
@@ -69,7 +71,6 @@ def compose():
                   inner = __enclose_for(bp, f"{bp}_s", inner)
                 f.write(inner)
                 f.write('\n')
-
         continue
 
       for group, datasets in M_GROUP_DATASET[m].items():
@@ -97,7 +98,7 @@ def compose():
 --l {} --r {} --k 10 {} {}'''
               inner = '\n'.join([
                 inner_tmpl.format(
-                  ("1d-" if da == 1 else "") + "-".join(parts[1:]),
+                  ("1d-" if (da == 1 and not m.startswith("CompassPost")) else "") + "-".join(parts[1:]),
                   da,
                   " ".join(map(str, itvl[0])),
                   " ".join(map(str, itvl[1])),

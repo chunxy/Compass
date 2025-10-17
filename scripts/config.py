@@ -85,7 +85,10 @@ acorn_da_interval = {
 }
 
 cheating_da_interval = {
-  1: [(perc,) for perc in [1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90]]
+  1: [(perc,) for perc in [1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90]],
+  2: [(perc,) for perc in [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]],
+  3: [(perc,) for perc in [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]],
+  4: [(perc,) for perc in [30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]],
 }
 
 # attribute dimension - ranges, for plotting, shared across methods, using Compass's interval as base
@@ -168,7 +171,7 @@ M_WORKLOAD = {
     for m in SOTA_POST_METHODS
   },
   "ACORN": "{}_{}_10",
-  "CompassPostKThCh": "{}_{}___10",
+  "CompassPostKThCh": "{}_{}_{}_{}_10",
 }
 
 M_DA_RUN = {

@@ -54,6 +54,7 @@ dataset_comp_ylim = {
   "glove100": 11000,
 }
 
+
 def summarize():
   for da in [1, 2, 3, 4]:
     entries = []
@@ -62,7 +63,12 @@ def summarize():
       for d in DATASETS:
         for itvl in M_DA_RUN[m][da]:
           if m == "CompassPostKThCh":
-            w = M_WORKLOAD[m].format(d, itvl[0])
+            w = M_WORKLOAD[m].format(
+              d,
+              itvl[0],
+              "-".join(map(str, range(200, 200 + 100 * (da - 1), 100))),
+              "-".join(map(str, range(200 + 100 * itvl[0], 200 + 100 * (da - 1) + 100 * itvl[0], 100))),
+            )
             nrg = str(itvl[0])  # noqa: E741
             sel = f"{itvl[0] / 100:.3g}"  # noqa: E741
           elif m != "ACORN" and (m in COMPASS_METHODS or m in BASE_METHODS):
@@ -159,7 +165,7 @@ def summarize():
             initial_ncomp.append(stat["aggregated"]["cluster_search_ncomp"] / stat["aggregated"]["batchsz"])
           else:
             initial_ncomp.append(stat["aggregated"]["cluster_search_ncomp"] / 100)
-        elif "cg_num_computations" in stat["aggregated"]: # For CompassPost series, add up computations together
+        elif "cg_num_computations" in stat["aggregated"]:  # For CompassPost series, add up computations together
           ncomp[-1] += stat["aggregated"]["cg_num_computations"]
           initial_ncomp.append(0)
         else:
@@ -288,7 +294,7 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
           if m == "SeRF" or m == "iRangeGraph":
             data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
           else:
-            data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+            data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -371,7 +377,7 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
           if m == "SeRF" or m == "iRangeGraph":
             data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
           else:
-            data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+            data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
@@ -436,7 +442,7 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
           if m == "SeRF" or m == "iRangeGraph":
             data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
           else:
-            data_by_m_b = data[(data["method"]== m) & (data["build"] == b)]
+            data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
