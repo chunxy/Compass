@@ -1,7 +1,6 @@
 #include <fmt/chrono.h>
 #include <fmt/core.h>
 #include <fmt/format.h>
-#include <omp.h>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
 #include <cassert>
@@ -100,7 +99,7 @@ int main(int argc, char **argv) {
   std::vector<labeltype> labels(nb);
   std::iota(labels.begin(), labels.end(), 0);
   if (fs::exists(ckp_dir / rank_ckp)) {
-    comp.LoadRanking(ckp_dir / rank_ckp, attrs);
+    comp.LoadRanking(ckp_dir / rank_ckp, attrs, c.attr_dim > 1 ? 1 : 0);
     fmt::print("Finished loading IVF ranking.\n");
   } else {
     auto add_points_start = high_resolution_clock::now();

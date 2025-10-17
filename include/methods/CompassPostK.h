@@ -51,6 +51,36 @@ class CompassPostK : public CompassPost<dist_t, attr_t> {
     }
   }
 
+  void LoadRanking(fs::path path, attr_t *attrs, int which) {
+    std::ifstream in(path.string());
+    faiss::idx_t assigned_cluster;
+    for (int i = 0; i < this->n_; i++) {
+      in.read((char *)(&assigned_cluster), sizeof(faiss::idx_t));
+      array<attr_t, 4> arr{0, 0, 0, 0};
+      for (int j = 0; j < this->da_; j++) {
+        arr[j] = attrs[i * this->da_ + j];
+        this->mbtrees_[assigned_cluster * this->da_ + j].insert(
+            frozenca::BTreePair<attr_t, labeltype>(std::move(attrs[i * this->da_ + j]), (labeltype)i)
+        );
+      }
+      this->btrees_[assigned_cluster].insert(frozenca::BTreePair<attr_t, pair<labeltype, array<attr_t, 4>>>(
+          std::move(attrs[i * this->da_ + which]), {(labeltype)i, arr}
+      ));
+    }
+    int sz = 0, msz = 0;
+    for (int i = 0; i < this->btrees_.size(); i++) {
+      sz += this->btrees_[i].size();
+    }
+    for (int i = 0; i < this->mbtrees_.size(); i++) {
+      msz += this->mbtrees_[i].size();
+    }
+    fmt::print("B-tree size: {}\n", sz);
+    fmt::print("MB-tree size: {}\n", msz);
+    if (sz != this->n_ || msz % this->n_ != 0) {
+      exit(-1);
+    }
+  }
+
   void AssignPoints(
       const size_t n,
       const void *data,
