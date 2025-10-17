@@ -22,6 +22,7 @@ class IterativeSearchState {
   friend class IterativeSearch<dist_t>;
   const void *query_;
   size_t k_;
+  bool has_ran_;
 
   priority_queue<pair<dist_t, int64_t>> recycled_candidates_;  // min heap
  public:
@@ -40,7 +41,7 @@ class IterativeSearchState {
 
  public:
   Out out_;
-  IterativeSearchState(const void *query, size_t k) : query_(query), k_(k), ncomp_(0), total_(0) {}
+  IterativeSearchState(const void *query, size_t k) : query_(query), k_(k), ncomp_(0), total_(0), has_ran_(false) {}
 };
 
 template <typename dist_t>
@@ -107,6 +108,9 @@ class IterativeSearch {
       if (top.second < 0) {
         state->top_candidates_.emplace(-top.first, -top.second);
         state->candidate_set_.emplace(top.first, -top.second);
+        if (pred != nullptr && (*pred)(-top.second)) {
+          state->result_set_.emplace(top.first, -top.second);
+        }
       } else {
         state->top_candidates_.emplace(-top.first, top.second);
       }
@@ -136,13 +140,7 @@ class IterativeSearch {
     end = std::chrono::high_resolution_clock::now();
     state->out_.search_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 #endif
-    int cnt = 0;
-    while (cnt < this->batch_k_ && !state->result_set_.empty()) {
-      auto top = state->result_set_.top();
-      state->result_set_.pop();
-      state->batch_rz_.emplace(top.first, top.second);
-      cnt++;
-    }
+    int cnt = state->result_set_.size();
     hnsw_->setEf(std::min(hnsw_->ef_ + this->delta_efs_, state->k_));  // expand the efs for next batch search
     // Remember to reset the ef of hnsw_ to the initial value when closing the state.
     return cnt;
@@ -502,6 +500,7 @@ class IterativeSearch {
       state.top_candidates_.emplace(curr_dist, curr_obj);
 
       UpdateNextTwoHop(&state, pred);
+      state.has_ran_ = true;
     }
     return state;
   }
@@ -695,18 +694,14 @@ class IterativeSearch {
     if (state->total_ >= state->k_) {
       return {};
     }
-    if (HasNext(state)) {
-      auto moved = std::move(state->batch_rz_);
-      state->total_ += moved.size();
-      state->batch_rz_ = {};
-      return moved;
+    if (state->has_ran_ && !state->result_set_.empty()) {
+      state->has_ran_ = false;
     } else {
       int cnt = UpdateNextTwoHop(state, pred);
-      if (cnt == 0) {
-        return {};
-      }
+      state->has_ran_ = true;
     }
-    return NextBatchTwoHop(state, pred);
+    return {};
+    // return NextBatchTwoHop(state, pred);
   }
 
   priority_queue<pair<dist_t, labeltype>>

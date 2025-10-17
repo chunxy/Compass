@@ -566,7 +566,7 @@ class CompassPost {
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
       // Enlarge the search to reduce overhead.
-      graph_.SetSearchParam(2 * k, 2 * k, 2 * k);
+      graph_.SetSearchParam(k, k, k);
       // graph_.SetSearchParam(k, efs, k); // For testing non-iterative version.
       auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
       // graph_.SetSearchParam(k / 2, k + k / 2, k / 2);
@@ -713,7 +713,7 @@ class CompassPost {
             auto vect = this->graph_.hnsw_->getDataByInternalId(tableid);
             auto dist = this->graph_.hnsw_->fstdistfunc_(query_q, vect, this->graph_.hnsw_->dist_func_param_);
             bm.qmetrics[q].ncomp++;
-            top_ivf.push(std::make_pair(-dist, tableid));
+            top_ivf.emplace(-dist, tableid);
             crel++;
           }
           int i = 0;
@@ -750,23 +750,26 @@ class CompassPost {
         // Believe in graph when the first-hop selectivity is not low.
         // "state.sel_ >=" means we do not always rely on graph.
         if (nround_graph == 0 || state.sel_ >= breaktie) {
-          auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
-          priority_queue<pair<dist_t, labeltype>> batch = graph_.NextBatchTwoHop(&state, &pred);
-          num_graph_ppsl += batch.size();
-          graph_last_round = batch.size();
-          while (!batch.empty()) {
-            auto [dist, label] = batch.top();
-            batch.pop();
-            // if (pred(label)) {
-            top_candidates.push(std::make_pair(-dist, label));
 #ifndef BENCH
-            bm.qmetrics[q].is_graph_ppsl[label] = true;
+          auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
-            // }
+          graph_.NextBatchTwoHop(&state, &pred);
+          priority_queue<pair<dist_t, labeltype>> &batch = state.result_set_;
+          int i = 0;
+          while (!batch.empty() && i < graph_.batch_k_) {
+            auto top = batch.top();
+            batch.pop();
+            i++;
+            top_candidates.emplace(-top.first, top.second);
+#ifndef BENCH
+            bm.qmetrics[q].is_graph_ppsl[top.second] = true;
+#endif
           }
+          num_graph_ppsl += i;
+          graph_last_round = i;
+#ifndef BENCH
           auto graph_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto graph_time = std::chrono::duration_cast<std::chrono::nanoseconds>(graph_stop - graph_start).count();
-#ifndef BENCH
           bm.qmetrics[q].graph_latency += graph_time;
 #endif
           nround_graph++;

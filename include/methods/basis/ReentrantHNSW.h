@@ -288,7 +288,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           out->comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_stop - comp_start).count();
         }
 #endif
-        result_set.emplace(-cand_nbr_dist, cand_nbr);
         added_count++;
         added_onehop_neighbors.emplace(-cand_nbr_dist, cand_nbr);
 #ifndef BENCH
@@ -300,6 +299,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           // #ifdef USE_SSE
           //           _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
           // #endif
+          result_set.emplace(-cand_nbr_dist, cand_nbr);
           top_candidates.emplace(cand_nbr_dist, cand_nbr);
           if (top_candidates.size() > efs) {
             auto top = top_candidates.top();
@@ -423,13 +423,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
             }
 #endif
             added_count++;
-            result_set.emplace(-twohop_nbr_dist, twohop_nbr);
 #ifndef BENCH
             auto bk_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
               candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
-
+              result_set.emplace(-twohop_nbr_dist, twohop_nbr);
               top_candidates.emplace(twohop_nbr_dist, twohop_nbr);
               if (top_candidates.size() > efs) {
                 auto top = top_candidates.top();
@@ -509,10 +508,10 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #ifndef BENCH
             auto bk_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
-            result_set.emplace(-twohop_nbr_dist, twohop_nbr);
 
             if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
               candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
+              result_set.emplace(-twohop_nbr_dist, twohop_nbr);
               top_candidates.emplace(twohop_nbr_dist, twohop_nbr);
               if (top_candidates.size() > efs) {
                 auto top = top_candidates.top();
