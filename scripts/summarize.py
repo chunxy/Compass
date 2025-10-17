@@ -75,9 +75,15 @@ def summarize():
             sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.3g}"
           bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
           st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
-          for ba in product(*[D_ARGS[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]):
+          if m.startswith("Compass"):
+            ba_s = [D_ARGS[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]
+            sa_s = [D_ARGS[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]
+          else:
+            ba_s = [M_ARGS[m][bp] for bp in M_PARAM[m]["build"]]
+            sa_s = [M_ARGS[m][sp] for sp in M_PARAM[m]["search"]]
+          for ba in product(*ba_s):
             b = bt.format(*ba)
-            for sa in product(*[D_ARGS[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]):
+            for sa in product(*sa_s):
               s = st.format(*sa)
               path = LOG_ROOT / m / w / b / s
               if path.exists():
