@@ -108,7 +108,7 @@ class IterativeSearch {
       if (top.second < 0) {
         state->top_candidates_.emplace(-top.first, -top.second);
         state->candidate_set_.emplace(top.first, -top.second);
-        if (pred != nullptr && (*pred)(-top.second)) {
+        if (pred == nullptr || (*pred)(-top.second)) {
           state->result_set_.emplace(top.first, -top.second);
         }
       } else {
