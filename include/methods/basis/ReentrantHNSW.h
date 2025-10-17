@@ -230,6 +230,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
 
     int total_added_count = 0, total_checked_count = 0;
+    std::vector<tableint> other_onehop_neighbors(this->maxM0_);
     while (!candidate_set.empty()) {
       int added_count = 0, checked_count = 0, satisfied_count = 0;
       auto curr_obj = candidate_set.top().second;
@@ -251,7 +252,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
 #endif
 
-      std::set<tableint> other_onehop_neighbors;
+      other_onehop_neighbors.resize(0);
       // It may occur that the visited count is 0, which is not expected.
       // Work around this first.
 
@@ -271,7 +272,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         if (is_satisfied) {
           satisfied_count++;
         } else {
-          other_onehop_neighbors.insert(cand_nbr);
+          other_onehop_neighbors.emplace_back(cand_nbr);
           continue;
         };
 
@@ -328,13 +329,10 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         int remaining = size - satisfied_count;  // This should be enough to maintain connectivity.
 
-        auto beg = other_onehop_neighbors.begin();
-        auto end = other_onehop_neighbors.end();
-        while (beg != end && remaining > 0) {
+        for (int i = 0; i < other_onehop_neighbors.size() && remaining > 0; i++) {
           // Means we are running full two-hop search.
           // So we don't restrict on the number, i.e. `remaining`.
-          tableint cand_nbr = *beg;
-          beg++;
+          tableint cand_nbr = other_onehop_neighbors[i];
 
           tableint *twohop_info = this->get_linklist0(cand_nbr);
           int twohop_size = this->getListCount(twohop_info);
@@ -411,14 +409,12 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           }
         }
         if (selectivity > 0.6) {  // safe for non-sat not to preempt sat
-          auto beg = other_onehop_neighbors.begin();
-          auto end = other_onehop_neighbors.end();
-          while (beg != end) {
-            tableint cand_nbr = *beg;
-            beg++;
+
+          for (int i = 0; i < other_onehop_neighbors.size(); i++) {
+            tableint cand_nbr = other_onehop_neighbors[i];
 
 #ifdef USE_SSE
-            _mm_prefetch(this->getDataByInternalId(*beg), _MM_HINT_T0);
+            _mm_prefetch(this->getDataByInternalId(other_onehop_neighbors[i + 1]), _MM_HINT_T0);
 #endif
             dist_t cand_dist =
                 this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
