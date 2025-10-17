@@ -443,8 +443,11 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       total_added_count += added_count;
       total_checked_count += checked_count;
       // sel should be local.
-      sel = checked_count < this->M_ ? (float)total_added_count / total_checked_count
-                                     : float(added_count) / checked_count;
+      if (checked_count < this->M_) {
+        sel = total_checked_count == 0 ? 1 : (float)total_added_count / total_checked_count;
+      } else {
+        sel = checked_count == 0 ? 1 : float(added_count) / checked_count;
+      }
       if (sel <= 0.1) {
         sel = 0;
         break;
