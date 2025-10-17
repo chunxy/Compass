@@ -79,8 +79,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         dist_t cand_nbr_dist =
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
 
-        result_set.emplace(-cand_nbr_dist, cand_nbr);
         if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
+          result_set.emplace(-cand_nbr_dist, cand_nbr);
           candidate_set.emplace(-cand_nbr_dist, cand_nbr);
 #ifdef USE_SSE
           _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);

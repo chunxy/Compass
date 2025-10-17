@@ -22,6 +22,8 @@ class IterativeSearchState {
   friend class IterativeSearch<dist_t>;
   const void *query_;
   size_t k_;
+  int batch_k_;
+  int cur_cnt;
   bool has_ran_;
 
   priority_queue<pair<dist_t, int64_t>> recycled_candidates_;  // min heap
@@ -41,7 +43,10 @@ class IterativeSearchState {
 
  public:
   Out out_;
-  IterativeSearchState(const void *query, size_t k) : query_(query), k_(k), ncomp_(0), total_(0), has_ran_(false) {}
+  IterativeSearchState(const void *query, size_t k)
+      : query_(query), k_(k), ncomp_(0), total_(0), batch_k_(1), cur_cnt(0), has_ran_(false) {}
+  IterativeSearchState(const void *query, size_t k, int batch_k)
+      : query_(query), k_(k), ncomp_(0), total_(0), batch_k_(batch_k), cur_cnt(0), has_ran_(false) {}
 };
 
 template <typename dist_t>
@@ -61,6 +66,7 @@ class IterativeSearch {
       if (top.second < 0) {
         state->top_candidates_.emplace(-top.first, -top.second);
         state->candidate_set_.emplace(top.first, -top.second);
+        state->result_set_.emplace(top.first, -top.second);
       } else {
         state->top_candidates_.emplace(-top.first, top.second);
       }
@@ -87,13 +93,7 @@ class IterativeSearch {
     end = std::chrono::high_resolution_clock::now();
     state->out_.search_time += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 #endif
-    int cnt = 0;
-    while (cnt < this->batch_k_ && !state->result_set_.empty()) {
-      auto top = state->result_set_.top();
-      state->result_set_.pop();
-      state->batch_rz_.emplace(top.first, top.second);
-      cnt++;
-    }
+    int cnt = state->result_set_.size();
     hnsw_->setEf(std::min(hnsw_->ef_ + this->delta_efs_, state->k_));  // expand the efs for next batch search
     // Remember to reset the ef of hnsw_ to the initial value when closing the state.
     return cnt;
@@ -346,9 +346,9 @@ class IterativeSearch {
   }
 
   // VistedList is provided outside in this version.
-  IterativeSearchState<dist_t> Open(const void *query, int k, VisitedList *vl = nullptr) {
+  IterativeSearchState<dist_t> Open(const void *query, int k, VisitedList *vl = nullptr, int batch_k = 1) {
     hnsw_->setEf(this->initial_efs_);
-    IterativeSearchState<dist_t> state(query, k);
+    IterativeSearchState<dist_t> state(query, k, batch_k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
     state.ncomp_ = 0;
     state.total_ = 0;
@@ -389,6 +389,7 @@ class IterativeSearch {
       state.top_candidates_.emplace(curr_dist, curr_obj);
 
       UpdateNext(&state);
+      state.has_ran_ = true;
     }
     return state;
   }
@@ -657,36 +658,35 @@ class IterativeSearch {
     if (state->total_ >= state->k_) {
       return {-1, -1};
     }
-    if (HasNext(state)) {
-      auto top = state->batch_rz_.top();
-      state->batch_rz_.pop();
+    if (state->has_ran_ && !state->result_set_.empty() && state->cur_cnt < state->batch_k_) {
+      auto top = state->result_set_.top();
+      state->result_set_.pop();
       state->total_++;
+      state->cur_cnt++;
+      if (state->cur_cnt == state->batch_k_) {
+        state->has_ran_ = false;
+      }
       return {-top.first, top.second};
     } else {
-      int cnt = UpdateNext(state);
-      if (cnt == 0) {
-        return {-1, -1};
-      }
+      UpdateNext(state);
+      state->has_ran_ = true;
+      state->cur_cnt = 0;
+      return Next(state);
     }
-    return Next(state);
   }
 
   priority_queue<pair<dist_t, labeltype>> NextBatch(IterativeSearchState<dist_t> *state) {
     if (state->total_ >= state->k_) {
       return {};
     }
-    if (HasNext(state)) {
-      auto moved = std::move(state->batch_rz_);
-      state->total_ += moved.size();
-      state->batch_rz_ = {};
-      return moved;
+    if (state->has_ran_ && !state->result_set_.empty()) {
+      state->has_ran_ = false;
+      return {};
     } else {
-      int cnt = UpdateNext(state);
-      if (cnt == 0) {
-        return {};
-      }
+      UpdateNext(state);
+      state->has_ran_ = true;
+      return {};
     }
-    return NextBatch(state);
   }
 
   priority_queue<pair<dist_t, labeltype>>

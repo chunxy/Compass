@@ -596,7 +596,7 @@ class CompassPost {
 #ifndef BENCH
             auto cg_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
-            cg_state = cg_.Open(query_q, cg_.hnsw_->max_elements_, vl_cg);
+            cg_state = cg_.Open(query_q, cg_.hnsw_->max_elements_, vl_cg, cg_.batch_k_);
             auto next = cg_.Next(&cg_state);
 #ifndef BENCH
             auto cg_stop = std::chrono::high_resolution_clock::system_clock::now();
