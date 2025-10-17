@@ -265,7 +265,6 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
 #endif
         if (vl->mass[cand_nbr] == vl->curV) continue;
-        vl->mass[cand_nbr] = vl->curV;
         // Better let local selectivity be determined with unvisited neighbors.
         checked_count++;
         bool is_satisfied = is_id_allowed == nullptr || (*is_id_allowed)(cand_nbr);
@@ -275,7 +274,9 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           other_onehop_neighbors.emplace_back(cand_nbr);
           continue;
         };
-
+        // Marking as visited means either we compute the distance
+        // or we have visited its neighbors.
+        vl->mass[cand_nbr] = vl->curV;
         ncomp++;
 #ifndef BENCH
         auto comp_start = std::chrono::high_resolution_clock::system_clock::now();
@@ -325,7 +326,9 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       // adaptive local
       // float selectivity = checked_count == 0 ? 0 : (float)added_count / checked_count;
       float selectivity = checked_count == 0 ? 1 : float(satisfied_count) / checked_count;
-      if (selectivity <= 1 && selectivity > 0.05) {  // Always directed or onehop-all when passrate is not low.
+      // Always undirected or all-onehop when passrate is not low.
+      // Following line is the undireced.
+      if (selectivity <= 0.2 && selectivity > 0.05) {
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         int remaining = size - satisfied_count;  // This should be enough to maintain connectivity.
 
@@ -333,6 +336,11 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
           // Means we are running full two-hop search.
           // So we don't restrict on the number, i.e. `remaining`.
           tableint cand_nbr = other_onehop_neighbors[i];
+          // Marking as visited means we will not visit it in potential later iterations.
+          // It should do no harm since there is no reason to visit again a node
+          // a) who does not satisfy the filter and b) whose satisfying neighbors has been enqueued.
+          // It can neither drag down distance nor provide satisfying neighobors.
+          vl->mass[cand_nbr] = vl->curV;
 
           tableint *twohop_info = this->get_linklist0(cand_nbr);
           int twohop_size = this->getListCount(twohop_info);
@@ -408,28 +416,31 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #endif
           }
         }
-        if (selectivity > 0.6) {  // safe for non-sat not to preempt sat
-
-          for (int i = 0; i < other_onehop_neighbors.size(); i++) {
-            tableint cand_nbr = other_onehop_neighbors[i];
+      }
+      // All onehop.
+      if (selectivity > 0.6) {  // a safe selectivity so that non-sat won't preempt sat
+        for (int i = 0; i < other_onehop_neighbors.size(); i++) {
+          tableint cand_nbr = other_onehop_neighbors[i];
+          if (vl->mass[cand_nbr] == vl->curV)
+            continue;
+          vl->mass[cand_nbr] = vl->curV;
 
 #ifdef USE_SSE
-            _mm_prefetch(this->getDataByInternalId(other_onehop_neighbors[i + 1]), _MM_HINT_T0);
+          _mm_prefetch(this->getDataByInternalId(other_onehop_neighbors[i + 1]), _MM_HINT_T0);
 #endif
-            dist_t cand_dist =
-                this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
-            if (top_candidates.size() < efs || cand_dist < upper_bound) {
-              candidate_set.emplace(-cand_dist, cand_nbr);
-              top_candidates.emplace(cand_dist, cand_nbr);
-              if (top_candidates.size() > efs) {
-                auto top = top_candidates.top();
-                recycled_candidates.emplace(-top.first, top.second);
-                top_candidates.pop();
-              };
-              upper_bound = top_candidates.top().first;
-            } else {
-              recycled_candidates.emplace(-cand_dist, -(int64_t)cand_nbr);
-            }
+          dist_t cand_dist =
+              this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+          if (top_candidates.size() < efs || cand_dist < upper_bound) {
+            candidate_set.emplace(-cand_dist, cand_nbr);
+            top_candidates.emplace(cand_dist, cand_nbr);
+            if (top_candidates.size() > efs) {
+              auto top = top_candidates.top();
+              recycled_candidates.emplace(-top.first, top.second);
+              top_candidates.pop();
+            };
+            upper_bound = top_candidates.top().first;
+          } else {
+            recycled_candidates.emplace(-cand_dist, -(int64_t)cand_nbr);
           }
         }
       }
@@ -444,9 +455,9 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       total_checked_count += checked_count;
       // sel should be local.
       if (checked_count < this->M_) {
-        sel = total_checked_count == 0 ? 1 : (float)total_added_count / total_checked_count;
+        sel = total_checked_count == 0 ? 0 : (float)total_added_count / total_checked_count;
       } else {
-        sel = checked_count == 0 ? 1 : float(added_count) / checked_count;
+        sel = checked_count == 0 ? 0 : float(added_count) / checked_count;
       }
       if (sel <= 0.1) {
         sel = 0;
