@@ -28,15 +28,15 @@ auto dist_func = hnswlib::L2Sqr;
 
 int main(int argc, char **argv) {
   extern std::map<std::string, DataCard> name_to_card;
-  DataCard c = name_to_card["audio_1_10000_float32"];
+  DataCard c = name_to_card["audio-dedup_1_10000_float32"];
   size_t d = c.dim;          // This has to be size_t due to dist_func() call.
   int nb = c.n_base;         // number of database vectors
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
-  int M = 4, efc = 200;
-  int k = 10;
-  int batch_k = 10, initial_efs = 10;
-  vector<int> delta_efs_s = {10, 15};
+  int M = 16, efc = 200;
+  int k = ng;
+  int batch_k = 50, initial_efs = 50;
+  vector<int> delta_efs_s = {50};
 
   po::options_description optional_configs("Optional");
   optional_configs.add_options()("k", po::value<decltype(k)>(&k));
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 
       auto open_beg = high_resolution_clock::system_clock::now();
       vl->reset();
-      IterativeSearchState<float> state = std::move(comp->Open(xq + j * d, k, vl));
+      IterativeSearchState<float> state = std::move(comp->Open(xq + j * d, k, vl, batch_k));
       auto open_end = high_resolution_clock::system_clock::now();
       search_time += duration_cast<microseconds>(open_end - open_beg).count();
 

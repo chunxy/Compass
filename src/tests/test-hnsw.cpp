@@ -28,7 +28,7 @@ auto dist_func = hnswlib::L2Sqr;
 
 int main(int argc, char **argv) {
   extern std::map<std::string, DataCard> name_to_card;
-  DataCard c = name_to_card["audio_1_10000_float32"];
+  DataCard c = name_to_card["audio-dedup_1_10000_float32"];
   float l = 0, r = 1000;
 
   size_t d = c.dim;          // This has to be size_t due to dist_func() call.
