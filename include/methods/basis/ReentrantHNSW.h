@@ -418,7 +418,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         }
       }
       // All onehop.
-      if (selectivity > 0.6) {  // a safe selectivity so that non-sat won't preempt sat
+      if (selectivity > 0.3) {  // a safe selectivity so that non-sat won't preempt sat
         for (int i = 0; i < other_onehop_neighbors.size(); i++) {
           tableint cand_nbr = other_onehop_neighbors[i];
           if (vl->mass[cand_nbr] == vl->curV) continue;
