@@ -124,6 +124,12 @@ struct IvfGraph2dArgs {
 };
 
 struct QueryMetric {
+  // core statistics
+  int ncomp_cg;
+  int nround;
+  int ncomp;
+  int ncluster;
+
   std::vector<bool> is_ivf_ppsl;
   std::vector<bool> is_graph_ppsl;
   std::vector<float> cand_dist;
@@ -135,11 +141,7 @@ struct QueryMetric {
   long long twohop_latency;
   long long ihnsw_latency;
   long long comp_latency;
-  int ncomp_cg;
-  int nround;
-  int ncomp;
   int ncomp_graph;
-  int ncluster;
   int nrecycled;
 
   QueryMetric(int nb)
