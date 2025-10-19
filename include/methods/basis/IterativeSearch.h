@@ -656,6 +656,9 @@ class IterativeSearch {
     if (state->total_ >= state->k_) {
       return {-1, -1};
     }
+    if (state->has_ran_ && state->result_set_.empty()) {
+      return {-1, -1};
+    }
     if (state->has_ran_ && !state->result_set_.empty() && state->cur_cnt < state->batch_k_) {
       auto top = state->result_set_.top();
       state->result_set_.pop();
@@ -663,12 +666,12 @@ class IterativeSearch {
       state->cur_cnt++;
       if (state->cur_cnt == state->batch_k_) {
         state->has_ran_ = false;
+        state->cur_cnt = 0;
       }
       return {-top.first, top.second};
     } else {
       UpdateNext(state);
       state->has_ran_ = true;
-      state->cur_cnt = 0;
       return Next(state);
     }
   }
