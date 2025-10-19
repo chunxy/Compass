@@ -1019,6 +1019,260 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
   void IterativeReentrantSearchKnnTwoHop(
       const void *query_data,
       const size_t k,
+      InplaceRangeQuery<float> *is_id_allowed,
+      std::priority_queue<std::pair<dist_t, int64_t>> &recycled_candidates,
+      std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,
+      std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
+      std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
+      VisitedList *vl,
+      int &ncomp,
+      float &sel,
+      Out *out = nullptr
+  ) {
+    size_t efs = std::max(k, this->ef_);
+    auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
+
+    int total_added_count = 0, total_checked_count = 0;
+    std::vector<tableint> other_onehop_neighbors(this->maxM0_);
+    while (!candidate_set.empty()) {
+      int added_count = 0, checked_count = 0, satisfied_count = 0;
+      auto curr_obj = candidate_set.top().second;
+      auto curr_dist = -candidate_set.top().first;
+      candidate_set.pop();
+
+      if (curr_dist > upper_bound) {
+        break;
+      }
+
+      unsigned int *cand_info = this->get_linklist0(curr_obj);
+      int size = this->getListCount(cand_info);
+      tableint *cand_nbrs = (tableint *)(cand_info + 1);
+#ifdef USE_SSE
+      _mm_prefetch((char *)(vl->mass + *(cand_nbrs)), _MM_HINT_T0);
+      _mm_prefetch((char *)(vl->mass + *(cand_nbrs + 1)), _MM_HINT_T0);
+      _mm_prefetch((char *)(is_id_allowed->prefetch(*(cand_nbrs))), _MM_HINT_T0);
+      _mm_prefetch(this->getDataByInternalId(*cand_nbrs), _MM_HINT_T0);
+      _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + 1)), _MM_HINT_T0);
+#endif
+
+      other_onehop_neighbors.resize(0);
+      // It may occur that the visited count is 0, which is not expected.
+      // Work around this first.
+
+      for (int i = 0; i < size; i++) {
+        tableint cand_nbr = cand_nbrs[i];
+#ifdef USE_SSE
+        _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 1)), _MM_HINT_T0);
+        _mm_prefetch((char *)(vl->mass + *(cand_nbrs + i + 2)), _MM_HINT_T0);
+        _mm_prefetch((char *)(is_id_allowed->prefetch(*(cand_nbrs + i + 1))), _MM_HINT_T0);
+        _mm_prefetch(this->getDataByInternalId(*(cand_nbrs + i + 1)), _MM_HINT_T0);
+#endif
+        if (vl->mass[cand_nbr] == vl->curV) continue;
+        // Better let local selectivity be determined with unvisited neighbors.
+        checked_count++;
+        bool is_satisfied = is_id_allowed == nullptr || (*is_id_allowed)(cand_nbr);
+        if (is_satisfied) {
+          satisfied_count++;
+        } else {
+          other_onehop_neighbors.emplace_back(cand_nbr);
+          continue;
+        };
+        // Marking as visited means either we compute the distance
+        // or we have visited its neighbors.
+        vl->mass[cand_nbr] = vl->curV;
+        ncomp++;
+#ifndef BENCH
+        auto comp_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+        dist_t cand_nbr_dist =
+            this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+#ifndef BENCH
+        auto comp_stop = std::chrono::high_resolution_clock::system_clock::now();
+        if (out != nullptr) {
+          out->comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_stop - comp_start).count();
+        }
+#endif
+        added_count++;
+#ifndef BENCH
+        auto bk_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+        if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
+          // No need to put on candidate_set, because it will be traversed later.
+          // candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+          // #ifdef USE_SSE
+          //           _mm_prefetch(this->getDataByInternalId(candidate_set.top().second), _MM_HINT_T0);
+          // #endif
+          result_set.emplace(-cand_nbr_dist, cand_nbr);
+          candidate_set.emplace(-cand_nbr_dist, cand_nbr);
+          top_candidates.emplace(cand_nbr_dist, cand_nbr);
+          if (top_candidates.size() > efs) {
+            auto top = top_candidates.top();
+            recycled_candidates.emplace(-top.first, top.second);
+            top_candidates.pop();
+          }
+          upper_bound = top_candidates.top().first;
+        } else {
+          recycled_candidates.emplace(-cand_nbr_dist, -(int64_t)cand_nbr);
+        }
+#ifndef BENCH
+        auto bk_stop = std::chrono::high_resolution_clock::system_clock::now();
+        if (out != nullptr) {
+          out->bk_time += std::chrono::duration_cast<std::chrono::nanoseconds>(bk_stop - bk_start).count();
+        }
+#endif
+      }
+
+#ifndef BENCH
+      auto twohop_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+      // TODO: The ratio is a tuning point.
+      // adaptive local
+      // float selectivity = checked_count == 0 ? 0 : (float)added_count / checked_count;
+      float selectivity = checked_count == 0 ? 1 : float(satisfied_count) / checked_count;
+      // Always undirected or all-onehop when passrate is not low.
+      // Following line is the undireced.
+      if (selectivity <= 0.2 && selectivity > 0.05) {
+        // Supppose `size` is the minimal number of elements to ensure connectivity.
+        int remaining = size - satisfied_count;  // This should be enough to maintain connectivity.
+
+        for (int i = 0; i < other_onehop_neighbors.size() && remaining > 0; i++) {
+          // Means we are running full two-hop search.
+          // So we don't restrict on the number, i.e. `remaining`.
+          tableint cand_nbr = other_onehop_neighbors[i];
+          // Marking as visited means we will not visit it in potential later iterations.
+          // It should do no harm since there is no reason to visit again a node
+          // a) who does not satisfy the filter and b) whose satisfying neighbors has been enqueued.
+          // It can neither drag down distance nor provide satisfying neighobors.
+          vl->mass[cand_nbr] = vl->curV;
+
+          tableint *twohop_info = this->get_linklist0(cand_nbr);
+          int twohop_size = this->getListCount(twohop_info);
+          tableint *twohop_nbrs = twohop_info + 1;
+#ifdef USE_SSE
+          _mm_prefetch((char *)(vl->mass + *(twohop_nbrs)), _MM_HINT_T0);
+          _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + 1)), _MM_HINT_T0);
+          _mm_prefetch((char *)(is_id_allowed->prefetch(*(twohop_nbrs))), _MM_HINT_T0);
+          _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs)), _MM_HINT_T0);
+          _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + 1)), _MM_HINT_T0);
+#endif
+
+          for (int j = 0; j < twohop_size; j++) {
+#ifndef BENCH
+            auto prep_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+            tableint twohop_nbr = twohop_nbrs[j];
+#ifdef USE_SSE
+            _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            _mm_prefetch((char *)(vl->mass + *(twohop_nbrs + j + 2)), _MM_HINT_T0);
+            _mm_prefetch((char *)(is_id_allowed->prefetch(*(twohop_nbrs + j + 1))), _MM_HINT_T0);
+            _mm_prefetch(this->getDataByInternalId(*(twohop_nbrs + j + 1)), _MM_HINT_T0);
+            // if (!other_onehop_neighbors.empty())
+            //   _mm_prefetch(this->get_linklist0(*other_onehop_neighbors.begin()), _MM_HINT_T0);
+#endif
+            if (vl->mass[twohop_nbr] == vl->curV) continue;
+            checked_count++;
+            bool is_allowed = is_id_allowed == nullptr || (*is_id_allowed)(twohop_nbr);
+#ifndef BENCH
+            auto prep_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->filter_time += std::chrono::duration_cast<std::chrono::nanoseconds>(prep_stop - prep_start).count();
+            }
+#endif
+            if (!is_allowed) continue;
+            vl->mass[twohop_nbr] = vl->curV;
+            ncomp++;
+            remaining--;
+#ifndef BENCH
+            auto comp_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+            dist_t twohop_nbr_dist =
+                this->fstdistfunc_(query_data, this->getDataByInternalId(twohop_nbr), this->dist_func_param_);
+#ifndef BENCH
+            auto comp_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_stop - comp_start).count();
+            }
+#endif
+            added_count++;
+#ifndef BENCH
+            auto bk_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
+
+            if (top_candidates.size() < efs || twohop_nbr_dist < upper_bound) {
+              candidate_set.emplace(-twohop_nbr_dist, twohop_nbr);
+              result_set.emplace(-twohop_nbr_dist, twohop_nbr);
+              top_candidates.emplace(twohop_nbr_dist, twohop_nbr);
+              if (top_candidates.size() > efs) {
+                auto top = top_candidates.top();
+                recycled_candidates.emplace(-top.first, top.second);
+                top_candidates.pop();
+              };
+              upper_bound = top_candidates.top().first;
+            } else {
+              recycled_candidates.emplace(-twohop_nbr_dist, -(int64_t)twohop_nbr);
+            }
+#ifndef BENCH
+            auto bk_stop = std::chrono::high_resolution_clock::system_clock::now();
+            if (out != nullptr) {
+              out->bk_time += std::chrono::duration_cast<std::chrono::nanoseconds>(bk_stop - bk_start).count();
+            }
+#endif
+          }
+        }
+      }
+      // All onehop.
+      if (selectivity > 0.3) {  // a safe selectivity so that non-sat won't preempt sat
+        for (int i = 0; i < other_onehop_neighbors.size(); i++) {
+          tableint cand_nbr = other_onehop_neighbors[i];
+          if (vl->mass[cand_nbr] == vl->curV) continue;
+          vl->mass[cand_nbr] = vl->curV;
+          ncomp++;
+
+#ifdef USE_SSE
+          _mm_prefetch(this->getDataByInternalId(other_onehop_neighbors[i + 1]), _MM_HINT_T0);
+#endif
+          dist_t cand_dist =
+              this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+          if (top_candidates.size() < efs || cand_dist < upper_bound) {
+            candidate_set.emplace(-cand_dist, cand_nbr);
+            top_candidates.emplace(cand_dist, cand_nbr);
+            if (top_candidates.size() > efs) {
+              auto top = top_candidates.top();
+              recycled_candidates.emplace(-top.first, top.second);
+              top_candidates.pop();
+            };
+            upper_bound = top_candidates.top().first;
+          } else {
+            recycled_candidates.emplace(-cand_dist, -(int64_t)cand_nbr);
+          }
+        }
+      }
+#ifndef BENCH
+      auto twohop_stop = std::chrono::high_resolution_clock::system_clock::now();
+      if (out != nullptr) {
+        out->twohop_time += std::chrono::duration_cast<std::chrono::nanoseconds>(twohop_stop - twohop_start).count();
+      }
+#endif
+
+      total_added_count += added_count;
+      total_checked_count += checked_count;
+      // sel should be local.
+      if (checked_count < this->M_) {
+        sel = total_checked_count == 0 ? 0 : (float)total_added_count / total_checked_count;
+      } else {
+        sel = checked_count == 0 ? 0 : float(added_count) / checked_count;
+      }
+      if (sel <= 0.1) {
+        sel = 0;
+        break;
+      }
+    }
+    out->checked_count += total_checked_count;
+  }
+
+  void IterativeReentrantSearchKnnTwoHop(
+      const void *query_data,
+      const size_t k,
       BaseFilterFunctor *is_id_allowed,
       std::priority_queue<std::pair<dist_t, int64_t>> &recycled_candidates,
       std::priority_queue<std::pair<dist_t, labeltype>> &top_candidates,

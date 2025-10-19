@@ -162,4 +162,6 @@ class InplaceRangeQuery : public hnswlib::BaseFilterFunctor {
     }
     return true;
   }
+
+  const attr_t* prefetch(labeltype label) { return attrs_ + label * d_; }
 };
