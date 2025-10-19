@@ -70,15 +70,15 @@ def summarize():
               "-".join(map(str, range(200 + 100 * itvl[0], 200 + 100 * (da - 1) + 100 * itvl[0], 100))),
             )
             nrg = str(itvl[0])  # noqa: E741
-            sel = f"{itvl[0] / 100:.3g}"  # noqa: E741
+            sel = f"{itvl[0] / 100:.4g}"  # noqa: E741
           elif m != "ACORN" and (m in COMPASS_METHODS or m in BASE_METHODS):
             w = M_WORKLOAD[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
             nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
-            sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
+            sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.4g}"  # noqa: E741
           else:
             w = M_WORKLOAD[m].format(d, "-".join(map(str, itvl)))
             nrg = "-".join(map(str, itvl))
-            sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.3g}"
+            sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.4g}"
           bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
           st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
           if m.startswith("Compass"):
@@ -100,13 +100,13 @@ def summarize():
         for itvl in M_DA_RUN["Navix"][da]:
           w = M_WORKLOAD["Navix"].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
           nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
-          sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.3g}"  # noqa: E741
+          sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.4g}"  # noqa: E741
 
           bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM["Navix"]["build"]])
           st = "_".join([f"{sp}_{{}}" for sp in M_PARAM["Navix"]["search"]])
-          for ba in product(*[D_ARGS[d].get(bp, M_ARGS["Navix"][bp]) for bp in M_PARAM["Navix"]["build"]]):
+          for ba in product(*[M_ARGS["Navix"][bp] for bp in M_PARAM["Navix"]["build"]]):
             b = bt.format(*ba)
-            for sa in product(*[D_ARGS[d].get(sp, M_ARGS["Navix"][sp]) for sp in M_PARAM["Navix"]["search"]]):
+            for sa in product(*[M_ARGS["Navix"][sp] for sp in M_PARAM["Navix"]["search"]]):
               s = st.format(*sa)
               if da == 1:
                 path = LOG_ROOT / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
