@@ -657,6 +657,7 @@ class IterativeSearch {
       return {-1, -1};
     }
     if (state->has_ran_ && state->result_set_.empty()) {
+      state->has_ran_ = false;
       return {-1, -1};
     }
     if (state->has_ran_ && !state->result_set_.empty() && state->cur_cnt < state->batch_k_) {
