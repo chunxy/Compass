@@ -69,8 +69,8 @@ def summarize():
               "-".join(map(str, range(200, 200 + 100 * (da - 1), 100))),
               "-".join(map(str, range(200 + 100 * itvl[0], 200 + 100 * (da - 1) + 100 * itvl[0], 100))),
             )
-            nrg = str(itvl[0])
-            sel = f"{itvl[0] / 100:.4g}"
+            nrg = "-".join(map(str, [itvl[0] for _ in range(da)]))
+            sel = f"{(itvl[0] ** da) / (100 ** da):.4g}"
           elif m == "ACORN":
             w = M_WORKLOAD[m].format(d, itvl)
             nrg = str(100 / itvl)
