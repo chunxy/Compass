@@ -641,7 +641,7 @@ class CompassPost {
             graph_last_round = 1;  // restart graph
           }
           if (restart && !state.result_set_.empty()) {
-            continue; // restart directly
+            continue;  // restart directly
           }
           int crel = 0;
           while (crel < nrel) {
@@ -844,6 +844,7 @@ class CompassPost {
 #ifndef BENCH
       auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
+      // Enlarge the search to reduce overhead.
       graph_.SetSearchParam(k, k, k);
       // graph_.SetSearchParam(k, efs, k); // For testing non-iterative version.
       auto state = graph_.OpenTwoHop(query_q, graph_.hnsw_->max_elements_, &pred, vl);
@@ -903,6 +904,15 @@ class CompassPost {
 #endif
             initialized = true;
             clus_cnt++;
+          }
+          bool restart = !state.candidate_set_.empty() && !top_ivf.empty() &&
+                         (state.result_set_.empty() || -top_ivf.top().first > -state.result_set_.top().first);
+          if (restart) {
+            state.sel_ = 1;        // restart graph
+            graph_last_round = 1;  // restart graph
+          }
+          if (restart && !state.result_set_.empty()) {
+            continue;  // restart directly
           }
           int crel = 0;
           while (crel < nrel) {
@@ -974,7 +984,6 @@ class CompassPost {
           }
           int i = 0;
           // Restart is good with graph early stopping.
-          bool restart = -top_ivf.top().first > -state.candidate_set_.top().first;
           for (; i < k / 2 && !top_ivf.empty(); i++) {
             auto top = top_ivf.top();
             top_ivf.pop();
@@ -992,10 +1001,6 @@ class CompassPost {
             num_ivf_ppsl++;
           }
           graph_.hnsw_->setEf(graph_.hnsw_->ef_ + i);
-          if (restart) {
-            state.sel_ = 1;        // restart graph
-            graph_last_round = 1;  // restart graph
-          }
 #ifndef BENCH
           auto ivf_stop = std::chrono::high_resolution_clock::system_clock::now();
           auto ivf_time = std::chrono::duration_cast<std::chrono::nanoseconds>(ivf_stop - ivf_start).count();

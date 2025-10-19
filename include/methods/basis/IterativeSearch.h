@@ -707,14 +707,14 @@ class IterativeSearch {
   }
 
   priority_queue<pair<dist_t, labeltype>>
-  NextBatchTwoHop(IterativeSearchState<dist_t> *state, BaseFilterFunctor *bitset) {
+  NextBatchTwoHop(IterativeSearchState<dist_t> *state, BaseFilterFunctor *pred) {
     if (state->total_ >= state->k_) {
       return {};
     }
     if (state->has_ran_ && !state->result_set_.empty()) {
       state->has_ran_ = false;
     } else {
-      int cnt = UpdateNextTwoHop(state, bitset);
+      int cnt = UpdateNextTwoHop(state, pred);
       state->has_ran_ = true;
     }
     return {};
