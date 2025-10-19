@@ -57,7 +57,7 @@ prefiltering_da_interval = {
 }
 navix_da_interval = {
   1: [
-    *[((100,), (r,)) for r in (600,)],
+    *[((100,), (r,)) for r in (200, 300, 600,)],
     *[((100,), (r,)) for r in range(1100, 10000, 1000)],
     ((0,), (10000,)),
   ],
