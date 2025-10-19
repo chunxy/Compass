@@ -80,8 +80,8 @@ navix_da_interval = {
           [3400, 3900, 4400, 4900, 5400, 5900, 6400, 6900, 7400, 7900, 8400, 8900, 9400, 9900])],
   ],
 }
-acorn_da_interval = {
-  1: [(nlabel, ) for nlabel in [100, 50, 20, 10, 5, 2]]
+acorn_da_nlabel = {
+  1: [nlabel for nlabel in [100, 50, 20, 10, 5, 2]]
 }
 
 cheating_da_interval = {
@@ -196,7 +196,7 @@ M_DA_RUN = {
   "Ivf": ivf_da_interval,
   "CompassGraph": compass_graph_da_interval,
   "Navix": navix_da_interval,
-  "ACORN": acorn_da_interval,
+  "ACORN": acorn_da_nlabel,
 }
 
 compass_group_dataset = {
@@ -399,7 +399,7 @@ navix_args = {
           270, 280, 290, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500],
 }
 acorn_args = {
-  "M": [32],
+  "M": [16, 32],
   "beta": [64],
   "efc": [200],
   "gamma": [12],

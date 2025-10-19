@@ -25,12 +25,47 @@ done'''
 def compose():
   for da in DA_S:
     for m in COMPASS_METHODS + BASE_METHODS:
-      if m == "ACORN":
-        continue
       if da not in M_DA_RUN[m]:
         continue
       idx = 0
+      if m == "ACORN":
+        for group, datasets in M_GROUP_DATASET[m].items():
+          parts = [p.lower() for p in re.findall(r'[A-Z][a-z]*', m)]
+          for d in datasets:
+            for M in M_ARGS[m].get("M"):
+              idx += 1
+              filename = f"{da}d-" + "acorn" + f"-exp-{idx}.sh"
+              with open(EXP_ROOT / filename, "w") as f:
+                f.write(f'dataset={d}\n')
+                for bp in M_PARAM[m]["build"]:
+                  if bp == "M":
+                    f.write(f'{bp}_s=({M})\n')
+                  else:
+                    f.write(f'{bp}_s=({" ".join(map(str, D_ARGS[d].get(bp, M_ARGS[m][bp])))})\n')
+                for sp in M_PARAM[m]["search"]:
+                  f.write(f'{sp}_s=({" ".join(map(str, D_ARGS[d].get(sp, M_ARGS[m][sp])))})\n')
 
+                build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["build"]))
+                search_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["search"]))
+                nlabels = M_DA_RUN[m][da]
+                inner_tmpl = \
+  '''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-acorn \
+  --datacard ${{dataset}}_1_{}_int32 --k 10 {} {}'''
+                inner = '\n'.join([
+                  inner_tmpl.format(
+                    nlabel,
+                    build_string,
+                    search_string,
+                  ) for nlabel in nlabels
+                ])
+
+                for sp in M_PARAM[m]["search"][::-1]:
+                  inner = __enclose_for(sp, f"{sp}_s", inner)
+                for bp in M_PARAM[m]["build"][::-1]:
+                  inner = __enclose_for(bp, f"{bp}_s", inner)
+                f.write(inner)
+                f.write('\n')
+        continue
       if m == "CompassPostKThCh":
         for group, datasets in M_GROUP_DATASET[m].items():
           parts = [p.lower() for p in re.findall(r'[A-Z][a-z]*', m)]

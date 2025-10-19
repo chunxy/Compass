@@ -69,9 +69,13 @@ def summarize():
               "-".join(map(str, range(200, 200 + 100 * (da - 1), 100))),
               "-".join(map(str, range(200 + 100 * itvl[0], 200 + 100 * (da - 1) + 100 * itvl[0], 100))),
             )
-            nrg = str(itvl[0])  # noqa: E741
-            sel = f"{itvl[0] / 100:.4g}"  # noqa: E741
-          elif m != "ACORN" and (m in COMPASS_METHODS or m in BASE_METHODS):
+            nrg = str(itvl[0])
+            sel = f"{itvl[0] / 100:.4g}"
+          elif m == "ACORN":
+            w = M_WORKLOAD[m].format(d, itvl)
+            nrg = str(100 / itvl)
+            sel = f"{(1 / itvl):.4g}"
+          elif m in COMPASS_METHODS or m in BASE_METHODS:
             w = M_WORKLOAD[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
             nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
             sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.4g}"  # noqa: E741
