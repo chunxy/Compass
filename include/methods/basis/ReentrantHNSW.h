@@ -230,6 +230,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
 
     int total_added_count = 0, total_checked_count = 0;
+    sel = 0;
     std::vector<tableint> other_onehop_neighbors(this->maxM0_);
     while (!candidate_set.empty()) {
       int added_count = 0, checked_count = 0, satisfied_count = 0;
@@ -1033,6 +1034,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
 
     int total_added_count = 0, total_checked_count = 0;
+    sel = 0;
     std::vector<tableint> other_onehop_neighbors(this->maxM0_);
     while (!candidate_set.empty()) {
       int added_count = 0, checked_count = 0, satisfied_count = 0;
@@ -1287,6 +1289,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
 
     int total_added_count = 0, total_checked_count = 0;
+    sel = 0;
     std::vector<tableint> other_onehop_neighbors(this->maxM0_);
     while (!candidate_set.empty()) {
       int added_count = 0, checked_count = 0, satisfied_count = 0;
