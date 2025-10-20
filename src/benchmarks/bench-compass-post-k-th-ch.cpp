@@ -69,7 +69,10 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading groundtruth.\n");
 
   // Compute selectivity.
-  int nsat = (double)c.n_base * args.percents[0] / 100;
+  double nsat = (double)c.n_base;  // safe for it to be double
+  for (int i = 0; i < c.attr_dim; i++) {
+    nsat = nsat * args.percents[0] / 100;
+  }
   // stat_selectivity(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
 
   CompassPostK<float, float> comp(
