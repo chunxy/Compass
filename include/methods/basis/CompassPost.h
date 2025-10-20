@@ -814,10 +814,10 @@ class CompassPost {
       const void *query,
       const int nq,
       const int k,
-      const attr_t *attrs,  // The first dimension is a placeholder.
+      const attr_t *attrs,  // The first dimension is a placeholder for vector id.
       const int32_t *l_ranges,
       const int32_t *u_ranges,
-      const attr_t *l_bounds,  // same dimension as attrs
+      const attr_t *l_bounds,  // one dimension less than attrs
       const attr_t *u_bounds,
       const int efs,
       const int nrel,
@@ -889,7 +889,7 @@ class CompassPost {
             auto btree_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
             itr_beg = btrees_[clus].lower_bound(this->da_ > 1 ? l_bounds[0] : l_ranges[q]);
-            itr_end = btrees_[clus].upper_bound(this->da_ > 1 ? u_bounds[0] : u_ranges[q] + 0.1);
+            itr_end = btrees_[clus].upper_bound(this->da_ > 1 ? u_bounds[0] : (u_ranges[q] + 0.1));
             while (itr_beg != itr_end) {
               if (pred(itr_beg->second.first)) {
                 break;
@@ -934,7 +934,7 @@ class CompassPost {
               auto btree_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
               itr_beg = btrees_[clus].lower_bound(this->da_ > 1 ? l_bounds[0] : l_ranges[q]);
-              itr_end = btrees_[clus].upper_bound(this->da_ > 1 ? u_bounds[0] : u_ranges[q] + 0.1);
+              itr_end = btrees_[clus].upper_bound(this->da_ > 1 ? u_bounds[0] : (u_ranges[q] + 0.1));
               while (itr_beg != itr_end) {
                 if (pred(itr_beg->second.first)) {
                   break;

@@ -94,6 +94,11 @@ int main(int argc, char **argv) {
   DataCard c = name_to_card[dataname];
   int nb = c.n_base, nq = c.n_queries, d = c.dim;
 
+  if (l_bounds.size() + 1 != c.attr_dim) {
+    fmt::print("Attribute dimension mismatch: {} != {}\n", l_bounds.size() + 1, c.attr_dim);
+    return 1;
+  }
+
   std::mt19937 rng;
   rng.seed(0);
   int length = c.n_base * double(perc) / 100;
