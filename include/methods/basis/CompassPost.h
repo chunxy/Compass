@@ -24,7 +24,7 @@ class CompassPost {
   IterativeSearch<dist_t> cg_;
   faiss::Index *ivf_;
   // vector<btree::btree_map<attr_t, labeltype>> btrees_;
-  vector<fc::BTreeMultiMap<attr_t, pair<labeltype, array<attr_t, 4>>, 32>> btrees_;
+  vector<fc::BTreeMultiMap<attr_t, pair<labeltype, array<attr_t, 4>>, 4>> btrees_;
   vector<fc::BTreeMultiMap<attr_t, labeltype>> mbtrees_;
   faiss::idx_t *base_cluster_rank_;
   // faiss::idx_t *query_cluster_rank_;
