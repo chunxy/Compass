@@ -95,29 +95,15 @@ def summarize():
             b = bt.format(*ba)
             for sa in product(*sa_s):
               s = st.format(*sa)
-              path = LOG_ROOT / m / w / b / s
+              if m == "Navix":
+                if da == 1:
+                  path = LOG_ROOT / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
+                else:
+                  path = LOG_ROOT / "Navix" / d / f"{da}d" / f"output_{int(float(sel) * 100)}_{sa[0]}_navix.json"
+              else:
+                path = LOG_ROOT / m / w / b / s
               if path.exists():
                 entries.append((path, m, w, d, nrg, sel, b, s))
-
-    if da in M_DA_RUN["Navix"]:
-      for d in DATASETS:
-        for itvl in M_DA_RUN["Navix"][da]:
-          w = M_WORKLOAD["Navix"].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
-          nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
-          sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.4g}"  # noqa: E741
-
-          bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM["Navix"]["build"]])
-          st = "_".join([f"{sp}_{{}}" for sp in M_PARAM["Navix"]["search"]])
-          for ba in product(*[M_ARGS["Navix"][bp] for bp in M_PARAM["Navix"]["build"]]):
-            b = bt.format(*ba)
-            for sa in product(*[M_ARGS["Navix"][sp] for sp in M_PARAM["Navix"]["search"]]):
-              s = st.format(*sa)
-              if da == 1:
-                path = LOG_ROOT / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
-              else:
-                path = LOG_ROOT / "Navix" / d / f"{da}d" / f"output_{int(float(sel) * 100)}_{sa[0]}_navix.json"
-              if path.exists():
-                entries.append((path, "Navix", w, d, nrg, sel, b, s))
 
     df = pd.DataFrame.from_records(
       entries, columns=[
@@ -152,7 +138,7 @@ def summarize():
       with open(jsons[-1]) as f:
         try:
           stat = json.load(f)
-        except:
+        except:  # noqa: E722
           print(e[0])
           exit()
         # sel.append(f'{stat["aggregated"]["selectivity"]:.2f}')
@@ -174,7 +160,7 @@ def summarize():
           initial_ncomp.append(0)
         else:
           initial_ncomp.append(0)
-      if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS:
+      if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS or e[1].startswith("CompassPost"):
         nsample, averaged_qps = min(len(jsons), 3), qps[-1]
         for i in range(2, nsample + 1):
           with open(jsons[-i]) as f:
