@@ -195,8 +195,8 @@ def draw_qps_comp_wrt_recall_by_dataset_selectivity(da, datasets, methods, anno,
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          if m == "SeRF" or m == "iRangeGraph":
-            data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+            data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
           else:
             data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
@@ -281,8 +281,8 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          if m == "SeRF" or m == "iRangeGraph":
-            data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+            data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
           else:
             data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
@@ -364,8 +364,8 @@ def draw_qps_comp_fixing_recall_by_dataset_selectivity(da, datasets, methods, an
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          if m == "SeRF" or m == "iRangeGraph":
-            data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+            data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
           else:
             data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
@@ -429,8 +429,8 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
       for m in d_m_b[d].keys() if d in d_m_b else methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
-          if m == "SeRF" or m == "iRangeGraph":
-            data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+          if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+            data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
           else:
             data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
@@ -485,7 +485,7 @@ def draw_qps_comp_fixing_recall_by_selectivity(da, datasets, methods, anno, *, d
     plt.close()
 
 
-def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
+def draw_qps_comp_fixing_overall_selectivity_by_dimension(datasets, d_m_b, d_m_s, anno, prefix):
   sel_s = [0.01, 0.1, 0.2, 0.4, 0.6]
   interval = {
     0.01: ["0.01", "0.01", "0.008", "0.0081"],
@@ -506,13 +506,13 @@ def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, pr
 
     for da in DA_S:
       df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
-      for i, d in enumerate(DATASETS):
+      for i, d in enumerate(datasets):
         data = df[df["dataset"] == d]
         for sel in sel_s:
           for m in d_m_b[d].keys():
             for b in d_m_b[d][m]:
-              if m == "SeRF" or m == "iRangeGraph":
-                data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+              if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+                data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
               else:
                 data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
               if m.startswith("Compass"):
@@ -548,8 +548,8 @@ def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, pr
                 d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 20000)
 
     for sel in sel_s:
-      fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
-      for i, d in enumerate(DATASETS):
+      fig, axs = plt.subplots(2, len(datasets), layout='constrained')
+      for i, d in enumerate(datasets):
         for m in d_m_b[d].keys():
           marker = M_STYLE[m]
           for label in d_m_sel[d][m][sel].keys():
@@ -587,7 +587,7 @@ def draw_qps_comp_fixing_overall_selectivity_by_dimension(d_m_b, d_m_s, anno, pr
       plt.close()
 
 
-def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, prefix):
+def draw_qps_comp_fixing_dimension_selectivity_by_dimension(datasets, d_m_b, d_m_s, anno, prefix):
   sel_s = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
   interval = {
     0.3: ["0.3", "0.09", "0.027", "0.0081"],
@@ -610,13 +610,13 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, 
 
     for da in DA_S:
       df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
-      for i, d in enumerate(DATASETS):
+      for i, d in enumerate(datasets):
         data = df[df["dataset"] == d]
         for sel in sel_s:
           for m in d_m_b[d].keys():
             for b in d_m_b[d][m]:
-              if m == "SeRF" or m == "iRangeGraph":
-                data_by_m_b = data[(data["method"].str.startswith(m)) & (data["build"] == b)]
+              if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+                data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
               else:
                 data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
               if m.startswith("Compass"):
@@ -652,8 +652,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, 
                 d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 20000)
 
     for sel in sel_s:
-      fig, axs = plt.subplots(2, len(DATASETS), layout='constrained')
-      for i, d in enumerate(DATASETS):
+      fig, axs = plt.subplots(2, len(datasets), layout='constrained')
+      for i, d in enumerate(datasets):
         for m in d_m_b[d].keys():
           marker = M_STYLE[m]
           for label in d_m_sel[d][m][sel].keys():
@@ -691,8 +691,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension(d_m_b, d_m_s, anno, 
       plt.close()
 
 
-if __name__ == "__main__":
-  summarize()
+if __name__ == "__main__": pass # do nothing first
+  # summarize()
   # for da in DA_S:
   #   draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
   #   draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")

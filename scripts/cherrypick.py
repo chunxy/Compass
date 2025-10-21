@@ -43,8 +43,8 @@ for d in ("sift-dedup", "audio-dedup"):
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
 for d in ("gist-dedup", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
-  best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
-  best_d_m_b[d]["CompassPostKThCh"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_10000_M_cg_4", "M_16_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["CompassPostKThCh"] = ["M_32_efc_200_nlist_10000_M_cg_4", "M_16_efc_200_nlist_10000_M_cg_4"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 for d in ("crawl", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
@@ -57,13 +57,14 @@ for d in ("video-dedup", "glove100"):
   best_d_m_b[d]["CompassPostKThCh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
 for d in DATASETS:
-  best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
-  best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
-  # best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
+  # best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
+  best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500", "M_64_efc_200_efmax_500"]
   best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
+  # best_d_m_b[d]["ACORN"] = ["M_32_beta_64_efc_200_gamma_12"]
   # best_d_m_b[d]["Ivf"] = ["nlist_10000", "nlist_20000"]
   # best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200"]
   # best_d_m_b[d]["Prefiltering"] = [""]
+  # best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
 
 best_d_m_s = {d: {} for d in DATASETS}
 # for m in COMPASS_METHODS:
@@ -80,8 +81,12 @@ for d in DATASETS:
   best_d_m_s[d]["CompassPostKThCh"] = {"nrel": [50]}
   # best_d_m_s[d]["CompassPostKNavix"] = {"nrel": [50]}
   # best_d_m_s[d]["CompassGraph"] = {"nrel": [100, 200]}
-best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [100]}
-best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [100]}
+best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [50, 100]}
+best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [50, 100]}
+best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
+best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 # best_d_m_s["crawl"]["CompassPostKNavix"] = {"nrel": [100]}
 
 
@@ -385,15 +390,6 @@ def compare_with_sotas():
 
 def compare_best_with_sotas():
   for da in DA_S:
-    # draw_qps_comp_wrt_recall_by_selectivity(
-    #   da=da,
-    #   datasets=DATASETS,
-    #   methods=METHODS,
-    #   anno="MoM",
-    #   d_m_b=best_d_m_b,
-    #   d_m_s=best_d_m_s,
-    #   prefix=f"cherrypick{da}d-10/best",
-    # )
     draw_qps_comp_fixing_recall_by_selectivity(
       da=da,
       datasets=DATASETS,
@@ -403,11 +399,20 @@ def compare_best_with_sotas():
       d_m_s=best_d_m_s,
       prefix=f"cherrypick{da}d-10/best",
     )
+  draw_qps_comp_wrt_recall_by_selectivity(
+    da=1,
+    datasets=DATASETS,
+    methods=METHODS,
+    anno="MoM",
+    d_m_b=best_d_m_b,
+    d_m_s=best_d_m_s,
+    prefix="cherrypick1d-10/best",
+  )
 
 
 def compare_best_with_sotas_by_dimension():
-  draw_qps_comp_fixing_overall_selectivity_by_dimension(best_d_m_b, best_d_m_s, "dim", "fixing-overall-selectivity")
-  draw_qps_comp_fixing_dimension_selectivity_by_dimension(best_d_m_b, best_d_m_s, "dim", "fixing-dimension-selectivity")
+  draw_qps_comp_fixing_overall_selectivity_by_dimension(DATASETS, best_d_m_b, best_d_m_s, "fix-all", "fixing-overall-selectivity")
+  draw_qps_comp_fixing_dimension_selectivity_by_dimension(DATASETS, best_d_m_b, best_d_m_s, "fix-dim", "fixing-dimension-selectivity")
 
 
 def compare_disjunction():
@@ -415,7 +420,7 @@ def compare_disjunction():
   for d in ("sift-dedup", "audio-dedup"):
     best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
   for d in ("gist-dedup", ):
-    best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
+    best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_10000_M_cg_4", "M_16_efc_200_nlist_10000_M_cg_4"]
   for d in ("crawl", ):
     best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
   for d in ("video-dedup", "glove100"):
@@ -428,14 +433,19 @@ def compare_disjunction():
   best_d_m_s = {d: {} for d in DATASETS}
   for d in DATASETS:
     best_d_m_s[d]["CompassPostKTh"] = {"nrel": [50]}
-    best_d_m_s[d]["CompassGraph"] = {"nrel": [100, 200]}
-  best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [100]}
+    best_d_m_s[d]["CompassPostKThCh"] = {"nrel": [50]}
+  best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [50, 100]}
+  best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+  best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [50, 100]}
+  best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+  best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
+  best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 
   draw_qps_comp_fixing_recall_by_selectivity(
     da=1,
     datasets=DATASETS,
     methods=METHODS,
-    anno="MoM",
+    anno="disjunction",
     d_m_b=best_d_m_b,
     d_m_s=best_d_m_s,
     prefix="disjunction",
@@ -449,7 +459,7 @@ if __name__ == "__main__":
   # pick_M()
   # pick_nlist()
   # pick_dx()
-  compare_best_with_sotas_by_dimension()
+  # compare_best_with_sotas_by_dimension()
   # compare_with_sotas() # slow?
   compare_best_with_sotas()
-  compare_disjunction()
+  # compare_disjunction()
