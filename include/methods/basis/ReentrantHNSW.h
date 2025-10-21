@@ -329,7 +329,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       float selectivity = checked_count == 0 ? 1 : float(satisfied_count) / checked_count;
       // Always undirected or all-onehop when passrate is not low.
       // Following line is the undireced.
-      if (selectivity <= 0.3 && selectivity > 0.05) {
+      double breaktie = 0.25;
+      if (selectivity <= breaktie && selectivity > 0.05) {
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         int remaining = size - satisfied_count;  // This should be enough to maintain connectivity.
 
@@ -419,7 +420,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         }
       }
       // All onehop.
-      if (selectivity > 0.3) {  // a safe selectivity so that non-sat won't preempt sat
+      if (selectivity > breaktie) {  // a safe selectivity so that non-sat won't preempt sat
         for (int i = 0; i < other_onehop_neighbors.size(); i++) {
           tableint cand_nbr = other_onehop_neighbors[i];
           if (vl->mass[cand_nbr] == vl->curV) continue;
@@ -1133,7 +1134,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       float selectivity = checked_count == 0 ? 1 : float(satisfied_count) / checked_count;
       // Always undirected or all-onehop when passrate is not low.
       // Following line is the undireced.
-      if (selectivity <= 0.2 && selectivity > 0.05) {
+      double breaktie = 0.25;
+      if (selectivity <= breaktie && selectivity > 0.05) {
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         int remaining = size - satisfied_count;  // This should be enough to maintain connectivity.
 
@@ -1223,7 +1225,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         }
       }
       // All onehop.
-      if (selectivity > 0.3) {  // a safe selectivity so that non-sat won't preempt sat
+      if (selectivity > breaktie) {  // a safe selectivity so that non-sat won't preempt sat
         for (int i = 0; i < other_onehop_neighbors.size(); i++) {
           tableint cand_nbr = other_onehop_neighbors[i];
           if (vl->mass[cand_nbr] == vl->curV) continue;
