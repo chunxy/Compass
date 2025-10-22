@@ -329,7 +329,7 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       float selectivity = checked_count == 0 ? 1 : float(satisfied_count) / checked_count;
       // Always undirected or all-onehop when passrate is not low.
       // Following line is the undireced.
-      double breaktie = 0.25;
+      double breaktie = 0.2;
       if (selectivity <= breaktie && selectivity > 0.05) {
         // Supppose `size` is the minimal number of elements to ensure connectivity.
         int remaining = size - satisfied_count;  // This should be enough to maintain connectivity.
