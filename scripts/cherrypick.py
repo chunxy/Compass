@@ -9,10 +9,13 @@ from config import (
 from summarize import (
   draw_qps_comp_fixing_recall_by_dataset_selectivity,
   draw_qps_comp_fixing_recall_by_selectivity,
+  draw_qps_comp_fixing_recall_by_selectivity_camera,
   draw_qps_comp_wrt_recall_by_dataset_selectivity,
   draw_qps_comp_wrt_recall_by_selectivity,
+  draw_qps_comp_wrt_recall_by_selectivity_camera,
   draw_qps_comp_fixing_overall_selectivity_by_dimension,
   draw_qps_comp_fixing_dimension_selectivity_by_dimension,
+  draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera,
 )
 
 nrel_100 = {d: {} for d in DATASETS}
@@ -43,8 +46,8 @@ for d in ("sift-dedup", "audio-dedup"):
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
 for d in ("gist-dedup", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
-  best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_10000_M_cg_4", "M_16_efc_200_nlist_10000_M_cg_4"]
-  best_d_m_b[d]["CompassPostKThCh"] = ["M_32_efc_200_nlist_10000_M_cg_4", "M_16_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["CompassPostKThCh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 for d in ("crawl", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
@@ -83,8 +86,8 @@ for d in DATASETS:
   # best_d_m_s[d]["CompassGraph"] = {"nrel": [100, 200]}
 best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [50, 100]}
 best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [50, 100]}
-best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [50, 100]}
-best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [100]}
+best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [100]}
 best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
 best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 # best_d_m_s["crawl"]["CompassPostKNavix"] = {"nrel": [100]}
@@ -420,7 +423,7 @@ def compare_disjunction():
   for d in ("sift-dedup", "audio-dedup"):
     best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
   for d in ("gist-dedup", ):
-    best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_10000_M_cg_4", "M_16_efc_200_nlist_10000_M_cg_4"]
+    best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   for d in ("crawl", ):
     best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
   for d in ("video-dedup", "glove100"):
@@ -436,8 +439,8 @@ def compare_disjunction():
     best_d_m_s[d]["CompassPostKThCh"] = {"nrel": [50]}
   best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [50, 100]}
   best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [50, 100]}
-  best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [50, 100]}
-  best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+  best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [100]}
+  best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [100]}
   best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
   best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 
@@ -451,6 +454,60 @@ def compare_disjunction():
     prefix="disjunction",
   )
 
+def camera_ready():
+  best_d_m_b = {d: {} for d in DATASETS}
+  for d in ("sift-dedup", "audio-dedup"):
+    best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
+  for d in ("gist-dedup", ):
+    best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  for d in ("crawl", ):
+    best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
+  for d in ("video-dedup", "glove100"):
+    best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  for d in DATASETS:
+    best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
+    best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
+  # for d in ["video-dedup", "glove100"]:
+  #   best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
+
+  best_d_m_s = {d: {} for d in DATASETS}
+  for d in DATASETS:
+    best_d_m_s[d]["CompassPostKTh"] = {"nrel": [50]}
+    best_d_m_s[d]["CompassPostKThCh"] = {"nrel": [50]}
+  # best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [100]}
+  # best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [100]}
+  best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [100]}
+  best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [100]}
+  best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50]}
+  best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50]}
+
+  datasets = ["crawl", "video-dedup", "gist-dedup", "glove100"]
+  # Figure 1: multi-attribute, fix dimension passrate
+  draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "fix-dim", "camera-ready")
+  # Figure 3:
+  draw_qps_comp_wrt_recall_by_selectivity_camera(
+    da=1,
+    datasets=datasets,
+    methods=METHODS,
+    anno="MoM",
+    d_m_b=best_d_m_b,
+    d_m_s=best_d_m_s,
+    prefix="camera-ready",
+  )
+  # Figure 2: disjunction on single attribute
+  # Put this to last because we delete keys from the best config.
+  for d in datasets:
+    best_d_m_b[d]["SeRF+OR"] = ["M_32_efc_200_efmax_500"]
+    del best_d_m_b[d]["SeRF"]
+  draw_qps_comp_fixing_recall_by_selectivity_camera(
+    da=1,
+    datasets=datasets,
+    methods=METHODS,
+    anno="disjunction",
+    d_m_b=best_d_m_b,
+    d_m_s=best_d_m_s,
+    prefix="camera-ready",
+  )
 
 if __name__ == "__main__":
   # pick_clustering_methods()
@@ -459,7 +516,8 @@ if __name__ == "__main__":
   # pick_M()
   # pick_nlist()
   # pick_dx()
-  # compare_best_with_sotas_by_dimension()
+  compare_best_with_sotas_by_dimension()
   # compare_with_sotas() # slow?
   compare_best_with_sotas()
-  # compare_disjunction()
+  compare_disjunction()
+  # camera_ready() # Put this to last because we delete keys from the global best config variable.
