@@ -160,7 +160,7 @@ def summarize():
           initial_ncomp.append(0)
         else:
           initial_ncomp.append(0)
-      if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS or e[1].startswith("CompassPost"):
+      if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS:
         nsample, averaged_qps = min(len(jsons), 3), qps[-1]
         for i in range(2, nsample + 1):
           with open(jsons[-i]) as f:
@@ -168,6 +168,13 @@ def summarize():
             averaged_qps += stat["aggregated"]["qps"]
         averaged_qps /= nsample
         qps[-1] = averaged_qps
+      elif e[1].startswith("CompassPost"):
+        nsample, max_qps = min(len(jsons), 3), qps[-1]
+        for i in range(2, nsample + 1):
+          with open(jsons[-i]) as f:
+            stat = json.load(f)
+            max_qps = max(max_qps, stat["aggregated"]["qps"])
+        qps[-1] = max_qps
 
     df["recall"] = rec
     df["qps"] = qps
@@ -380,18 +387,14 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
-              recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-              recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
-              axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
-              axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+              rec_qps_comp = data_by_m_b_nrel[["recall", "qps", "ncomp", "initial_ncomp"]].sort_values(["recall"], ascending=[True])
+              rec_qps_comp["total_ncomp"] = rec_qps_comp["initial_ncomp"] + rec_qps_comp["ncomp"]
 
-              recall_ncomp = data_by_m_b_nrel[["recall", "ncomp", "initial_ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
-              recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
-              p = axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1])
-              axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
-              axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], color=p[0].get_color(), linestyle="--")
-              axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], **marker)
-
+              recall_above = rec_qps_comp[rec_qps_comp["recall"].gt(xlim[0])]
+              axs[0][i].plot(recall_above["recall"], recall_above["qps"], **marker)
+              axs[0][i].scatter(recall_above["recall"], recall_above["qps"], label=f"{m}-{b}-nrel_{nrel}", **marker)
+              axs[1][i].plot(recall_above["recall"], recall_above["total_ncomp"], **marker)
+              axs[1][i].scatter(recall_above["recall"], recall_above["total_ncomp"], label=f"{m}-{b}-nrel_{nrel}", **marker)
           else:
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
@@ -611,10 +614,10 @@ def draw_qps_comp_fixing_recall_by_selectivity_camera(da, datasets, methods, ann
               pos_s = np.array([bisect.bisect(selectivities, sel) for sel in grouped_qps["selectivity"]]) - 1
               p = axs[0][i].plot(pos_s, grouped_qps["qps"], **marker)
               axs[0][i].scatter(pos_s, grouped_qps["qps"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
-              axs[1][i].plot(pos_s, grouped_ncomp["ncomp"])
-              axs[1][i].scatter(pos_s, grouped_ncomp["ncomp"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
-              axs[1][i].plot(pos_s, grouped_total_ncomp["total_ncomp"], color=p[0].get_color(), linestyle="--")
-              axs[1][i].scatter(pos_s, grouped_total_ncomp["total_ncomp"], **marker)
+              # axs[1][i].plot(pos_s, grouped_ncomp["ncomp"])
+              # axs[1][i].scatter(pos_s, grouped_ncomp["ncomp"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
+              axs[1][i].plot(pos_s, grouped_total_ncomp["total_ncomp"], color=p[0].get_color())
+              axs[1][i].scatter(pos_s, grouped_total_ncomp["total_ncomp"], label=f"{m}-{b}-{rec}-{nrel}", **marker)
           else:
             rec_sel_qps_ncomp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
             grouped_qps = rec_sel_qps_ncomp[rec_sel_qps_ncomp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
@@ -883,7 +886,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
     "glove100": 30000,
   }
 
-  for rec in [0.9, 0.95]:
+  for rec in [0.8, 0.85, 0.9, 0.95]:
     d_m_sel = {}
     for d in d_m_b.keys():
       d_m_sel[d] = {}
@@ -921,7 +924,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
                     d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
                   d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
                   d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
-                  d_m_sel[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 20000)
+                  d_m_sel[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 30000)
               else:
                 rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
                 grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
@@ -944,11 +947,12 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
             das = DA_S[:len(d_m_sel[d][m][sel][label]["qps"])]
             sc = axs[0][i].scatter(das, d_m_sel[d][m][sel][label]["qps"], label=label, **marker)
             axs[0][i].plot(das, d_m_sel[d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
-            axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["ncomp"], label=label, **marker)
-            axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
             if m.startswith("Compass"):
               axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["total_ncomp"], label=label, **marker)
-              axs[1][i].plot(das, d_m_sel[d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0], linestyle="--")
+              axs[1][i].plot(das, d_m_sel[d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
+            else:
+              axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["ncomp"], label=label, **marker)
+              axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
 
         axs[0][i].set_xlabel('Dimension')
         axs[0][i].set_xticks(DA_S)
@@ -997,8 +1001,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
 
 
 if __name__ == "__main__":
-  pass  # do nothing first
-  # summarize()
+  # pass  # do nothing first
+  summarize()
   # for da in DA_S:
   #   draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
   #   draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
