@@ -104,6 +104,8 @@ def summarize():
                 path = LOG_ROOT / m / w / b / s
               if path.exists():
                 entries.append((path, m, w, d, nrg, sel, b, s))
+                if (len(entries) % 100 == 0):
+                  print(f"Processed {len(entries)} entries")
 
     df = pd.DataFrame.from_records(
       entries, columns=[
