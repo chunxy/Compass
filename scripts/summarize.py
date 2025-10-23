@@ -1002,9 +1002,142 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
       plt.close()
 
 
+def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, anno, prefix):
+  sel_s = [0.1, 0.2, 0.3]
+  interval = {
+    0.1: ["0.1", "0.2", "0.3", "0.4"],
+    0.2: ["0.2", "0.4", "0.6", "0.8"],
+    0.3: ["0.3", "0.6", "0.9"],
+  }
+  dataset_comp_ylim = {
+    "crawl": 10000,
+    "gist-dedup": 10000,
+    "video-dedup": 30000,
+    "glove100": 30000,
+  }
+  ndisjunctions = [1, 2, 3,]
+
+  for rec in [0.8, 0.85, 0.9, 0.95]:
+    d_m = {}
+    for d in d_m_b.keys():
+      d_m[d] = {}
+      for m in d_m_b[d].keys():
+        d_m[d][m] = {}
+        for sel in sel_s:
+          d_m[d][m][sel] = {}
+
+    for ndis in ndisjunctions:
+      df = pd.read_csv("stats-1d.csv", dtype=types)
+      for i, d in enumerate(datasets):
+        data = df[df["dataset"] == d]
+        for sel in sel_s:
+          for m in d_m_b[d].keys():
+            for b in d_m_b[d][m]:
+              if m == "SeRF":
+                if ndis == 1:
+                  data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+                elif ndis == 2:
+                  data_by_m_b = data[(data["method"] == m + "+OR") & (data["build"] == b)]
+                elif ndis == 3:
+                  data_by_m_b = data[(data["method"] == m + "+OR") & (data["build"] == b)]  # rehearsal
+                elif ndis == 4:
+                  data_by_m_b = data[(data["method"] == m + "+OR") & (data["build"] == b)]  # rehearsal
+              else:
+                data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+              if m.startswith("Compass"):
+                for nrel in d_m_s[d][m]["nrel"]:
+                  data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
+                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp", "initial_ncomp"]].sort_values(["selectivity", "recall"])
+                  rec_sel_qps_comp["total_ncomp"] = rec_sel_qps_comp["initial_ncomp"] + rec_sel_qps_comp["ncomp"]
+                  grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
+                  grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
+                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["total_ncomp"].min()
+                  pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][ndis - 1]) - 1
+                  if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][ndis - 1]:
+                    pos = -1
+                  label = f"{m}-{b}-{nrel}-{rec}"
+                  if label not in d_m[d][m][sel]:  # a list by dimension
+                    d_m[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
+                  d_m[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                  d_m[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
+                  d_m[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 30000)
+              else:
+                rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
+                grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
+                grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
+                pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][ndis - 1]) - 1
+                if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][ndis - 1]:
+                  pos = -1
+                label = f"{m}-{b}-{rec}"
+                if label not in d_m[d][m][sel]:
+                  d_m[d][m][sel][label] = {"qps": [], "ncomp": []}
+                d_m[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                d_m[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
+
+    for sel in sel_s:
+      fig, axs = plt.subplots(2, len(datasets), layout='constrained')
+      for i, d in enumerate(datasets):
+        for m in d_m_b[d].keys():
+          marker = M_STYLE[m]
+          for label in d_m[d][m][sel].keys():
+            sc = axs[0][i].scatter(ndisjunctions, d_m[d][m][sel][label]["qps"], label=label, **marker)
+            axs[0][i].plot(ndisjunctions, d_m[d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
+            if m.startswith("Compass"):
+              axs[1][i].scatter(ndisjunctions, d_m[d][m][sel][label]["total_ncomp"], label=label, **marker)
+              axs[1][i].plot(ndisjunctions, d_m[d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
+            else:
+              axs[1][i].scatter(ndisjunctions, d_m[d][m][sel][label]["ncomp"], label=label, **marker)
+              axs[1][i].plot(ndisjunctions, d_m[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
+
+        axs[0][i].set_xlabel('Dimension')
+        axs[0][i].set_xticks(ndisjunctions)
+        axs[0][i].set_ylabel('QPS')
+        axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+        axs[1][i].set_xlabel('Dimension')
+        axs[1][i].set_ylabel('# Comp')
+        auto_bottom, auto_top = axs[1][i].get_ylim()
+        axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+        axs[1][i].set_xticks(ndisjunctions)
+        axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+
+      fig.set_size_inches(12, 6)
+      unique_labels = {}
+      for ax in axs[0]:
+        handles, labels = ax.get_legend_handles_labels()
+        for handle, label in zip(handles, labels):
+          label = label.split("-")[0]
+          if label.startswith("Compass"):
+            label = "Compass"
+          if label.startswith("SeRF"):
+            label = "SeRF"
+          if label.startswith("Navix"):
+            label = "NaviX"
+          if label not in unique_labels:
+            unique_labels[label] = handle
+        ax.legend(unique_labels.values(), unique_labels.keys(), loc="best")
+      for ax in axs[1]:
+        handles, labels = ax.get_legend_handles_labels()
+        for handle, label in zip(handles, labels):
+          label = label.split("-")[0]
+          if label.startswith("Compass"):
+            label = "Compass"
+          if label.startswith("SeRF"):
+            label = "SeRF"
+          if label.startswith("Navix"):
+            label = "NaviX"
+          if label not in unique_labels:
+            unique_labels[label] = handle
+        ax.legend(unique_labels.values(), unique_labels.keys(), loc="best")
+      # fig.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
+      path = Path(f"{prefix}/Sel-{sel:.3g}-Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
+      path.parent.mkdir(parents=True, exist_ok=True)
+      fig.savefig(path, dpi=200)
+      plt.close()
+
+
 if __name__ == "__main__":
-  # pass  # do nothing first
-  summarize()
+  pass  # do nothing first
+  # summarize()
   # for da in DA_S:
   #   draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
   #   draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
