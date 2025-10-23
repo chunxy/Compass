@@ -473,13 +473,9 @@ def camera_ready():
   best_d_m_s = {d: {} for d in DATASETS}
   for d in DATASETS:
     best_d_m_s[d]["CompassPostKTh"] = {"nrel": [50]}
-    best_d_m_s[d]["CompassPostKThCh"] = {"nrel": [50]}
-  # best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [100]}
-  # best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [100]}
+  best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [50]}
   best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [100]}
-  best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [100]}
   best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50]}
-  best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50]}
 
   datasets = ["crawl", "video-dedup", "gist-dedup", "glove100"]
   # Figure 1: multi-attribute, fix dimension passrate
@@ -517,7 +513,7 @@ if __name__ == "__main__":
   # pick_nlist()
   # pick_dx()
   compare_best_with_sotas_by_dimension()
-  # compare_with_sotas() # slow?
+  # # compare_with_sotas() # slow?
   compare_best_with_sotas()
   compare_disjunction()
-  # camera_ready() # Put this to last because we delete keys from the global best config variable.
+  camera_ready() # Put this to last because we delete keys from the global best config variable.
