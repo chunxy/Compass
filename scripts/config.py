@@ -83,7 +83,31 @@ navix_da_interval = {
 acorn_da_nlabel = {
   1: [nlabel for nlabel in [100, 50, 20, 10, 5, 2]]
 }
-
+compass_post_da_interval = {
+  1: [
+    *[((100,), (r,)) for r in (200, 300, 600)],
+    *[((100,), (r,)) for r in range(1100, 10000, 1000)],
+    # ((0,), (10000,)),
+  ],
+  # 2: [
+  #   *[((100, 200), (r1, r2)) for r1, r2 in \
+  #     zip([1100, 1600, 2100, 2600, 3100, 3600, 4100, 4600, 5100, 5600, 6100, 6600, 7100, 7600, 8100, 8600, 9100, 9600], \
+  #         [1200, 1700, 2200, 2700, 3200, 3700, 4200, 4700, 5200, 5700, 6200, 6700, 7200, 7700, 8200, 8700, 9200, 9700])],
+  # ],
+  # 3: [
+  #   *[((100, 200, 300), (r1, r2, r3)) for r1, r2, r3 in \
+  #     zip([2100, 2600, 3100, 3600, 4100, 4600, 5100, 5600, 6100, 6600, 7100, 7600, 8100, 8600, 9100, 9600], \
+  #         [2200, 2700, 3200, 3700, 4200, 4700, 5200, 5700, 6200, 6700, 7200, 7700, 8200, 8700, 9200, 9700], \
+  #         [2300, 2800, 3300, 3800, 4300, 4800, 5300, 5800, 6300, 6800, 7300, 7800, 8300, 8800, 9300, 9800])],
+  # ],
+  # 4: [
+  #   *[((100, 200, 300, 400), (r1, r2, r3, r4)) for r1, r2, r3, r4 in \
+  #     zip([2100, 2600, 3100, 3600, 4100, 4600, 5100, 5600, 6100, 6600, 7100, 7600, 8100, 8600, 9100, 9600], \
+  #         [2200, 2700, 3200, 3700, 4200, 4700, 5200, 5700, 6200, 6700, 7200, 7700, 8200, 8700, 9200, 9700], \
+  #         [2300, 2800, 3300, 3800, 4300, 4800, 5300, 5800, 6300, 6800, 7300, 7800, 8300, 8800, 9300, 9800], \
+  #         [2400, 2900, 3400, 3900, 4400, 4900, 5400, 5900, 6400, 6900, 7400, 7900, 8400, 8900, 9400, 9900])],
+  # ],
+}
 cheating_da_interval = {
   1: [(perc, ) for perc in [1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90]],
   2: [(perc, ) for perc in [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95]],
@@ -140,13 +164,13 @@ COMPASSX_METHODS = [
   "CompassPcaIcg",
   # "CompassPcaQicg",
 ]
-SOTA_METHODS = ["iRangeGraph", "SeRF", "SeRF+OR"]
+SOTA_METHODS = ["iRangeGraph", "SeRF", "SeRF+OR", "SeRF+OR3"]
 BASE_METHODS = [
-  "Prefiltering",
-  "Postfiltering",
+  # "Prefiltering",
+  # "Postfiltering",
   # "CompassPostK",
   "CompassPostKTh",
-  "CompassPostKThCh",
+  # "CompassPostKThCh",
   # "CompassPostKNavix",
   "Ivf",
   "CompassGraph",
@@ -189,9 +213,9 @@ M_DA_RUN = {
   },
   "Prefiltering": prefiltering_da_interval,
   "Postfiltering": postfiltering_da_interval,
-  "CompassPostK": compass_da_interval,
-  "CompassPostKTh": compass_da_interval,
-  "CompassPostKNavix": compass_da_interval,
+  "CompassPostK": compass_post_da_interval,
+  "CompassPostKTh": compass_post_da_interval,
+  "CompassPostKNavix": compass_post_da_interval,
   "CompassPostKThCh": cheating_da_interval,
   "Ivf": ivf_da_interval,
   "CompassGraph": compass_graph_da_interval,
@@ -310,6 +334,7 @@ M_PARAM = {
   "iRangeGraph+Post": irangegraph_parameters,
   "SeRF": serf_parameters,
   "SeRF+OR": serf_parameters,
+  "SeRF+OR3": serf_parameters,
   "SeRF+Post": serf_parameters,
   "Prefiltering": prefiltering_parameters,
   "Postfiltering": postfiltering_parameters,
@@ -416,6 +441,7 @@ M_ARGS = {
   "iRangeGraph+Post": irangegraph_args,
   "SeRF": serf_args,
   "SeRF+OR": serf_args,
+  "SeRF+OR3": serf_args,
   "SeRF+Post": serf_args,
   "Prefiltering": prefiltering_args,
   "Postfiltering": postfiltering_args,
@@ -433,30 +459,32 @@ D_ARGS = {
   "sift": {
     "dx": [64],
     "nlist": [5000, 10000],
+    "efs": compass_args["efs"] + [350, 400, 450, 500, 600, 700, 800, 900, 1000]
   },
   "glove100": {
     "dx": [64],
     "nlist": [20000],
     "M_cg": [8],
-    "efs": compass_args["efs"] + [310, 320, 330, 340, 350, 360, 370, 380, 390, 400],
+    "efs": compass_args["efs"] + [310, 320, 330, 340, 350, 360, 370, 380, 390, 400] + [450, 500, 600, 700, 800, 900, 1000],
   },
   "audio": {
     "dx": [64],
     "nlist": [5000, 10000],
+    "efs": compass_args["efs"] + [350, 400, 450, 500, 600, 700, 800, 900, 1000]
   },
   "video": {
     "dx": [256, 512],
     "nlist": [20000],
     "M_cg": [8],
-    "efs": compass_args["efs"] + [310, 320, 330, 340, 350, 360, 370, 380, 390, 400, 410, 420, 430, 440, 450],
+    "efs": compass_args["efs"] + [310, 320, 330, 340, 350, 360, 370, 380, 390, 400, 410, 420, 430, 440, 450] + [500, 600, 700, 800, 900, 1000],
   },
   "gist": {
     "dx": [256, 512],
-    "efs": compass_args["efs"] + [310, 320, 330, 340, 350, 360, 370, 380, 390, 400, 410, 420, 430, 440, 450],
+    "efs": compass_args["efs"] + [310, 320, 330, 340, 350, 360, 370, 380, 390, 400, 410, 420, 430, 440, 450] + [500, 600, 700, 800, 900, 1000],
   },
   "crawl": {
     "dx": [128, 256],
-    "efs": compass_args["efs"] + [310, 320, 330, 340, 350, 360, 370, 380, 390, 400],
+    "efs": compass_args["efs"] + [310, 320, 330, 340, 350, 360, 370, 380, 390, 400] + [450, 500, 600, 700, 800, 900, 1000],
     "M_cg": [8],
   }
 }
@@ -512,6 +540,9 @@ M_STYLE = {
     "marker": "p", "color": "gray"
   },
   "SeRF+OR": {
+    "marker": "p", "color": "gray"
+  },
+  "SeRF+OR3": {
     "marker": "p", "color": "gray"
   },
   "SeRF+Post": {
