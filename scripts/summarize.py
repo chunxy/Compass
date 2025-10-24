@@ -408,14 +408,15 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
             axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
             axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
 
+          dt = d.split("-")[0].upper()
           axs[0][i].set_xlabel('Recall')
           axs[0][i].set_ylabel('QPS')
-          axs[0][i].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
+          axs[0][i].set_title("{}, Selectivity-{:.1%}".format(dt, sel))
           axs[1][i].set_xlabel('Recall')
           axs[1][i].set_ylabel('# Comp')
           auto_bottom, auto_top = axs[1][i].get_ylim()
           axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
-          axs[1][i].set_title("{}, Selectivity-{:.1%}".format(d.capitalize(), sel))
+          axs[1][i].set_title("{}, Selectivity-{:.1%}".format(dt, sel))
 
       fig.set_size_inches(10, 6)
       unique_labels = {}
@@ -446,6 +447,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
             unique_labels[label] = handle
         ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper left")
       # fig.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
+      # plt.grid(True)
       path = Path(f"{prefix}/All-{anno}-{rg}-QPS-Comp-Recall.jpg")
       path.parent.mkdir(parents=True, exist_ok=True)
       fig.savefig(path, dpi=200)
@@ -630,18 +632,19 @@ def draw_qps_comp_fixing_recall_by_selectivity_camera(da, datasets, methods, ann
             axs[1][i].plot(pos_s, grouped_ncomp["ncomp"], **marker)
             axs[1][i].scatter(pos_s, grouped_ncomp["ncomp"], label=f"{m}-{b}-{rec}", **marker)
 
+      dt = d.split("-")[0].upper()
       axs[0][i].set_xticks(np.arange(len(selectivities)))
       axs[0][i].set_xticklabels(selectivities)
       axs[0][i].set_xlabel('Selectivity')
       axs[0][i].set_ylabel('QPS')
-      axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+      axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
       axs[1][i].set_xticks(np.arange(len(selectivities)))
       axs[1][i].set_xticklabels(selectivities)
       axs[1][i].set_xlabel('Selectivity')
       axs[1][i].set_ylabel('# Comp')
       auto_bottom, auto_top = axs[1][i].get_ylim()
       axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
-      axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+      axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
     fig.set_size_inches(12, 6)
     unique_labels = {}
@@ -660,6 +663,7 @@ def draw_qps_comp_fixing_recall_by_selectivity_camera(da, datasets, methods, ann
       ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
     path = Path(f"{prefix}/Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
     path.parent.mkdir(parents=True, exist_ok=True)
+    # plt.grid(True)
     fig.savefig(path, dpi=200)
     plt.close()
 
@@ -882,9 +886,9 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
     0.9: ["0.9", "0.81", "0.729", "0.8561"],
   }
   dataset_comp_ylim = {
-    "crawl": 10000,
-    "gist-dedup": 10000,
-    "video-dedup": 30000,
+    "crawl": 15000,
+    "gist-dedup": 15000,
+    "video-dedup": 35000,
     "glove100": 30000,
   }
 
@@ -934,11 +938,12 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
                 pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
                 if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][da - 1]:
                   pos = -1
+                  fallout = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][da - 1]]["ncomp"].max()
                 label = f"{m}-{b}-{rec}"
                 if label not in d_m_sel[d][m][sel]:
                   d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
                 d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
-                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
+                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout)
 
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='constrained')
@@ -956,16 +961,17 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
               axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["ncomp"], label=label, **marker)
               axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
 
+        dt = d.split("-")[0].upper()
         axs[0][i].set_xlabel('Dimension')
         axs[0][i].set_xticks(DA_S)
         axs[0][i].set_ylabel('QPS')
-        axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+        axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
         axs[1][i].set_xlabel('Dimension')
         axs[1][i].set_ylabel('# Comp')
         auto_bottom, auto_top = axs[1][i].get_ylim()
         axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
         axs[1][i].set_xticks(DA_S)
-        axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+        axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
       fig.set_size_inches(12, 6)
       unique_labels = {}
@@ -998,6 +1004,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
       # fig.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
       path = Path(f"{prefix}/Sel-{sel:.3g}-Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
       path.parent.mkdir(parents=True, exist_ok=True)
+      # plt.grid(True)
       fig.savefig(path, dpi=200)
       plt.close()
 
@@ -1015,7 +1022,7 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
     "video-dedup": 30000,
     "glove100": 30000,
   }
-  ndisjunctions = [1, 2, 3,]
+  ndisjunctions = [1, 2, 3]
 
   for rec in [0.8, 0.85, 0.9, 0.95]:
     d_m = {}
@@ -1039,19 +1046,21 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
                 elif ndis == 2:
                   data_by_m_b = data[(data["method"] == m + "+OR") & (data["build"] == b)]
                 elif ndis == 3:
-                  data_by_m_b = data[(data["method"] == m + "+OR") & (data["build"] == b)]  # rehearsal
+                  data_by_m_b = data[(data["method"] == m + "+OR3") & (data["build"] == b)]
                 elif ndis == 4:
-                  data_by_m_b = data[(data["method"] == m + "+OR") & (data["build"] == b)]  # rehearsal
+                  data_by_m_b = data[(data["method"] == m + "+OR4") & (data["build"] == b)]
               else:
                 data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
-                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp", "initial_ncomp"]].sort_values(["selectivity", "recall"])
+                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp",
+                                                        "initial_ncomp"]].sort_values(["selectivity", "recall"])
                   rec_sel_qps_comp["total_ncomp"] = rec_sel_qps_comp["initial_ncomp"] + rec_sel_qps_comp["ncomp"]
                   grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
                   grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
-                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["total_ncomp"].min()
+                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity",
+                                                                                                    as_index=False)["total_ncomp"].min()
                   pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][ndis - 1]) - 1
                   if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][ndis - 1]:
                     pos = -1
@@ -1068,11 +1077,12 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
                 pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][ndis - 1]) - 1
                 if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][ndis - 1]:
                   pos = -1
+                  fallout = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][ndis - 1]]["ncomp"].max()
                 label = f"{m}-{b}-{rec}"
                 if label not in d_m[d][m][sel]:
                   d_m[d][m][sel][label] = {"qps": [], "ncomp": []}
                 d_m[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
-                d_m[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
+                d_m[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout)
 
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='constrained')
@@ -1089,16 +1099,17 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
               axs[1][i].scatter(ndisjunctions, d_m[d][m][sel][label]["ncomp"], label=label, **marker)
               axs[1][i].plot(ndisjunctions, d_m[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
 
+        dt = d.split("-")[0].upper()
         axs[0][i].set_xlabel('Dimension')
         axs[0][i].set_xticks(ndisjunctions)
         axs[0][i].set_ylabel('QPS')
-        axs[0][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+        axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
         axs[1][i].set_xlabel('Dimension')
         axs[1][i].set_ylabel('# Comp')
         auto_bottom, auto_top = axs[1][i].get_ylim()
         axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
         axs[1][i].set_xticks(ndisjunctions)
-        axs[1][i].set_title(f"{d.upper()}, Recall-{rec:.3g}")
+        axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
       fig.set_size_inches(12, 6)
       unique_labels = {}
@@ -1131,13 +1142,14 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
       # fig.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
       path = Path(f"{prefix}/Sel-{sel:.3g}-Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
       path.parent.mkdir(parents=True, exist_ok=True)
+      # plt.grid(True)
       fig.savefig(path, dpi=200)
       plt.close()
 
 
 if __name__ == "__main__":
-  pass  # do nothing first
-  # summarize()
+  # pass  # do nothing first
+  summarize()
   # for da in DA_S:
   #   draw_qps_comp_wrt_recall_by_dataset_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
   #   draw_qps_comp_wrt_recall_by_selectivity(da, DATASETS, METHODS, "MoM", prefix=f"figures{da}d-10")
