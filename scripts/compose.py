@@ -107,7 +107,7 @@ def compose():
                 f.write(inner)
                 f.write('\n')
         continue
-
+      k_s = [10]
       for group, datasets in M_GROUP_DATASET[m].items():
         parts = [p.lower() for p in re.findall(r'[A-Z][a-z]*', m)]
         for d in datasets:
@@ -130,10 +130,10 @@ def compose():
               inner_tmpl = \
 '''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-compass-{} \
 --datacard ${{dataset}}_{}_10000_float32 \
---l {} --r {} --k 10 {} {}'''
+--l {} --r {} --k ${{k}} {} {}'''
               inner = '\n'.join([
                 inner_tmpl.format(
-                  ("1d-" if (da == 1 and not m.startswith("CompassPost")) else "") + "-".join(parts[1:]),
+                  ("1d-" if (da == 1 and not m.startswith("Compass")) else "") + "-".join(parts[1:]),
                   da,
                   " ".join(map(str, itvl[0])),
                   " ".join(map(str, itvl[1])),
@@ -144,6 +144,10 @@ def compose():
 
               for bp in M_PARAM[m]["build"][::-1]:
                 inner = __enclose_for(bp, f"{bp}_s", inner)
+              # if m == "CompassPostKTh" and da == 1:
+              #   k_s = [5, 10, 15, 20, 25]
+              inner = __enclose_for("k", "k_s", inner)
+              inner = (f'k_s=({" ".join(map(str, k_s))})\n') + inner
               f.write(inner)
               f.write('\n')
 
