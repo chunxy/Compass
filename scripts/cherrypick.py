@@ -15,10 +15,12 @@ from summarize import (
   draw_qps_comp_fixing_dimension_selectivity_by_dimension,
 )
 from camera import (
+  draw_qps_comp_fixing_selectivity_by_k_camera,
   draw_qps_comp_wrt_recall_by_selectivity_camera,
   draw_qps_comp_fixing_recall_by_selectivity_camera,
   draw_qps_comp_with_disjunction_by_dimension_camera,
   draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera,
+  summarize_multik,
 )
 
 nrel_100 = {d: {} for d in DATASETS}
@@ -483,6 +485,7 @@ def camera_ready():
   datasets = ["crawl", "video-dedup", "gist-dedup", "glove100"]
   # Figure 1: multi-attribute, fix dimension passrate
   draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "fix-dim", "camera-ready")
+
   # Figure 3:
   draw_qps_comp_wrt_recall_by_selectivity_camera(
     da=1,
@@ -497,7 +500,9 @@ def camera_ready():
   # Figure 2
   draw_qps_comp_with_disjunction_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "or-dim", "camera-ready")
 
-  # Figure 5:
+  # Figure 5: muiti-k
+  # summarize_multik(datasets)
+  draw_qps_comp_fixing_selectivity_by_k_camera(datasets, best_d_m_b, best_d_m_s, "multi-k", "camera-ready")
 
 
   # Figure 4: ablation study
