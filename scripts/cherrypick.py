@@ -9,12 +9,15 @@ from config import (
 from summarize import (
   draw_qps_comp_fixing_recall_by_dataset_selectivity,
   draw_qps_comp_fixing_recall_by_selectivity,
-  draw_qps_comp_fixing_recall_by_selectivity_camera,
   draw_qps_comp_wrt_recall_by_dataset_selectivity,
   draw_qps_comp_wrt_recall_by_selectivity,
-  draw_qps_comp_wrt_recall_by_selectivity_camera,
   draw_qps_comp_fixing_overall_selectivity_by_dimension,
   draw_qps_comp_fixing_dimension_selectivity_by_dimension,
+)
+from camera import (
+  draw_qps_comp_wrt_recall_by_selectivity_camera,
+  draw_qps_comp_fixing_recall_by_selectivity_camera,
+  draw_qps_comp_with_disjunction_by_dimension_camera,
   draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera,
 )
 
@@ -467,8 +470,8 @@ def camera_ready():
   for d in DATASETS:
     best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
     best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
-  # for d in ["video-dedup", "glove100"]:
-  #   best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
+  for d in ["video-dedup", "glove100"]:
+    best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
 
   best_d_m_s = {d: {} for d in DATASETS}
   for d in DATASETS:
@@ -490,20 +493,59 @@ def camera_ready():
     d_m_s=best_d_m_s,
     prefix="camera-ready",
   )
-  # Figure 2: disjunction on single attribute
-  # Put this to last because we delete keys from the best config.
-  for d in datasets:
-    best_d_m_b[d]["SeRF+OR"] = ["M_32_efc_200_efmax_500"]
+
+  # Figure 2
+  draw_qps_comp_with_disjunction_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "or-dim", "camera-ready")
+
+  # Figure 5:
+
+
+  # Figure 4: ablation study
+  for d in ("sift-dedup", "audio-dedup"):
+    best_d_m_b[d]["CompassRelational"] = ["nlist_5000"]
+    best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200"]
+    del best_d_m_b[d]["Navix"]
     del best_d_m_b[d]["SeRF"]
-  draw_qps_comp_fixing_recall_by_selectivity_camera(
+  for d in ("gist-dedup", ):
+    best_d_m_b[d]["CompassRelational"] = ["nlist_10000"]
+    best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200"]
+    del best_d_m_b[d]["Navix"]
+    del best_d_m_b[d]["SeRF"]
+  for d in ("crawl", ):
+    best_d_m_b[d]["CompassRelational"] = ["nlist_10000"]
+    best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200"]
+    del best_d_m_b[d]["Navix"]
+    del best_d_m_b[d]["SeRF"]
+  for d in ("video-dedup", "glove100"):
+    best_d_m_b[d]["CompassRelational"] = ["nlist_20000"]
+    best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200"]
+    del best_d_m_b[d]["Navix"]
+    del best_d_m_b[d]["SeRF"]
+  draw_qps_comp_wrt_recall_by_selectivity_camera(
     da=1,
     datasets=datasets,
     methods=METHODS,
-    anno="disjunction",
+    anno="ablation",
     d_m_b=best_d_m_b,
     d_m_s=best_d_m_s,
     prefix="camera-ready",
+    ranges=["30"]
   )
+
+  # Figure 2 (deprecated): disjunction on single attribute
+  # Put this to last because we delete keys from the best config.
+  # for d in datasets:
+  #   best_d_m_b[d]["SeRF+OR"] = best_d_m_b[d]["SeRF"]
+  #   del best_d_m_b[d]["SeRF"]
+  # draw_qps_comp_fixing_recall_by_selectivity_camera(
+  #   da=1,
+  #   datasets=datasets,
+  #   methods=METHODS,
+  #   anno="disjunction",
+  #   d_m_b=best_d_m_b,
+  #   d_m_s=best_d_m_s,
+  #   prefix="camera-ready",
+  # )
 
 if __name__ == "__main__":
   # pick_clustering_methods()
@@ -512,8 +554,8 @@ if __name__ == "__main__":
   # pick_M()
   # pick_nlist()
   # pick_dx()
-  compare_best_with_sotas_by_dimension()
+  # compare_best_with_sotas_by_dimension()
   # # compare_with_sotas() # slow?
-  compare_best_with_sotas()
-  compare_disjunction()
+  # compare_best_with_sotas()
+  # compare_disjunction()
   camera_ready() # Put this to last because we delete keys from the global best config variable.
