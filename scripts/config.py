@@ -219,8 +219,8 @@ M_DA_RUN = {
   "CompassPostKNavix": compass_post_da_interval,
   "CompassPostKThCh": cheating_da_interval,
   "CompassRelational": ivf_da_interval,
-  "Ivf": ivf_da_interval,
   "CompassGraph": compass_graph_da_interval,
+  "Ivf": ivf_da_interval,
   "Navix": navix_da_interval,
   "ACORN": acorn_da_nlabel,
 }
@@ -347,8 +347,8 @@ M_PARAM = {
   "CompassPostKThCh": compass_post_parameters,
   "CompassPostKNavix": compass_post_parameters,
   "CompassRelational": compass_post_parameters,
+  "CompassGraph": compass_post_parameters,
   "Ivf": ivf_parameters,
-  "CompassGraph": compass_graph_parameters,
   "Navix": navix_parameters,
   "ACORN": acorn_parameters,
 }
@@ -415,12 +415,6 @@ ivf_args = {
   "nlist": [5000, 10000, 20000],
   "nprobe": [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 160, 180, 200],
 }
-compass_graph_args = {
-  "M": [16, 32],
-  "efc": [200],
-  "efs": [10, 20, 60, 100, 200, 300, 400, 500, 1000, 1500, 2000],
-  "nrel": [100, 200],
-}
 navix_args = {
   "M": [16],
   "efc": [200],
@@ -456,8 +450,8 @@ M_ARGS = {
   "CompassPostKThCh": compass_post_th_args,
   "CompassPostKNavix": compass_post_th_args,
   "CompassRelational": compass_post_th_args,
-  "Ivf": ivf_args,
   "CompassGraph": compass_post_th_args,
+  "Ivf": ivf_args,
   "Navix": navix_args,
   "ACORN": acorn_args,
 }
