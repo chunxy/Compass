@@ -226,22 +226,22 @@ M_DA_RUN = {
 }
 
 compass_group_dataset = {
-  "1": ["crawl", "audio"],
-  "2": ["video", "glove100"],
-  "3": ["sift", "gist"],
+  "1": ["crawl", "audio-dedup"],
+  "2": ["video-dedup", "glove100"],
+  "3": ["sift", "gist-dedup"],
 }
 compassx_group_dataset = {
-  "1": ["crawl", "audio"],
-  "2": ["video", "glove100"],
-  "3": ["sift", "gist"],
+  "1": ["crawl", "audio-dedup"],
+  "2": ["video-dedup", "glove100"],
+  "3": ["sift", "gist-dedup"],
 }
 compass_post_group_dataset = {
   "1": ["crawl"],
-  "2": ["audio"],
-  "3": ["video"],
+  "2": ["audio-dedup"],
+  "3": ["video-dedup"],
   "4": ["glove100"],
   "5": ["sift"],
-  "6": ["gist"],
+  "6": ["gist-dedup"],
 }
 compass_post_group_dataset = {
   "1": ["sift-dedup"],
@@ -269,6 +269,7 @@ M_GROUP_DATASET = {
   "CompassPostKThCh": compass_post_group_dataset,
   "CompassPostKNavix": compass_post_group_dataset,
   "CompassRelational": compass_post_group_dataset,
+  "CompassGraph": compass_post_group_dataset,
   "Ivf": compass_post_group_dataset,
   "ACORN": compass_post_group_dataset,
 }
@@ -455,7 +456,7 @@ M_ARGS = {
   "CompassPostKNavix": compass_post_th_args,
   "CompassRelational": compass_post_th_args,
   "Ivf": ivf_args,
-  "CompassGraph": compass_graph_args,
+  "CompassGraph": compass_post_th_args,
   "Navix": navix_args,
   "ACORN": acorn_args,
 }
