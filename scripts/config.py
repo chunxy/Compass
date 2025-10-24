@@ -89,24 +89,24 @@ compass_post_da_interval = {
     *[((100,), (r,)) for r in range(1100, 10000, 1000)],
     # ((0,), (10000,)),
   ],
-  # 2: [
-  #   *[((100, 200), (r1, r2)) for r1, r2 in \
-  #     zip([1100, 1600, 2100, 2600, 3100, 3600, 4100, 4600, 5100, 5600, 6100, 6600, 7100, 7600, 8100, 8600, 9100, 9600], \
-  #         [1200, 1700, 2200, 2700, 3200, 3700, 4200, 4700, 5200, 5700, 6200, 6700, 7200, 7700, 8200, 8700, 9200, 9700])],
-  # ],
-  # 3: [
-  #   *[((100, 200, 300), (r1, r2, r3)) for r1, r2, r3 in \
-  #     zip([2100, 2600, 3100, 3600, 4100, 4600, 5100, 5600, 6100, 6600, 7100, 7600, 8100, 8600, 9100, 9600], \
-  #         [2200, 2700, 3200, 3700, 4200, 4700, 5200, 5700, 6200, 6700, 7200, 7700, 8200, 8700, 9200, 9700], \
-  #         [2300, 2800, 3300, 3800, 4300, 4800, 5300, 5800, 6300, 6800, 7300, 7800, 8300, 8800, 9300, 9800])],
-  # ],
-  # 4: [
-  #   *[((100, 200, 300, 400), (r1, r2, r3, r4)) for r1, r2, r3, r4 in \
-  #     zip([2100, 2600, 3100, 3600, 4100, 4600, 5100, 5600, 6100, 6600, 7100, 7600, 8100, 8600, 9100, 9600], \
-  #         [2200, 2700, 3200, 3700, 4200, 4700, 5200, 5700, 6200, 6700, 7200, 7700, 8200, 8700, 9200, 9700], \
-  #         [2300, 2800, 3300, 3800, 4300, 4800, 5300, 5800, 6300, 6800, 7300, 7800, 8300, 8800, 9300, 9800], \
-  #         [2400, 2900, 3400, 3900, 4400, 4900, 5400, 5900, 6400, 6900, 7400, 7900, 8400, 8900, 9400, 9900])],
-  # ],
+  2: [
+    *[((100, 200), (r1, r2)) for r1, r2 in \
+      zip([1100, 1600, 2100, 2600, 3100, 3600, 4100, 4600, 5100, 5600, 6100, 6600, 7100, 7600, 8100, 8600, 9100, 9600], \
+          [1200, 1700, 2200, 2700, 3200, 3700, 4200, 4700, 5200, 5700, 6200, 6700, 7200, 7700, 8200, 8700, 9200, 9700])],
+  ],
+  3: [
+    *[((100, 200, 300), (r1, r2, r3)) for r1, r2, r3 in \
+      zip([2100, 2600, 3100, 3600, 4100, 4600, 5100, 5600, 6100, 6600, 7100, 7600, 8100, 8600, 9100, 9600], \
+          [2200, 2700, 3200, 3700, 4200, 4700, 5200, 5700, 6200, 6700, 7200, 7700, 8200, 8700, 9200, 9700], \
+          [2300, 2800, 3300, 3800, 4300, 4800, 5300, 5800, 6300, 6800, 7300, 7800, 8300, 8800, 9300, 9800])],
+  ],
+  4: [
+    *[((100, 200, 300, 400), (r1, r2, r3, r4)) for r1, r2, r3, r4 in \
+      zip([2100, 2600, 3100, 3600, 4100, 4600, 5100, 5600, 6100, 6600, 7100, 7600, 8100, 8600, 9100, 9600], \
+          [2200, 2700, 3200, 3700, 4200, 4700, 5200, 5700, 6200, 6700, 7200, 7700, 8200, 8700, 9200, 9700], \
+          [2300, 2800, 3300, 3800, 4300, 4800, 5300, 5800, 6300, 6800, 7300, 7800, 8300, 8800, 9300, 9800], \
+          [2400, 2900, 3400, 3900, 4400, 4900, 5400, 5900, 6400, 6900, 7400, 7900, 8400, 8900, 9400, 9900])],
+  ],
 }
 cheating_da_interval = {
   1: [(perc, ) for perc in [1, 2, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90]],
@@ -173,6 +173,7 @@ BASE_METHODS = [
   # "CompassPostKThCh",
   # "CompassPostKNavix",
   "Ivf",
+  "CompassRelational",
   "CompassGraph",
   "Navix",
   "ACORN"
@@ -217,6 +218,7 @@ M_DA_RUN = {
   "CompassPostKTh": compass_post_da_interval,
   "CompassPostKNavix": compass_post_da_interval,
   "CompassPostKThCh": cheating_da_interval,
+  "CompassRelational": ivf_da_interval,
   "Ivf": ivf_da_interval,
   "CompassGraph": compass_graph_da_interval,
   "Navix": navix_da_interval,
@@ -266,6 +268,7 @@ M_GROUP_DATASET = {
   "CompassPostKTh": compass_post_group_dataset,
   "CompassPostKThCh": compass_post_group_dataset,
   "CompassPostKNavix": compass_post_group_dataset,
+  "CompassRelational": compass_post_group_dataset,
   "Ivf": compass_post_group_dataset,
   "ACORN": compass_post_group_dataset,
 }
@@ -342,6 +345,7 @@ M_PARAM = {
   "CompassPostKTh": compass_post_parameters,
   "CompassPostKThCh": compass_post_parameters,
   "CompassPostKNavix": compass_post_parameters,
+  "CompassRelational": compass_post_parameters,
   "Ivf": ivf_parameters,
   "CompassGraph": compass_graph_parameters,
   "Navix": navix_parameters,
@@ -407,7 +411,7 @@ compass_post_th_args = {
   "delta_efs": [20],
 }
 ivf_args = {
-  "nlist": [10000, 20000],
+  "nlist": [5000, 10000, 20000],
   "nprobe": [10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 160, 180, 200],
 }
 compass_graph_args = {
@@ -449,6 +453,7 @@ M_ARGS = {
   "CompassPostKTh": compass_post_th_args,
   "CompassPostKThCh": compass_post_th_args,
   "CompassPostKNavix": compass_post_th_args,
+  "CompassRelational": compass_post_th_args,
   "Ivf": ivf_args,
   "CompassGraph": compass_graph_args,
   "Navix": navix_args,
@@ -567,6 +572,9 @@ M_STYLE = {
     "marker": "o", "color": "yellow"
   },
   "Ivf": {
+    "marker": "^", "color": "pink"
+  },
+  "CompassRelational": {
     "marker": "^", "color": "pink"
   },
   "CompassGraph": {

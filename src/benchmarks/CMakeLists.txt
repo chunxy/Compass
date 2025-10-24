@@ -55,6 +55,7 @@ add_executable(bench-compass-1d-pca-qicg bench-compass-1d-pca-qicg.cpp)
 # Baseline
 add_executable(bench-compass-ivf bench-compass-ivf.cpp)
 add_executable(bench-compass-graph bench-compass-graph.cpp)
+add_executable(bench-compass-relational bench-compass-relational.cpp)
 
 # Legacy
 add_executable(bench-compass-k-or bench-compass-k-or.cpp)
