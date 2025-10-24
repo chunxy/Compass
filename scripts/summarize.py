@@ -85,7 +85,10 @@ def summarize():
             sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.4g}"
           bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
           st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
-          if m.startswith("Compass"):
+          if m == "CompassGraph":
+            ba_s = [[1] if bp == "nlist" else D_ARGS[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]
+            sa_s = [D_ARGS[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]
+          elif m.startswith("Compass"):
             ba_s = [D_ARGS[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]
             sa_s = [D_ARGS[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]
           else:
