@@ -533,7 +533,7 @@ class CompassPost {
     return results;
   }
 
-  virtual vector<priority_queue<pair<dist_t, labeltype>>> SearchKnnPostFilteredTwoHop(
+  vector<priority_queue<pair<dist_t, labeltype>>> SearchKnnPostFilteredTwoHop(
       const void *query,
       const int nq,
       const int k,
@@ -810,7 +810,7 @@ class CompassPost {
     return results;
   }
 
-  virtual vector<priority_queue<pair<dist_t, labeltype>>> SearchKnnPostFilteredTwoHopCheating(
+  vector<priority_queue<pair<dist_t, labeltype>>> SearchKnnPostFilteredTwoHopCheating(
       const void *query,
       const int nq,
       const int k,
