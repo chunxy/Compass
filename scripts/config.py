@@ -41,7 +41,7 @@ sota_post_da_interval = {
   4: [(pcnt, pcnt, pcnt, pcnt) for pcnt in (10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95)],
 }
 ivf_da_interval = {
-  1: [*[((100, ), (r, )) for r in (200, 300, 600, 1100, 2100)]]
+  1: [*[((100, ), (r, )) for r in (200, 300, 600, 1100, 2100, 3100)]]
 }
 compass_graph_da_interval = {
   1: [*[((100, ), (r, )) for r in range(2100, 10000, 1000)]],
@@ -571,7 +571,7 @@ M_STYLE = {
     "marker": "^", "color": "pink"
   },
   "CompassRelational": {
-    "marker": "^", "color": "pink"
+    "marker": "^", "color": "green"
   },
   "CompassGraph": {
     "marker": "^", "color": "orange"
