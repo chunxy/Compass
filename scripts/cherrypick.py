@@ -483,10 +483,10 @@ def camera_ready():
   best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50]}
 
   datasets = ["crawl", "video-dedup", "gist-dedup", "glove100"]
-  # Figure 1: multi-attribute, fix dimension passrate
+  # # Figure 1: multi-attribute conjunction, fix dimension passrate
   draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "fix-dim", "camera-ready")
 
-  # Figure 3:
+  # Figure 3: QPS-Recall, #Comp-Recall
   draw_qps_comp_wrt_recall_by_selectivity_camera(
     da=1,
     datasets=datasets,
@@ -497,35 +497,39 @@ def camera_ready():
     prefix="camera-ready",
   )
 
-  # Figure 2
+  # # Figure 2: multi-attribute disjunction
   draw_qps_comp_with_disjunction_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "or-dim", "camera-ready")
 
   # Figure 5: muiti-k
-  # summarize_multik(datasets)
   draw_qps_comp_fixing_selectivity_by_k_camera(datasets, best_d_m_b, best_d_m_s, "multi-k", "camera-ready")
 
 
   # Figure 4: ablation study
   for d in ("sift-dedup", "audio-dedup"):
-    best_d_m_b[d]["CompassRelational"] = ["nlist_5000"]
-    best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200"]
+    best_d_m_b[d]["CompassRelational"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
+    best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200_nlist_1_M_cg_4"]
     del best_d_m_b[d]["Navix"]
     del best_d_m_b[d]["SeRF"]
   for d in ("gist-dedup", ):
-    best_d_m_b[d]["CompassRelational"] = ["nlist_10000"]
-    best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200"]
+    best_d_m_b[d]["CompassRelational"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+    best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200_nlist_1_M_cg_4"]
     del best_d_m_b[d]["Navix"]
     del best_d_m_b[d]["SeRF"]
   for d in ("crawl", ):
-    best_d_m_b[d]["CompassRelational"] = ["nlist_10000"]
-    best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200"]
+    best_d_m_b[d]["CompassRelational"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
+    best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200_nlist_1_M_cg_8"]
     del best_d_m_b[d]["Navix"]
     del best_d_m_b[d]["SeRF"]
   for d in ("video-dedup", "glove100"):
-    best_d_m_b[d]["CompassRelational"] = ["nlist_20000"]
-    best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200"]
+    best_d_m_b[d]["CompassRelational"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+    best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200_nlist_1_M_cg_8"]
     del best_d_m_b[d]["Navix"]
     del best_d_m_b[d]["SeRF"]
+  for d in DATASETS:
+    best_d_m_s[d]["CompassGraph"] = {"nrel": [50]}
+  best_d_m_s["crawl"]["CompassGraph"] = {"nrel": [50]}
+  best_d_m_s["glove100"]["CompassGraph"] = {"nrel": [100]}
+  best_d_m_s["video-dedup"]["CompassGraph"] = {"nrel": [50]}
   draw_qps_comp_wrt_recall_by_selectivity_camera(
     da=1,
     datasets=datasets,
@@ -534,7 +538,7 @@ def camera_ready():
     d_m_b=best_d_m_b,
     d_m_s=best_d_m_s,
     prefix="camera-ready",
-    ranges=["30"]
+    ranges=["20", "30"]
   )
 
   # Figure 2 (deprecated): disjunction on single attribute
@@ -563,4 +567,5 @@ if __name__ == "__main__":
   # # compare_with_sotas() # slow?
   # compare_best_with_sotas()
   # compare_disjunction()
+  # summarize_multik(["crawl", "video-dedup", "gist-dedup", "glove100"])
   camera_ready() # Put this to last because we delete keys from the global best config variable.

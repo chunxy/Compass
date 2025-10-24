@@ -43,6 +43,8 @@ xlim = [0.8, 1]
 
 def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures", ranges=[]):
   xlim = [0.8, 1]
+  if ranges: # ablations study
+    xlim = [0.6, 1]
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   df = df.fillna('')
   dataset_comp_ylim = {
@@ -107,7 +109,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
         for handle, label in zip(handles, labels):
           label = label.split("-")[0]
           if label.startswith("Compass"):
-            label = "Compass"
+            label = label if label != "CompassPostKTh" else "Compass"
           if label.startswith("SeRF"):
             label = "SeRF"
           if label.startswith("Navix"):
@@ -120,7 +122,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
         for handle, label in zip(handles, labels):
           label = label.split("-")[0]
           if label.startswith("Compass"):
-            label = "Compass"
+            label = label if label != "CompassPostKTh" else "Compass"
           if label.startswith("SeRF"):
             label = "SeRF"
           if label.startswith("Navix"):
@@ -285,12 +287,15 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
                 pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][da - 1]) - 1
                 if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][da - 1]:
                   pos = -1
-                  fallout = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][da - 1]]["ncomp"].max()
+                  fallout_qps = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][da - 1]]["qps"].min()
+                  fallout_ncomp = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][da - 1]]["ncomp"].max()
                 label = f"{m}-{b}-{rec}"
                 if label not in d_m_sel[d][m][sel]:
-                  d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
-                d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
-                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout)
+                  d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "fallout": []}
+                d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else fallout_qps)
+                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout_ncomp)
+                if pos == -1:
+                  d_m_sel[d][m][sel][label]["fallout"].append(len(d_m_sel[d][m][sel][label]["qps"]))
 
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='constrained')
@@ -307,7 +312,10 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
             else:
               axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["ncomp"], label=label, **marker)
               axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
-
+            for tick in d_m_sel[d][m][sel][label].get("fallout", []):
+              # mark a cross sign at (tick, fallout_qps)
+              axs[0][i].scatter(tick, d_m_sel[d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+              axs[1][i].scatter(tick, d_m_sel[d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
         dt = d.split("-")[0].upper()
         axs[0][i].set_xlabel('Dimension')
         axs[0][i].set_xticks(DA_S)
@@ -432,12 +440,15 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
                 pos = bisect.bisect(grouped_qps["selectivity"], interval[sel][ndis - 1]) - 1
                 if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][ndis - 1]:
                   pos = -1
-                  fallout = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][ndis - 1]]["ncomp"].max()
+                  fallout_qps = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][ndis - 1]]["qps"].min()
+                  fallout_ncomp = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][ndis - 1]]["ncomp"].max()
                 label = f"{m}-{b}-{rec}"
                 if label not in d_m[d][m][sel]:
-                  d_m[d][m][sel][label] = {"qps": [], "ncomp": []}
-                d_m[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
-                d_m[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout)
+                  d_m[d][m][sel][label] = {"qps": [], "ncomp": [], "fallout": []}
+                d_m[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else fallout_qps)
+                d_m[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout_ncomp)
+                if pos == -1:
+                  d_m[d][m][sel][label]["fallout"].append(len(d_m[d][m][sel][label]["qps"]))
 
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='constrained')
@@ -453,6 +464,10 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
             else:
               axs[1][i].scatter(ndisjunctions, d_m[d][m][sel][label]["ncomp"], label=label, **marker)
               axs[1][i].plot(ndisjunctions, d_m[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
+            for tick in d_m[d][m][sel][label].get("fallout", []):
+              # mark a cross sign at (tick, fallout_qps)
+              axs[0][i].scatter(tick, d_m[d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+              axs[1][i].scatter(tick, d_m[d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
 
         dt = d.split("-")[0].upper()
         axs[0][i].set_xlabel('Dimension')
@@ -596,7 +611,7 @@ def summarize_multik(datasets):
 
 
 def draw_qps_comp_fixing_selectivity_by_k_camera(datasets, d_m_b, d_m_s, anno, prefix):
-  k_s = [5, 10, 15, 20, 25]
+  k_s = [5, 10, 15, 20, 25, 30]
   sel_s = ["0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9"]
   dataset_comp_ylim = {
     "crawl": 15000,
