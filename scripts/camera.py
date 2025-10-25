@@ -42,9 +42,9 @@ xlim = [0.8, 1]
 
 
 def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures", ranges=[]):
-  xlim = [0.8, 1]
+  xlim, xticks = [0.8, 1], [0.8, 0.9, 1]
   if ranges: # ablations study
-    xlim = [0.6, 1]
+    xlim, xticks = [0.4, 1], [0.4, 0.6, 0.8, 1]
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   df = df.fillna('')
   dataset_comp_ylim = {
@@ -94,9 +94,11 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
 
           dt = d.split("-")[0].upper()
           axs[0][i].set_xlabel('Recall')
+          axs[0][i].set_xticks(xticks)
           axs[0][i].set_ylabel('QPS')
           axs[0][i].set_title("{}, Selectivity-{:.1%}".format(dt, sel))
           axs[1][i].set_xlabel('Recall')
+          axs[1][i].set_xticks(xticks)
           axs[1][i].set_ylabel('# Comp')
           auto_bottom, auto_top = axs[1][i].get_ylim()
           axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
@@ -812,11 +814,11 @@ def draw_qps_comp_fixing_selectivity_by_k_camera(datasets, d_m_b, d_m_s, anno, p
             axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
 
         dt = d.split("-")[0].upper()
-        axs[0][i].set_xlabel('Dimension')
+        axs[0][i].set_xlabel('$k$')
         axs[0][i].set_xticks(k_s)
         axs[0][i].set_ylabel('QPS')
         axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
-        axs[1][i].set_xlabel('Dimension')
+        axs[1][i].set_xlabel('$k$')
         axs[1][i].set_xticks(k_s)
         axs[1][i].set_ylabel('# Comp')
         auto_bottom, auto_top = axs[1][i].get_ylim()
