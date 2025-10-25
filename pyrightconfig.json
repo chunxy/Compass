@@ -5,6 +5,13 @@
     "cherrypick*",
     "checkpoints",
     "build",
-    ".cache"
+    ".cache",
+    "logs_10/",
+    "logs_100/",
+    "logs_10_special/",
+    "fixing*",
+    "disjunction*",
+    "camera*",
+    "stats*",
   ],
 }
