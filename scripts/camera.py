@@ -491,7 +491,7 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
                 elif ndis == 3:
                   data_by_m_b = data[(data["method"] == m + "+OR3") & (data["build"] == b)]
                 elif ndis == 4:
-                  data_by_m_b = data[(data["method"] == m + "+OR3") & (data["build"] == b)]
+                  data_by_m_b = data[(data["method"] == m + "+OR4") & (data["build"] == b)]
               else:
                 data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
               if m.startswith("Compass"):
