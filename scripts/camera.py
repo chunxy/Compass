@@ -241,14 +241,15 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
     "glove100": 30000,
   }
 
+  rec_d_m_sel = {}
   for rec in [0.8, 0.85, 0.9, 0.95]:
-    d_m_sel = {}
+    rec_d_m_sel[rec] = {}
     for d in d_m_b.keys():
-      d_m_sel[d] = {}
+      rec_d_m_sel[rec][d] = {}
       for m in d_m_b[d].keys():
-        d_m_sel[d][m] = {}
+        rec_d_m_sel[rec][d][m] = {}
         for sel in sel_s:
-          d_m_sel[d][m][sel] = {}
+          rec_d_m_sel[rec][d][m][sel] = {}
 
     for da in DA_S:
       df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
@@ -275,11 +276,11 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
                   if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][da - 1]:
                     pos = -1
                   label = f"{m}-{b}-{nrel}-{rec}"
-                  if label not in d_m_sel[d][m][sel]:  # a list by dimension
-                    d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
-                  d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
-                  d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
-                  d_m_sel[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 30000)
+                  if label not in rec_d_m_sel[rec][d][m][sel]:  # a list by dimension
+                    rec_d_m_sel[rec][d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
+                  rec_d_m_sel[rec][d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                  rec_d_m_sel[rec][d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
+                  rec_d_m_sel[rec][d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 30000)
               else:
                 rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
                 grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
@@ -290,32 +291,33 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
                   fallout_qps = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][da - 1]]["qps"].min()
                   fallout_ncomp = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][da - 1]]["ncomp"].max()
                 label = f"{m}-{b}-{rec}"
-                if label not in d_m_sel[d][m][sel]:
-                  d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "fallout": []}
-                d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else fallout_qps)
-                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout_ncomp)
+                if label not in rec_d_m_sel[rec][d][m][sel]:
+                  rec_d_m_sel[rec][d][m][sel][label] = {"qps": [], "ncomp": [], "fallout": []}
+                rec_d_m_sel[rec][d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else fallout_qps)
+                rec_d_m_sel[rec][d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout_ncomp)
                 if pos == -1:
-                  d_m_sel[d][m][sel][label]["fallout"].append(len(d_m_sel[d][m][sel][label]["qps"]))
+                  rec_d_m_sel[rec][d][m][sel][label]["fallout"].append(len(rec_d_m_sel[rec][d][m][sel][label]["qps"]))
 
+  for rec in [0.8, 0.85, 0.9, 0.95]:
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='constrained')
       for i, d in enumerate(datasets):
         for m in d_m_b[d].keys():
           marker = M_STYLE[m]
-          for label in d_m_sel[d][m][sel].keys():
-            das = DA_S[:len(d_m_sel[d][m][sel][label]["qps"])]
-            sc = axs[0][i].scatter(das, d_m_sel[d][m][sel][label]["qps"], label=label, **marker)
-            axs[0][i].plot(das, d_m_sel[d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
+          for label in rec_d_m_sel[rec][d][m][sel].keys():
+            das = DA_S[:len(rec_d_m_sel[rec][d][m][sel][label]["qps"])]
+            sc = axs[0][i].scatter(das, rec_d_m_sel[rec][d][m][sel][label]["qps"], label=label, **marker)
+            axs[0][i].plot(das, rec_d_m_sel[rec][d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
             if m.startswith("Compass"):
-              axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["total_ncomp"], label=label, **marker)
-              axs[1][i].plot(das, d_m_sel[d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
+              axs[1][i].scatter(das, rec_d_m_sel[rec][d][m][sel][label]["total_ncomp"], label=label, **marker)
+              axs[1][i].plot(das, rec_d_m_sel[rec][d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
             else:
-              axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["ncomp"], label=label, **marker)
-              axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
-            for tick in d_m_sel[d][m][sel][label].get("fallout", []):
+              axs[1][i].scatter(das, rec_d_m_sel[rec][d][m][sel][label]["ncomp"], label=label, **marker)
+              axs[1][i].plot(das, rec_d_m_sel[rec][d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
+            for tick in rec_d_m_sel[rec][d][m][sel][label].get("fallout", []):
               # mark a cross sign at (tick, fallout_qps)
-              axs[0][i].scatter(tick, d_m_sel[d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
-              axs[1][i].scatter(tick, d_m_sel[d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+              axs[0][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+              axs[1][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
         dt = d.split("-")[0].upper()
         axs[0][i].set_xlabel('Dimension')
         axs[0][i].set_xticks(DA_S)
@@ -327,6 +329,75 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
         axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
         axs[1][i].set_xticks(DA_S)
         axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
+
+    fig.set_size_inches(12, 6)
+    unique_labels = {}
+    for ax in axs[0]:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        label = label.split("-")[0]
+        if label.startswith("Compass"):
+          label = "Compass"
+        if label.startswith("SeRF"):
+          label = "SeRF"
+        if label.startswith("Navix"):
+          label = "NaviX"
+        if label not in unique_labels:
+          unique_labels[label] = handle
+      ax.legend(unique_labels.values(), unique_labels.keys(), loc="best")
+    for ax in axs[1]:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        label = label.split("-")[0]
+        if label.startswith("Compass"):
+          label = "Compass"
+        if label.startswith("SeRF"):
+          label = "SeRF"
+        if label.startswith("Navix"):
+          label = "NaviX"
+        if label not in unique_labels:
+          unique_labels[label] = handle
+      ax.legend(unique_labels.values(), unique_labels.keys(), loc="best")
+    # fig.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
+    path = Path(f"{prefix}/Sel-{sel:.3g}-Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # plt.grid(True)
+    fig.savefig(path, dpi=200)
+    plt.close()
+
+  for rec_s, dataset_s in zip([(0.85, 0.95)], [("video-dedup", "gist-dedup")]):
+    for sel in sel_s:
+      fig, axs = plt.subplots(2, len(datasets), layout='constrained')
+      for rec_i, rec in enumerate(rec_s):
+        for d_i, d in enumerate(dataset_s):
+          i = rec_i * len(dataset_s) + d_i
+          for m in d_m_b[d].keys():
+            marker = M_STYLE[m]
+            for label in rec_d_m_sel[rec][d][m][sel].keys():
+              das = DA_S[:len(rec_d_m_sel[rec][d][m][sel][label]["qps"])]
+              sc = axs[0][i].scatter(das, rec_d_m_sel[rec][d][m][sel][label]["qps"], label=label, **marker)
+              axs[0][i].plot(das, rec_d_m_sel[rec][d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
+              if m.startswith("Compass"):
+                axs[1][i].scatter(das, rec_d_m_sel[rec][d][m][sel][label]["total_ncomp"], label=label, **marker)
+                axs[1][i].plot(das, rec_d_m_sel[rec][d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
+              else:
+                axs[1][i].scatter(das, rec_d_m_sel[rec][d][m][sel][label]["ncomp"], label=label, **marker)
+                axs[1][i].plot(das, rec_d_m_sel[rec][d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
+              for tick in rec_d_m_sel[rec][d][m][sel][label].get("fallout", []):
+                # mark a cross sign at (tick, fallout_qps)
+                axs[0][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+                axs[1][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+          dt = d.split("-")[0].upper()
+          axs[0][i].set_xlabel('Dimension')
+          axs[0][i].set_xticks(DA_S)
+          axs[0][i].set_ylabel('QPS')
+          axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
+          axs[1][i].set_xlabel('Dimension')
+          axs[1][i].set_ylabel('# Comp')
+          auto_bottom, auto_top = axs[1][i].get_ylim()
+          axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+          axs[1][i].set_xticks(DA_S)
+          axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
       fig.set_size_inches(12, 6)
       unique_labels = {}
@@ -357,7 +428,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
             unique_labels[label] = handle
         ax.legend(unique_labels.values(), unique_labels.keys(), loc="best")
       # fig.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
-      path = Path(f"{prefix}/Sel-{sel:.3g}-Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
+      path = Path(f"{prefix}/Sel-{sel:.3g}-Recall-{rec_s[0]:.3g}-{rec_s[1]:.3g}-{anno}-All-QPS-Comp.jpg")
       path.parent.mkdir(parents=True, exist_ok=True)
       # plt.grid(True)
       fig.savefig(path, dpi=200)
@@ -380,14 +451,15 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
 
   ndisjunctions = [1, 2, 3, 4]
 
+  rec_d_m = {}
   for rec in [0.8, 0.85, 0.9, 0.95]:
-    d_m = {}
+    rec_d_m[rec] = {}
     for d in d_m_b.keys():
-      d_m[d] = {}
+      rec_d_m[rec][d] = {}
       for m in d_m_b[d].keys():
-        d_m[d][m] = {}
+        rec_d_m[rec][d][m] = {}
         for sel in sel_s:
-          d_m[d][m][sel] = {}
+          rec_d_m[rec][d][m][sel] = {}
 
     for ndis in ndisjunctions:
       dataset_comp_ylim_4d = {
@@ -428,11 +500,11 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
                   if pos == -1 or grouped_qps["selectivity"][pos] != interval[sel][ndis - 1]:
                     pos = -1
                   label = f"{m}-{b}-{nrel}-{rec}"
-                  if label not in d_m[d][m][sel]:  # a list by dimension
-                    d_m[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
-                  d_m[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
-                  d_m[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
-                  d_m[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 30000)
+                  if label not in rec_d_m[rec][d][m][sel]:  # a list by dimension
+                    rec_d_m[rec][d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
+                  rec_d_m[rec][d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                  rec_d_m[rec][d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
+                  rec_d_m[rec][d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 30000)
               else:
                 rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
                 grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
@@ -443,31 +515,32 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
                   fallout_qps = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][ndis - 1]]["qps"].min()
                   fallout_ncomp = rec_sel_qps_comp[rec_sel_qps_comp["selectivity"] == interval[sel][ndis - 1]]["ncomp"].max()
                 label = f"{m}-{b}-{rec}"
-                if label not in d_m[d][m][sel]:
-                  d_m[d][m][sel][label] = {"qps": [], "ncomp": [], "fallout": []}
-                d_m[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else fallout_qps)
-                d_m[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout_ncomp)
+                if label not in rec_d_m[rec][d][m][sel]:
+                  rec_d_m[rec][d][m][sel][label] = {"qps": [], "ncomp": [], "fallout": []}
+                rec_d_m[rec][d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else fallout_qps)
+                rec_d_m[rec][d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else fallout_ncomp)
                 if pos == -1:
-                  d_m[d][m][sel][label]["fallout"].append(len(d_m[d][m][sel][label]["qps"]))
+                  rec_d_m[rec][d][m][sel][label]["fallout"].append(len(rec_d_m[rec][d][m][sel][label]["qps"]))
 
+  for rec in [0.8, 0.85, 0.9, 0.95]:
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='constrained')
       for i, d in enumerate(datasets):
         for m in d_m_b[d].keys():
           marker = M_STYLE[m]
-          for label in d_m[d][m][sel].keys():
-            sc = axs[0][i].scatter(ndisjunctions, d_m[d][m][sel][label]["qps"], label=label, **marker)
-            axs[0][i].plot(ndisjunctions, d_m[d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
+          for label in rec_d_m[rec][d][m][sel].keys():
+            sc = axs[0][i].scatter(ndisjunctions, rec_d_m[rec][d][m][sel][label]["qps"], label=label, **marker)
+            axs[0][i].plot(ndisjunctions, rec_d_m[rec][d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
             if m.startswith("Compass"):
-              axs[1][i].scatter(ndisjunctions, d_m[d][m][sel][label]["total_ncomp"], label=label, **marker)
-              axs[1][i].plot(ndisjunctions, d_m[d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
+              axs[1][i].scatter(ndisjunctions, rec_d_m[rec][d][m][sel][label]["total_ncomp"], label=label, **marker)
+              axs[1][i].plot(ndisjunctions, rec_d_m[rec][d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
             else:
-              axs[1][i].scatter(ndisjunctions, d_m[d][m][sel][label]["ncomp"], label=label, **marker)
-              axs[1][i].plot(ndisjunctions, d_m[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
-            for tick in d_m[d][m][sel][label].get("fallout", []):
+              axs[1][i].scatter(ndisjunctions, rec_d_m[rec][d][m][sel][label]["ncomp"], label=label, **marker)
+              axs[1][i].plot(ndisjunctions, rec_d_m[rec][d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
+            for tick in rec_d_m[rec][d][m][sel][label].get("fallout", []):
               # mark a cross sign at (tick, fallout_qps)
-              axs[0][i].scatter(tick, d_m[d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
-              axs[1][i].scatter(tick, d_m[d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+              axs[0][i].scatter(tick, rec_d_m[rec][d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+              axs[1][i].scatter(tick, rec_d_m[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
 
         dt = d.split("-")[0].upper()
         axs[0][i].set_xlabel('Dimension')
@@ -516,6 +589,74 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
       fig.savefig(path, dpi=200)
       plt.close()
 
+  for rec_s, dataset_s in zip([(0.85, 0.95)], [("video-dedup", "gist-dedup")]):
+    for sel in sel_s:
+      fig, axs = plt.subplots(2, len(datasets), layout='constrained')
+      for rec_i, rec in enumerate(rec_s):
+        for d_i, d in enumerate(dataset_s):
+          i = rec_i * len(dataset_s) + d_i
+          for m in d_m_b[d].keys():
+            marker = M_STYLE[m]
+            for label in rec_d_m[rec][d][m][sel].keys():
+              sc = axs[0][i].scatter(ndisjunctions, rec_d_m[rec][d][m][sel][label]["qps"], label=label, **marker)
+              axs[0][i].plot(ndisjunctions, rec_d_m[rec][d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
+              if m.startswith("Compass"):
+                axs[1][i].scatter(ndisjunctions, rec_d_m[rec][d][m][sel][label]["total_ncomp"], label=label, **marker)
+                axs[1][i].plot(ndisjunctions, rec_d_m[rec][d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
+              else:
+                axs[1][i].scatter(ndisjunctions, rec_d_m[rec][d][m][sel][label]["ncomp"], label=label, **marker)
+                axs[1][i].plot(ndisjunctions, rec_d_m[rec][d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
+              for tick in rec_d_m[rec][d][m][sel][label].get("fallout", []):
+                # mark a cross sign at (tick, fallout_qps)
+                axs[0][i].scatter(tick, rec_d_m[rec][d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+                axs[1][i].scatter(tick, rec_d_m[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+
+          dt = d.split("-")[0].upper()
+          axs[0][i].set_xlabel('Dimension')
+          axs[0][i].set_xticks(ndisjunctions)
+          axs[0][i].set_ylabel('QPS')
+          axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
+          axs[1][i].set_xlabel('Dimension')
+          axs[1][i].set_ylabel('# Comp')
+          auto_bottom, auto_top = axs[1][i].get_ylim()
+          axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+          axs[1][i].set_xticks(ndisjunctions)
+          axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
+
+      fig.set_size_inches(12, 6)
+      unique_labels = {}
+      for ax in axs[0]:
+        handles, labels = ax.get_legend_handles_labels()
+        for handle, label in zip(handles, labels):
+          label = label.split("-")[0]
+          if label.startswith("Compass"):
+            label = "Compass"
+          if label.startswith("SeRF"):
+            label = "SeRF"
+          if label.startswith("Navix"):
+            label = "NaviX"
+          if label not in unique_labels:
+            unique_labels[label] = handle
+        ax.legend(unique_labels.values(), unique_labels.keys(), loc="best")
+      for ax in axs[1]:
+        handles, labels = ax.get_legend_handles_labels()
+        for handle, label in zip(handles, labels):
+          label = label.split("-")[0]
+          if label.startswith("Compass"):
+            label = "Compass"
+          if label.startswith("SeRF"):
+            label = "SeRF"
+          if label.startswith("Navix"):
+            label = "NaviX"
+          if label not in unique_labels:
+            unique_labels[label] = handle
+        ax.legend(unique_labels.values(), unique_labels.keys(), loc="best")
+      # fig.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
+      path = Path(f"{prefix}/Sel-{sel:.3g}-Recall-{rec_s[0]:.3g}-{rec_s[1]:.3g}-{anno}-All-QPS-Comp.jpg")
+      path.parent.mkdir(parents=True, exist_ok=True)
+      # plt.grid(True)
+      fig.savefig(path, dpi=200)
+      plt.close()
 
 def summarize_multik(datasets):
   LOG_ROOT_MULTIK = "/opt/nfs_dcc/chunxy/logs_{}"
