@@ -54,6 +54,9 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
     "glove100": 30000,
   }
 
+  selected_efs = [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180,
+                  200, 250, 300, 350, 400, 500, 600, 800, 1000]
+
   for rg in ranges if ranges else DA_RANGE[da]:
     fig, axs = plt.subplots(2, len(datasets), layout='constrained')
     for i, d in enumerate(datasets):
@@ -72,7 +75,8 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
             data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
-              data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
+              selected_search = [f"efs_{efs}_nrel_{nrel}_batch_k_20_initial_efs_20_delta_efs_20" for efs in selected_efs]
+              data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
               rec_qps_comp = data_by_m_b_nrel[["recall", "qps", "ncomp", "initial_ncomp"]].sort_values(["recall"], ascending=[True])
               rec_qps_comp["total_ncomp"] = rec_qps_comp["initial_ncomp"] + rec_qps_comp["ncomp"]
 
@@ -82,6 +86,8 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
               axs[1][i].plot(recall_above["recall"], recall_above["total_ncomp"], **marker)
               axs[1][i].scatter(recall_above["recall"], recall_above["total_ncomp"], label=f"{m}-{b}-nrel_{nrel}", **marker)
           else:
+            selected_search = [f"efs_{efs}" for efs in selected_efs]
+            data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
             axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
