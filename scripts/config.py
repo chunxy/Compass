@@ -164,7 +164,7 @@ COMPASSX_METHODS = [
   "CompassPcaIcg",
   # "CompassPcaQicg",
 ]
-SOTA_METHODS = ["iRangeGraph", "SeRF", "SeRF+OR", "SeRF+OR3"]
+SOTA_METHODS = ["iRangeGraph", "SeRF", "SeRF+OR", "SeRF+OR3", "SeRF+OR4"]
 BASE_METHODS = [
   # "Prefiltering",
   # "Postfiltering",
@@ -339,6 +339,7 @@ M_PARAM = {
   "SeRF": serf_parameters,
   "SeRF+OR": serf_parameters,
   "SeRF+OR3": serf_parameters,
+  "SeRF+OR4": serf_parameters,
   "SeRF+Post": serf_parameters,
   "Prefiltering": prefiltering_parameters,
   "Postfiltering": postfiltering_parameters,
@@ -442,6 +443,7 @@ M_ARGS = {
   "SeRF": serf_args,
   "SeRF+OR": serf_args,
   "SeRF+OR3": serf_args,
+  "SeRF+OR4": serf_args,
   "SeRF+Post": serf_args,
   "Prefiltering": prefiltering_args,
   "Postfiltering": postfiltering_args,
@@ -544,6 +546,9 @@ M_STYLE = {
     "marker": "p", "color": "gray"
   },
   "SeRF+OR3": {
+    "marker": "p", "color": "gray"
+  },
+  "SeRF+OR4": {
     "marker": "p", "color": "gray"
   },
   "SeRF+Post": {
