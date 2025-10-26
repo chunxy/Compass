@@ -43,7 +43,7 @@ xlim = [0.8, 1]
 
 def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures", ranges=[]):
   xlim, xticks = [0.8, 1], [0.8, 0.9, 1]
-  if ranges: # ablations study
+  if ranges:  # ablations study
     xlim, xticks = [0.4, 1], [0.4, 0.6, 0.8, 1]
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   df = df.fillna('')
@@ -54,8 +54,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
     "glove100": 30000,
   }
 
-  selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180,
-                  200, 250, 300, 350, 400, 500, 600, 800, 1000]
+  selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
 
   for rg in ranges if ranges else DA_RANGE[da]:
     fig, axs = plt.subplots(2, len(datasets), layout='constrained')
@@ -678,6 +677,7 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
       fig.savefig(path, dpi=200)
       plt.close()
 
+
 def summarize_multik(datasets):
   LOG_ROOT_MULTIK = "/opt/nfs_dcc/chunxy/logs_{}"
   m_s = ["CompassPostKTh", "Navix", "SeRF"]
@@ -830,11 +830,13 @@ def draw_qps_comp_fixing_selectivity_by_k_camera(datasets, d_m_b, d_m_s, anno, p
               if m.startswith("Compass"):
                 for nrel in d_m_s[d][m]["nrel"]:
                   data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
-                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp", "initial_ncomp"]].sort_values(["selectivity", "recall"])
+                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp",
+                                                        "initial_ncomp"]].sort_values(["selectivity", "recall"])
                   rec_sel_qps_comp["total_ncomp"] = rec_sel_qps_comp["initial_ncomp"] + rec_sel_qps_comp["ncomp"]
                   grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
                   grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
-                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["total_ncomp"].min()
+                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity",
+                                                                                                    as_index=False)["total_ncomp"].min()
                   pos = bisect.bisect(grouped_qps["selectivity"], sel) - 1
                   if pos == -1 or grouped_qps["selectivity"][pos] != sel:
                     pos = -1
