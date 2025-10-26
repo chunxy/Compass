@@ -54,7 +54,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
     "glove100": 30000,
   }
 
-  selected_efs = [10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180,
+  selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180,
                   200, 250, 300, 350, 400, 500, 600, 800, 1000]
 
   for rg in ranges if ranges else DA_RANGE[da]:
@@ -668,31 +668,47 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
 
 def summarize_multik(datasets):
   LOG_ROOT_MULTIK = "/opt/nfs_dcc/chunxy/logs_{}"
-  m = "CompassPostKTh"
+  m_s = ["CompassPostKTh", "Navix", "SeRF"]
   da = 1
   entries = []
-  for k in [5, 10, 15, 20, 25, 30]:
-    if da not in M_DA_RUN[m]: continue  # noqa: E701
-    for d in datasets:
-      for itvl in M_DA_RUN[m][da]:
-        w = "{}_10000_{}_{}_{}".format(d, *map(lambda ele: "-".join(map(str, ele)), itvl), k)
-        nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
-        sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.4g}"  # noqa: E741
+  for m in m_s:
+    for k in [5, 10, 15, 20, 25, 30]:
+      if da not in M_DA_RUN[m]: continue  # noqa: E701
+      for d in datasets:
+        for itvl in M_DA_RUN[m][da]:
+          if m == "CompassPostKTh" or m == "Navix":
+            w = "{}_10000_{}_{}_{}".format(d, *map(lambda ele: "-".join(map(str, ele)), itvl), k)
+            nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
+            sel = f"{reduce(lambda a, b: a * b, [(r - l) / 10000 for l, r in zip(*itvl)], 1.):.4g}"  # noqa: E741
+          elif m == "SeRF":
+            w = "{}_{}_{}".format(d, "-".join(map(str, itvl)), k)
+            nrg = "-".join(map(str, itvl))
+            sel = f"{reduce(lambda a, b: a * b, map(lambda x: x / 100, itvl), 1.):.4g}"
 
-        bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
-        st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
-        ba_s = [D_ARGS[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]
-        sa_s = [D_ARGS[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]
+          bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
+          st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
+          if m.startswith("Compass"):
+            ba_s = [D_ARGS[d].get(bp, M_ARGS[m][bp]) for bp in M_PARAM[m]["build"]]
+            sa_s = [D_ARGS[d].get(sp, M_ARGS[m][sp]) for sp in M_PARAM[m]["search"]]
+          else:
+            ba_s = [M_ARGS[m][bp] for bp in M_PARAM[m]["build"]]
+            sa_s = [M_ARGS[m][sp] for sp in M_PARAM[m]["search"]]
 
-        for ba in product(*ba_s):
-          b = bt.format(*ba)
-          for sa in product(*sa_s):
-            s = st.format(*sa)
-            path = Path(LOG_ROOT_MULTIK.format(k)) / m / w / b / s
-            if path.exists():
-              entries.append((path, m, k, w, d, nrg, sel, b, s))
-              if (len(entries) % 100 == 0):
-                print(f"Processed {len(entries)} entries")
+          for ba in product(*ba_s):
+            b = bt.format(*ba)
+            for sa in product(*sa_s):
+              s = st.format(*sa)
+              if m == "Navix":
+                if da == 1:
+                  path = Path(LOG_ROOT_MULTIK.format(k)) / "Navix" / d / f"output_{nrg}_{sa[0]}_navix.json"
+                else:
+                  path = Path(LOG_ROOT_MULTIK.format(k)) / "Navix" / d / f"{da}d" / f"output_{int(float(sel) * 100)}_{sa[0]}_navix.json"
+              else:
+                path = Path(LOG_ROOT_MULTIK.format(k)) / m / w / b / s
+              if path.exists():
+                entries.append((path, m, k, w, d, nrg, sel, b, s))
+                if (len(entries) % 100 == 0):
+                  print(f"Processed {len(entries)} entries")
 
   df = pd.DataFrame.from_records(
     entries, columns=[
@@ -710,6 +726,16 @@ def summarize_multik(datasets):
 
   rec, qps, tqps, ncomp, prop, initial_ncomp = [], [], [], [], [], []
   for e in entries:
+    if e[1] == "Navix":
+      with open(e[0]) as f:
+        stat = json.load(f)
+        rec.append(stat["recall_percentage"] / 100)
+        qps.append(1 / stat["avg_vector_search_time_ms"] * 1000)
+        tqps.append(1 / stat["avg_execution_time_ms"] * 1000)
+        ncomp.append(stat["avg_distance_computations"])
+        prop.append(0)
+        initial_ncomp.append(0)
+      continue
     jsons = list(e[0].glob("*.json"))
     if len(jsons) == 0:
       df = df.drop(e[0])
@@ -771,53 +797,69 @@ def draw_qps_comp_fixing_selectivity_by_k_camera(datasets, d_m_b, d_m_s, anno, p
 
   all = pd.read_csv(f"stats-1d-multik.csv", dtype=types)
 
-  m = "CompassPostKTh"
+  m_s = ["CompassPostKTh", "Navix", "SeRF"]
   for rec in [0.8, 0.85, 0.9, 0.95]:
     d_m_sel = {}
     for d in d_m_b.keys():
       d_m_sel[d] = {}
-      d_m_sel[d][m] = {}
-      for sel in sel_s:
-        d_m_sel[d][m][sel] = {}
+      for m in m_s:
+        d_m_sel[d][m] = {}
+        for sel in sel_s:
+          d_m_sel[d][m][sel] = {}
 
     for k in k_s:
       df = all[all["k"] == k]
       for i, d in enumerate(datasets):
         data = df[df["dataset"] == d]
-        for sel in sel_s:
-          for b in d_m_b[d][m]:
-            data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
-            for nrel in d_m_s[d][m]["nrel"]:
-              data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
-              rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp", "initial_ncomp"]].sort_values(["selectivity", "recall"])
-              rec_sel_qps_comp["total_ncomp"] = rec_sel_qps_comp["initial_ncomp"] + rec_sel_qps_comp["ncomp"]
-              grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
-              grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
-              grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["total_ncomp"].min()
-              pos = bisect.bisect(grouped_qps["selectivity"], sel) - 1
-              if pos == -1 or grouped_qps["selectivity"][pos] != sel:
-                pos = -1
-              label = f"{m}-{b}-{nrel}-{rec}"
-              if label not in d_m_sel[d][m][sel]:  # a list by dimension
-                d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
-              d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
-              d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
-              d_m_sel[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 30000)
+        for m in m_s:
+          for sel in sel_s:
+            for b in d_m_b[d][m]:
+              data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+              if m.startswith("Compass"):
+                for nrel in d_m_s[d][m]["nrel"]:
+                  data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
+                  rec_sel_qps_comp = data_by_m_b_nrel[["recall", "selectivity", "qps", "ncomp", "initial_ncomp"]].sort_values(["selectivity", "recall"])
+                  rec_sel_qps_comp["total_ncomp"] = rec_sel_qps_comp["initial_ncomp"] + rec_sel_qps_comp["ncomp"]
+                  grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
+                  grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
+                  grouped_total_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["total_ncomp"].min()
+                  pos = bisect.bisect(grouped_qps["selectivity"], sel) - 1
+                  if pos == -1 or grouped_qps["selectivity"][pos] != sel:
+                    pos = -1
+                  label = f"{m}-{b}-{nrel}-{rec}"
+                  if label not in d_m_sel[d][m][sel]:  # a list by dimension
+                    d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": [], "total_ncomp": []}
+                  d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                  d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
+                  d_m_sel[d][m][sel][label]["total_ncomp"].append(grouped_total_comp["total_ncomp"][pos] if pos >= 0 else 30000)
+              else:
+                rec_sel_qps_comp = data_by_m_b[["recall", "selectivity", "qps", "ncomp"]].sort_values(["selectivity", "recall"])
+                grouped_qps = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["qps"].max()
+                grouped_comp = rec_sel_qps_comp[rec_sel_qps_comp["recall"].gt(rec)].groupby("selectivity", as_index=False)["ncomp"].min()
+                pos = bisect.bisect(grouped_qps["selectivity"], sel) - 1
+                if pos == -1 or grouped_qps["selectivity"][pos] != sel:
+                  pos = -1
+                label = f"{m}-{b}-{rec}"
+                if label not in d_m_sel[d][m][sel]:  # a list by dimension
+                  d_m_sel[d][m][sel][label] = {"qps": [], "ncomp": []}
+                d_m_sel[d][m][sel][label]["qps"].append(grouped_qps["qps"][pos] if pos >= 0 else 0)
+                d_m_sel[d][m][sel][label]["ncomp"].append(grouped_comp["ncomp"][pos] if pos >= 0 else 30000)
 
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='constrained')
       for i, d in enumerate(datasets):
-        marker = M_STYLE[m]
-        for label in d_m_sel[d][m][sel].keys():
-          das = k_s[:len(d_m_sel[d][m][sel][label]["qps"])]
-          sc = axs[0][i].scatter(das, d_m_sel[d][m][sel][label]["qps"], label=label, **marker)
-          axs[0][i].plot(das, d_m_sel[d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
-          if m.startswith("Compass"):
-            axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["total_ncomp"], label=label, **marker)
-            axs[1][i].plot(das, d_m_sel[d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
-          else:
-            axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["ncomp"], label=label, **marker)
-            axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
+        for m in m_s:
+          marker = M_STYLE[m]
+          for label in d_m_sel[d][m][sel].keys():
+            das = k_s[:len(d_m_sel[d][m][sel][label]["qps"])]
+            sc = axs[0][i].scatter(das, d_m_sel[d][m][sel][label]["qps"], label=label, **marker)
+            axs[0][i].plot(das, d_m_sel[d][m][sel][label]["qps"], color=sc.get_facecolor()[0])
+            if m.startswith("Compass"):
+              axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["total_ncomp"], label=label, **marker)
+              axs[1][i].plot(das, d_m_sel[d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
+            else:
+              axs[1][i].scatter(das, d_m_sel[d][m][sel][label]["ncomp"], label=label, **marker)
+              axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
 
         dt = d.split("-")[0].upper()
         axs[0][i].set_xlabel('$k$')
