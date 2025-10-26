@@ -99,16 +99,18 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
             axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
 
           dt = d.split("-")[0].upper()
-          axs[0][i].set_xlabel('Recall')
+          # axs[0][i].set_xlabel('Recall')
           axs[0][i].set_xticks(xticks)
-          axs[0][i].set_ylabel('QPS')
+          if i == 0:
+            axs[0][i].set_ylabel('QPS')
           axs[0][i].set_title("{}, Passrate-{:.1%}".format(dt, sel))
           axs[1][i].set_xlabel('Recall')
           axs[1][i].set_xticks(xticks)
-          axs[1][i].set_ylabel('# Comp')
+          if i == 0:
+            axs[1][i].set_ylabel('# Comp')
           auto_bottom, auto_top = axs[1][i].get_ylim()
           axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
-          axs[1][i].set_title("{}, Passrate-{:.1%}".format(dt, sel))
+          # axs[1][i].set_title("{}, Passrate-{:.1%}".format(dt, sel))
 
       fig.set_size_inches(10, 6)
       unique_labels = {}
@@ -198,16 +200,18 @@ def draw_qps_comp_fixing_recall_by_selectivity_camera(da, datasets, methods, ann
       dt = d.split("-")[0].upper()
       axs[0][i].set_xticks(np.arange(len(selectivities)))
       axs[0][i].set_xticklabels(selectivities)
-      axs[0][i].set_xlabel('Passrate')
-      axs[0][i].set_ylabel('QPS')
+      # axs[0][i].set_xlabel('Passrate')
+      if i == 0:
+        axs[0][i].set_ylabel('QPS')
       axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
       axs[1][i].set_xticks(np.arange(len(selectivities)))
       axs[1][i].set_xticklabels(selectivities)
       axs[1][i].set_xlabel('Passrate')
-      axs[1][i].set_ylabel('# Comp')
+      if i == 0:
+        axs[1][i].set_ylabel('# Comp')
       auto_bottom, auto_top = axs[1][i].get_ylim()
       axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
-      axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
+      # axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
     fig.set_size_inches(12, 6)
     unique_labels = {}
@@ -327,16 +331,18 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
               axs[0][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
               axs[1][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
         dt = d.split("-")[0].upper()
-        axs[0][i].set_xlabel('Dimension')
+        # axs[0][i].set_xlabel('Dimension')
         axs[0][i].set_xticks(DA_S)
-        axs[0][i].set_ylabel('QPS')
+        if i == 0:
+          axs[0][i].set_ylabel('QPS')
         axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
         axs[1][i].set_xlabel('Dimension')
-        axs[1][i].set_ylabel('# Comp')
+        if i == 0:
+          axs[1][i].set_ylabel('# Comp')
         auto_bottom, auto_top = axs[1][i].get_ylim()
         axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
         axs[1][i].set_xticks(DA_S)
-        axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
+        # axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
     fig.set_size_inches(12, 6)
     unique_labels = {}
@@ -396,16 +402,18 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, d_m
                 axs[0][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
                 axs[1][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
           dt = d.split("-")[0].upper()
-          axs[0][i].set_xlabel('Dimension')
+          # axs[0][i].set_xlabel('Dimension')
           axs[0][i].set_xticks(DA_S)
-          axs[0][i].set_ylabel('QPS')
+          if i == 0:
+            axs[0][i].set_ylabel('QPS')
           axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
           axs[1][i].set_xlabel('Dimension')
-          axs[1][i].set_ylabel('# Comp')
+          if i == 0:
+            axs[1][i].set_ylabel('# Comp')
           auto_bottom, auto_top = axs[1][i].get_ylim()
           axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
           axs[1][i].set_xticks(DA_S)
-          axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
+          # axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
       fig.set_size_inches(12, 6)
       unique_labels = {}
@@ -551,16 +559,18 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
               axs[1][i].scatter(tick, rec_d_m[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
 
         dt = d.split("-")[0].upper()
-        axs[0][i].set_xlabel('Dimension')
+        # axs[0][i].set_xlabel('Dimension')
         axs[0][i].set_xticks(ndisjunctions)
-        axs[0][i].set_ylabel('QPS')
+        if i == 0:
+          axs[0][i].set_ylabel('QPS')
         axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
         axs[1][i].set_xlabel('Dimension')
-        axs[1][i].set_ylabel('# Comp')
+        if i == 0:
+          axs[1][i].set_ylabel('# Comp')
         auto_bottom, auto_top = axs[1][i].get_ylim()
         axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
         axs[1][i].set_xticks(ndisjunctions)
-        axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
+        # axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
       fig.set_size_inches(12, 6)
       unique_labels = {}
@@ -620,16 +630,18 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
                 axs[1][i].scatter(tick, rec_d_m[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
 
           dt = d.split("-")[0].upper()
-          axs[0][i].set_xlabel('Dimension')
+          # axs[0][i].set_xlabel('Dimension')
           axs[0][i].set_xticks(ndisjunctions)
-          axs[0][i].set_ylabel('QPS')
+          if i == 0:
+            axs[0][i].set_ylabel('QPS')
           axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
           axs[1][i].set_xlabel('Dimension')
-          axs[1][i].set_ylabel('# Comp')
+          if i == 0:
+            axs[1][i].set_ylabel('# Comp')
           auto_bottom, auto_top = axs[1][i].get_ylim()
           axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
           axs[1][i].set_xticks(ndisjunctions)
-          axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
+          # axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
       fig.set_size_inches(12, 6)
       unique_labels = {}
@@ -862,16 +874,18 @@ def draw_qps_comp_fixing_selectivity_by_k_camera(datasets, d_m_b, d_m_s, anno, p
               axs[1][i].plot(das, d_m_sel[d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
 
         dt = d.split("-")[0].upper()
-        axs[0][i].set_xlabel('$k$')
+        # axs[0][i].set_xlabel('$k$')
         axs[0][i].set_xticks(k_s)
-        axs[0][i].set_ylabel('QPS')
+        if i == 0:
+          axs[0][i].set_ylabel('QPS')
         axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
         axs[1][i].set_xlabel('$k$')
         axs[1][i].set_xticks(k_s)
-        axs[1][i].set_ylabel('# Comp')
+        if i == 0:
+          axs[1][i].set_ylabel('# Comp')
         auto_bottom, auto_top = axs[1][i].get_ylim()
         axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
-        axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
+        # axs[1][i].set_title(f"{dt}, Recall-{rec:.3g}")
 
       fig.set_size_inches(12, 6)
       unique_labels = {}
