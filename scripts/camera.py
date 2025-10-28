@@ -20,6 +20,8 @@ from config import (
   compass_args,
 )
 
+import json
+
 LOG_ROOT = Path("/home/chunxy/repos/Compass/logs_10")
 
 types = {
@@ -54,7 +56,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
     "glove100": 30000,
   }
 
-  selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
+  selected_efs = [10, 20, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
 
   for rg in ranges if ranges else DA_RANGE[da]:
     fig, axs = plt.subplots(2, len(datasets), layout='constrained')
@@ -939,6 +941,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
   }
 
   selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
+  selected_efs = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
 
   for rg in ranges if ranges else DA_RANGE[da]:
     fig, axs = plt.subplots(2, len(datasets), layout='tight')
@@ -1364,6 +1367,10 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
                 if pos == -1:
                   rec_d_m_sel[rec][d][m][sel][label]["fallout"].append(len(rec_d_m_sel[rec][d][m][sel][label]["qps"]))
 
+  # with open(f"{prefix}/conjunction_rec_d_m_sel.json", "w") as f:
+  #   json.dump(rec_d_m_sel, f, indent=4)
+  #   return
+
   for rec in [0.8, 0.85, 0.9, 0.95]:
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='tight')
@@ -1394,7 +1401,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
         axs[0][i].set_xticklabels([])
         if i == 0:
           axs[0][i].set_ylabel('QPS')
-        axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
+        axs[0][i].set_title(f"{dt}, Rec.-{rec:.3g}")
         axs[1][i].set_xlabel('Dimension')
         if i == 0:
           axs[1][i].set_ylabel('# Comp')
@@ -1480,7 +1487,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
           axs[0][i].set_xticklabels([])
           if i == 0:
             axs[0][i].set_ylabel('QPS')
-          axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
+          axs[0][i].set_title(f"{dt}, Rec.-{rec:.3g}")
           axs[1][i].set_xlabel('Dimension')
           if i == 0:
             axs[1][i].set_ylabel('# Comp')
@@ -1620,6 +1627,11 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
                 if pos == -1:
                   rec_d_m[rec][d][m][sel][label]["fallout"].append(len(rec_d_m[rec][d][m][sel][label]["qps"]))
 
+
+  # with open(f"{prefix}/disjunction_rec_d_m_sel.json", "w") as f:
+  #   json.dump(rec_d_m, f, indent=4)
+  #   return
+
   for rec in [0.8, 0.85, 0.9, 0.95]:
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='tight')
@@ -1650,7 +1662,7 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
         axs[0][i].set_xticklabels([])
         if i == 0:
           axs[0][i].set_ylabel('QPS')
-        axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
+        axs[0][i].set_title(f"{dt}, Rec.-{rec:.3g}")
         axs[1][i].set_xlabel('Dimension')
         if i == 0:
           axs[1][i].set_ylabel('# Comp')
@@ -1736,7 +1748,7 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
           axs[0][i].set_xticklabels([])
           if i == 0:
             axs[0][i].set_ylabel('QPS')
-          axs[0][i].set_title(f"{dt}, Recall-{rec:.3g}")
+          axs[0][i].set_title(f"{dt}, Rec.-{rec:.3g}")
           axs[1][i].set_xlabel('Dimension')
           if i == 0:
             axs[1][i].set_ylabel('# Comp')
