@@ -15,12 +15,17 @@ from summarize import (
   draw_qps_comp_fixing_dimension_selectivity_by_dimension,
 )
 from camera import (
+  draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked,
   draw_qps_comp_fixing_selectivity_by_k_camera,
+  draw_qps_comp_with_disjunction_by_dimension_camera_shrinked,
   draw_qps_comp_wrt_recall_by_selectivity_camera,
   draw_qps_comp_fixing_recall_by_selectivity_camera,
   draw_qps_comp_with_disjunction_by_dimension_camera,
   draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera,
+  draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked,
+  # draw_qps_comp_fixing_selectivity_by_k_camera_shrinked,
   summarize_multik,
+  draw_time_breakdown,
 )
 
 nrel_100 = {d: {} for d in DATASETS}
@@ -503,6 +508,8 @@ def camera_ready():
   # Figure 5: muiti-k
   draw_qps_comp_fixing_selectivity_by_k_camera(datasets, best_d_m_b, best_d_m_s, "multi-k", "camera-ready")
 
+  # Figure 6: time breakdown
+  draw_time_breakdown()
 
   # Figure 4: ablation study
   for d in ("sift-dedup", "audio-dedup"):

@@ -943,13 +943,16 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
   selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
   selected_efs = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
 
+  rg_d_b = {}
   for rg in ranges if ranges else DA_RANGE[da]:
+    rg_d_b[rg] = {}
     fig, axs = plt.subplots(2, len(datasets), layout='tight')
     fig.set_size_inches(8, 4)
     for ax in axs.flat:
       ax.set_box_aspect(1)
       ax.tick_params(axis='y', rotation=45)
     for i, d in enumerate(datasets):
+      rg_d_b[rg][d] = {}
       selector = ((df["dataset"] == d) & (df["range"] == rg))
       if not selector.any():
         continue
@@ -964,13 +967,17 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
           else:
             data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
+            rg_d_b[rg][d][b] = {}
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
-              selected_search = [f"efs_{efs}_nrel_{nrel}_batch_k_20_initial_efs_20_delta_efs_20" for efs in selected_efs]
+              _selected_efs = D_ARGS[d]["efs"]
+              selected_search = [f"efs_{efs}_nrel_{nrel}_batch_k_20_initial_efs_20_delta_efs_20" for efs in _selected_efs]
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
-              rec_qps_comp = data_by_m_b_nrel[["recall", "qps", "ncomp", "initial_ncomp"]].sort_values(["recall"], ascending=[True])
+              rec_qps_comp = data_by_m_b_nrel[["recall", "qps", "ncomp", "initial_ncomp", "search"]].sort_values(["recall"], ascending=[True])
               rec_qps_comp["total_ncomp"] = rec_qps_comp["initial_ncomp"] + rec_qps_comp["ncomp"]
 
               recall_above = rec_qps_comp[rec_qps_comp["recall"].gt(xlim[0])]
+              rg_d_b[rg][d][b]["recall"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["recall"].to_list()[0]
+              rg_d_b[rg][d][b]["search"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["search"].to_list()[0]
               axs[0][i].plot(recall_above["recall"], recall_above["qps"], **marker)
               axs[0][i].scatter(recall_above["recall"], recall_above["qps"], label=f"{m}-{b}-nrel_{nrel}", **marker)
               axs[1][i].plot(recall_above["recall"], recall_above["total_ncomp"], **marker)
@@ -1046,6 +1053,9 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
       path.parent.mkdir(parents=True, exist_ok=True)
       fig.savefig(path, dpi=200)
       plt.close("all")
+
+  with open(f"{prefix}/All-{anno}-QPS-Comp-Recall-Search.json", "w") as f:
+    json.dump(rg_d_b, f, indent=4)
 
 
 def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(datasets, d_m_b, d_m_s, anno, prefix):
@@ -1292,6 +1302,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
       fig.savefig(path, dpi=200)
       plt.close("all")
 
+
 def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(datasets, d_m_b, d_m_s, anno, prefix):
   sel_s = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
   interval = {
@@ -1367,9 +1378,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
                 if pos == -1:
                   rec_d_m_sel[rec][d][m][sel][label]["fallout"].append(len(rec_d_m_sel[rec][d][m][sel][label]["qps"]))
 
-  # with open(f"{prefix}/conjunction_rec_d_m_sel.json", "w") as f:
-  #   json.dump(rec_d_m_sel, f, indent=4)
-  #   return
+  with open(f"{prefix}/conjunction_rec_d_m_sel.json", "w") as f:
+    json.dump(rec_d_m_sel, f, indent=4)
 
   for rec in [0.8, 0.85, 0.9, 0.95]:
     for sel in sel_s:
@@ -1540,6 +1550,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
       fig.savefig(path, dpi=200)
       plt.close("all")
 
+
 def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b, d_m_s, anno, prefix):
   sel_s = [0.1, 0.2, 0.3]
   interval = {
@@ -1627,10 +1638,8 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
                 if pos == -1:
                   rec_d_m[rec][d][m][sel][label]["fallout"].append(len(rec_d_m[rec][d][m][sel][label]["qps"]))
 
-
-  # with open(f"{prefix}/disjunction_rec_d_m_sel.json", "w") as f:
-  #   json.dump(rec_d_m, f, indent=4)
-  #   return
+  with open(f"{prefix}/disjunction_rec_d_m_sel.json", "w") as f:
+    json.dump(rec_d_m, f, indent=4)
 
   for rec in [0.8, 0.85, 0.9, 0.95]:
     for sel in sel_s:
@@ -1802,3 +1811,159 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
       fig.savefig(path, dpi=200)
       plt.close("all")
 
+
+def draw_time_breakdown():
+  ranges = [1, 30, 80]
+  datasets = ["CRAWL", "VIDEO", "GIST", "GLOVE100"]
+  total_time = {
+    1: np.array([2.78, 2.81, 4.36, 7.87]),
+    30: np.array([1.82, 8.46, 7.49, 10.34]),
+    80: np.array([1.24, 7.69, 6.6, 9.66]),
+  }
+  graph_time = {
+    1: np.array([0.1 + 0.07, 0.04 + 0.15, 0, 0.09]),
+    30: np.array([1.24 + 0.17, 6.33 + 0.99, 5.68 + 0.88, 8.17 + 0.16]),
+    80: np.array([0.61 + 0.44, 6.33 + 0.97, 5.29 + 0.9, 7.97 + 0.65]),
+  }
+  clusb_time = {
+    1: np.array([
+      1.32 + 0.1,
+      1.12 + 0.45,
+      2.35 + 0.27,
+      5.59 + 0.13,
+    ]),
+    30: np.array([
+      0.24 + 0,
+      0.46 + 0,
+      0.32,
+      0.3,
+    ]),
+    80: np.array([
+      0.05 + 0,
+      0.08,
+      0,
+      0.30,
+    ]),
+  }
+  graph_comp_time = {
+    1: np.array([
+      0.07 + 0,
+      0.15 + 0,
+      0,
+      0.04 + 0.09
+    ]),
+    30: np.array([
+      0.56 + 0.07,
+      4.46 + 0.42,
+      3.92 + 0.44,
+      2.21 + 0.13,
+    ]),
+    80: np.array([
+      0.39 + 0.24,
+      4.66 + 0.54,
+      3.73 + 0.57,
+      2.97 + 0.22
+    ]),
+  }
+  cg_comp_time = {
+    1: np.array([
+      0.41 + 0.02,
+      0.56 + 0.19,
+      1 + 0.12,
+      0.85+0.04
+    ]),
+    30: np.array([
+      0.05,
+      0.15,
+      0.16,
+      0.09,
+    ]),
+    80: np.array([
+      0.05,
+      0.04,
+      0,
+      0.09
+    ]),
+  }
+  ivf_comp_time = {
+    1: np.array([
+      0.38,
+      0.45,
+      0.89,
+      0.39,
+    ]),
+    30: np.array([
+      0.02,
+      0.38,
+      0.36,
+      0.34
+    ]),
+    80: np.array([
+      0,
+      0.08,
+      0.04,
+      0.04
+    ]),
+  }
+  filter_timer = {
+    1: np.array([
+      0,
+      0,
+      0,
+      0,
+    ]),
+    30: np.array([
+      0,
+      0,
+      0,
+      0,
+    ]),
+    80: np.array([
+      0,
+      0,
+      0,
+      0,
+    ]),
+  }
+
+  fig, axs = plt.subplots(1, len(ranges))
+  axs = axs.flatten()
+  _bottom = 0.05
+  plt.tight_layout(rect=[0, _bottom, 1, 1], w_pad=0.05, h_pad=0.05)
+  fig.set_size_inches(10, 4)
+  for rg, ax in zip(ranges, axs):
+
+    cg_comp_time[rg] += ivf_comp_time[rg]
+    ax.set_box_aspect(1)
+
+    bottom = np.zeros(4)
+    ax.bar(datasets, np.ones(4), label='Others', bottom=bottom)
+    ax.bar(datasets, graph_time[rg] / total_time[rg], label='Proximity Graph', bottom=bottom)
+    # ax.bar(datasets, graph_comp_time[rg] / total_time[rg], label='Graph Comp', bottom=bottom)
+
+    bottom += graph_time[rg] / total_time[rg]
+    ax.bar(datasets, clusb_time[rg] / total_time[rg], label='Clustered B+-trees', bottom=bottom)
+    # ax.bar(datasets, cg_comp_time[rg] / total_time[rg], label='Cluster Comp', bottom=bottom)
+
+    ax.set_title(f'Passrate {rg}%, Recall 0.9')
+
+
+  unique_labels = {}
+  for ax in axs:
+    handles, labels = ax.get_legend_handles_labels()
+    for handle, label in zip(handles, labels):
+      # label = label.split("-")[0]
+      # if label.startswith("Compass"):
+      #   label = "Compass"
+      # if label.startswith("SeRF"):
+      #   label = "SeRF"
+      unique_labels[label] = handle
+  fig.legend(
+    unique_labels.values(),
+    unique_labels.keys(),
+    loc='outside lower center',
+    bbox_to_anchor=(0.5, 0),
+    fancybox=True,
+    ncol=3,
+  )
+  fig.savefig('time_breakdown.jpg', dpi=200)
