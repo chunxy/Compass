@@ -165,7 +165,7 @@ def summarize():
           initial_ncomp.append(0)
         else:
           initial_ncomp.append(0)
-      if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS:
+      if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS or e[1].startswith("CompassPost"):
         nsample, averaged_qps = min(len(jsons), 3), qps[-1]
         for i in range(2, nsample + 1):
           with open(jsons[-i]) as f:
