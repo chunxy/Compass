@@ -63,8 +63,9 @@ include_directories(${PROJECT_SOURCE_DIR}/thirdparty/btree)
 # add_subdirectory(thirdparty/CRoaring EXCLUDE_FROM_ALL)
 # include_directories(${PROJECT_SOURCE_DIR}/thirdparty/CRoaring/cpp)
 
+# https://github.com/RoaringBitmap/CRoaring?tab=readme-ov-file#using-as-a-cmake-dependency-with-fetchcontent
+# https://github.com/RoaringBitmap/croaring_cmake_demo_single_file/blob/master/CMakeLists.txt
 include(FetchContent)
-
 FetchContent_Declare(
   roaring
   GIT_REPOSITORY https://github.com/RoaringBitmap/CRoaring.git
