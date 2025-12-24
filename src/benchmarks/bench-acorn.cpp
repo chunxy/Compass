@@ -131,12 +131,14 @@ int main(int argc, char **argv) {
   vector<float> dist(k * nq);
   omp_set_num_threads(1);
 
-  // create filter_ids_map, ie a bitmap of the ids that are in the filter
+  // Create filter_ids_map, i.e. a bitmap of the ids that are in the filter.
   int batch_size = 100;
   if (nq % batch_size != 0) {
     fmt::print("Warning: nq % batch_size != 0, will not be able to search in batches.\n");
     return -1;
   }
+
+  auto search_start = high_resolution_clock::now();
   int n_batches = (nq + (batch_size - 1)) / batch_size;
   vector<vector<char>> filter_id_maps(n_batches);
   for (int b = 0; b < n_batches; b++) {
@@ -148,7 +150,6 @@ int main(int argc, char **argv) {
     }
   }
 
-  auto search_start = high_resolution_clock::now();
   for (int i = 0; i < n_batches; i++) {
     hybrid_index->search(
         batch_size,
