@@ -73,7 +73,7 @@ for d in DATASETS:
   # best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500", "M_64_efc_200_efmax_500"]
   best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
-  # best_d_m_b[d]["ACORN"] = ["M_32_beta_64_efc_200_gamma_12"]
+  best_d_m_b[d]["ACORN"] = ["M_16_beta_64_efc_200_gamma_12", "M_32_beta_64_efc_200_gamma_12"]
   # best_d_m_b[d]["Ivf"] = ["nlist_10000", "nlist_20000"]
   # best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200"]
   # best_d_m_b[d]["Prefiltering"] = [""]
@@ -423,7 +423,7 @@ def compare_best_with_sotas():
   )
 
 
-def compare_best_with_sotas_by_dimension():
+def compare_conjunction():
   draw_qps_comp_fixing_overall_selectivity_by_dimension(DATASETS, best_d_m_b, best_d_m_s, "fix-all", "fixing-overall-selectivity")
   draw_qps_comp_fixing_dimension_selectivity_by_dimension(DATASETS, best_d_m_b, best_d_m_s, "fix-dim", "fixing-dimension-selectivity")
 
@@ -476,9 +476,11 @@ def camera_ready():
     best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
   for d in DATASETS:
     best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
+    best_d_m_b[d]["ACORN"] = ["M_16_beta_64_efc_200_gamma_12"]
     best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
   for d in ["video-dedup", "glove100"]:
     best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
+    best_d_m_b[d]["ACORN"] = ["M_32_beta_64_efc_200_gamma_12"]
 
   best_d_m_s = {d: {} for d in DATASETS}
   for d in DATASETS:
@@ -488,7 +490,7 @@ def camera_ready():
   best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50]}
 
   datasets = ["crawl", "video-dedup", "gist-dedup", "glove100"]
-  # # Figure 1: multi-attribute conjunction, fix dimension passrate
+  # Figure 1: multi-attribute conjunction, fix dimension passrate
   draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "fix-dim", "camera-ready")
 
   # Figure 3: QPS-Recall, #Comp-Recall
@@ -502,7 +504,7 @@ def camera_ready():
     prefix="camera-ready",
   )
 
-  # # Figure 2: multi-attribute disjunction
+  # Figure 2: multi-attribute disjunction
   draw_qps_comp_with_disjunction_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "or-dim", "camera-ready")
 
   # Figure 5: muiti-k
@@ -570,9 +572,9 @@ if __name__ == "__main__":
   # pick_M()
   # pick_nlist()
   # pick_dx()
-  # compare_best_with_sotas_by_dimension()
-  # # compare_with_sotas() # slow?
-  # compare_best_with_sotas()
+  # compare_with_sotas() # old methods; slow
+  compare_best_with_sotas()
+  # compare_conjunction()
   # compare_disjunction()
   # summarize_multik(["crawl", "video-dedup", "gist-dedup", "glove100"])
-  camera_ready() # Put this to last because we delete keys from the global best config variable.
+  camera_ready()
