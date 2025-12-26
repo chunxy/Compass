@@ -128,8 +128,8 @@ int main(int argc, char **argv) {
     std::string search = fmt::format("efs_{}", efs);
     std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
     std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-    fs::path log_root(fmt::format(LOGS, k) + "_special");
-    // fs::path log_root(fmt::format(LOGS, k));
+    // fs::path log_root(fmt::format(LOGS, k) + "_special");
+    fs::path log_root(fmt::format(LOGS, k));
     fs::path log_dir = log_root / method / workload / build / search;
 
     hybrid_index->acorn.efSearch = efs;
