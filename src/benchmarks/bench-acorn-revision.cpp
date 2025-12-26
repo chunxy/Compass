@@ -120,6 +120,7 @@ int main(int argc, char **argv) {
   }
 
   for (auto efs : efs_s) {
+    int initial_n3 = acorn::acorn_stats.n3;
     time_t ts = time(nullptr);
     auto tm = localtime(&ts);
     std::string workload =
@@ -232,6 +233,6 @@ int main(int argc, char **argv) {
     }
 
     fmt::print(out, "Selectivity       : {}/{} = {:5.2f}%\n", nsat, nb, (double)nsat / nb * 100);
-    collate_acorn_stats(search_time, acorn::acorn_stats.n3, rec_at_ks, pre_at_ks, (log_dir / out_json).string(), out);
+    collate_acorn_stats(search_time, acorn::acorn_stats.n3 - initial_n3, rec_at_ks, pre_at_ks, (log_dir / out_json).string(), out);
   }
 }

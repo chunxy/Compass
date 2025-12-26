@@ -84,7 +84,7 @@ def compose():
                   f.write(f'{sp}_s=({" ".join(map(str, D_ARGS[d].get(sp, M_ARGS[m][sp])))})\n')
 
                 build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["build"]))
-                search_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["search"]))
+                search_string = " ".join(map(lambda x: f"--{x} ${{{x}_s[@]}}", M_PARAM[m]["search"]))
                 intervals = M_DA_RUN[m][da]
                 inner_tmpl = \
 '''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-acorn-revision \
@@ -100,8 +100,6 @@ def compose():
                   ) for itvl in intervals
                 ])
 
-                for sp in M_PARAM[m]["search"][::-1]:
-                  inner = __enclose_for(sp, f"{sp}_s", inner)
                 for bp in M_PARAM[m]["build"][::-1]:
                   inner = __enclose_for(bp, f"{bp}_s", inner)
                 f.write(inner)
