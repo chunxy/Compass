@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
   int k;
   int M = 32;
   int M_beta = 64;  // param for compression
-  int efc = 200;    // Controls index search speed/build speed tradeoff; 40 by default.
+  // int efc = 200;    // Controls index search speed/build speed tradeoff; 40 by default.
   int gamma = 12;
   int efs = 100;  // default is 16
   // float attr_sel = 0.001;
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
   // index construction parameters
   optional_configs.add_options()("M", po::value<decltype(M)>(&M));
   optional_configs.add_options()("beta", po::value<decltype(M_beta)>(&M_beta));
-  optional_configs.add_options()("efc", po::value<decltype(efc)>(&efc));
+  // optional_configs.add_options()("efc", po::value<decltype(efc)>(&efc));
   optional_configs.add_options()("gamma", po::value<decltype(gamma)>(&gamma));
   // index search parameters
   optional_configs.add_options()("efs", po::value<decltype(efs)>(&efs));
@@ -71,7 +71,8 @@ int main(int argc, char **argv) {
   auto tm = localtime(&ts);
   std::string method = "ACORN";
   std::string workload = fmt::format(FILTER_WORKLOAD_TMPL, c.name, c.attr_range, k);
-  std::string build = fmt::format("M_{}_beta_{}_efc_{}_gamma_{}", M, M_beta, efc, gamma);
+  // std::string build = fmt::format("M_{}_beta_{}_efc_{}_gamma_{}", M, M_beta, efc, gamma);
+  std::string build = fmt::format("M_{}_beta_{}_gamma_{}", M, M_beta, gamma);
   std::string search = fmt::format("efs_{}", efs);
   std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
   std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
@@ -97,7 +98,7 @@ int main(int argc, char **argv) {
 
   acorn::IndexACORNFlat *hybrid_index;
   fs::path ckp_root(CKPS);
-  std::string acorn_ckp = fmt::format(ACORN_CHECKPOINT_TMPL, M, M_beta, efc, gamma);
+  std::string acorn_ckp = fmt::format(ACORN_CHECKPOINT_TMPL, M, M_beta, gamma);
   fs::path ckp_dir = ckp_root / method / c.name;
   auto ckp_path = ckp_dir / acorn_ckp;
   if (fs::exists(ckp_dir / acorn_ckp)) {

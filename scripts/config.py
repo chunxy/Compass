@@ -222,7 +222,8 @@ M_DA_RUN = {
   "CompassGraph": compass_graph_da_interval,
   "Ivf": ivf_da_interval,
   "Navix": navix_da_interval,
-  "ACORN": acorn_da_nlabel,
+  # "ACORN": acorn_da_nlabel,
+  "ACORN": compass_post_da_interval, # for revision
 }
 
 compass_group_dataset = {
@@ -318,7 +319,7 @@ prefiltering_parameters = {"build": [], "search": []}
 postfiltering_parameters = {"build": ["M", "efc"], "search": ["efs"]}
 compass_graph_parameters = {"build": ["M", "efc"], "search": ["efs", "nrel"]}
 navix_parameters = {"build": ["M", "efc"], "search": ["efs"]}
-acorn_parameters = {"build": ["M", "beta", "efc", "gamma"], "search": ["efs"]}
+acorn_parameters = {"build": ["M", "beta", "gamma"], "search": ["efs"]}
 
 # method - parameter
 M_PARAM = {
@@ -427,10 +428,11 @@ navix_args = {
 acorn_args = {
   "M": [16, 32],
   "beta": [64],
-  "efc": [200],
-  "gamma": [12],
-  "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180,
-          200, 220, 240, 260, 280, 300, 350, 400, 450, 500],
+  "gamma": [100],
+  "efs": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110,
+          120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260,
+          270, 280, 290, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520,
+          540, 560, 580, 600, 700, 800, 900, 1000],
 }
 
 M_ARGS = {

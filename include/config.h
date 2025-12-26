@@ -51,4 +51,4 @@ const std::string COMPASS_X_RANK_CHECKPOINT_TMPL = "{}-{}-{}.x.rank";           
 const std::string COMPASS_X_CGRAPH_CHECKPOINT_TMPL = "{}-{}-{}-{}.x.hnsw";       // {nlist}-{M}-{efc}-{dx}
 const std::string COMPASS_X_QCGRAPH_CHECKPOINT_TMPL = "{}-{}-{}-{}-{}.x.hnsw";   // {nlist}-{M}-{efc}-{dx}-{nbits}
 const std::string COMPASS_SQ_CHECKPOINT_TMPL = "{}-{}.sq";                       // {d}-{nbits}
-const std::string ACORN_CHECKPOINT_TMPL = "{}_{}_{}_{}.acorn";                   // {M}_{M_beta}_{efc}_{gamma}
+const std::string ACORN_CHECKPOINT_TMPL = "{}_{}_{}.acorn";                   // {M}_{M_beta}_{gamma}

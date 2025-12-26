@@ -71,10 +71,10 @@ def summarize():
             )
             nrg = "-".join(map(str, [itvl[0] for _ in range(da)]))
             sel = f"{(itvl[0] ** da) / (100 ** da):.4g}"
-          elif m == "ACORN":
-            w = M_WORKLOAD[m].format(d, itvl)
-            nrg = str(100 / itvl)
-            sel = f"{(1 / itvl):.4g}"
+          # elif m == "ACORN": # commented out for revision
+          #   w = M_WORKLOAD[m].format(d, itvl)
+          #   nrg = str(100 / itvl)
+          #   sel = f"{(1 / itvl):.4g}"
           elif m in COMPASS_METHODS or m in BASE_METHODS:
             w = M_WORKLOAD[m].format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
             nrg = "-".join([f"{(r - l) // 100}" for l, r in zip(*itvl)])  # noqa: E741
