@@ -1797,7 +1797,7 @@ DataCard crawl_1_30_float32_skewed{
     crawl_bpath,
     crawl_qpath,
     // reuse this field in revision
-    "/home/chunxy/repos/Compass/data/gt/crawl_1.skewed.hybrid.gt",
+    "/home/chunxy/repos/Compass/data/gt/crawl_1_30.skewed.hybrid.gt",
     300,
     1'989'995,
     10'000,
@@ -1805,6 +1805,8 @@ DataCard crawl_1_30_float32_skewed{
     1,
     10000,
     "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/crawl_1_30.skewed.value.bin"
 };
 
 DataCard crawl_2_20_float32_correlated{
@@ -1812,7 +1814,7 @@ DataCard crawl_2_20_float32_correlated{
     crawl_bpath,
     crawl_qpath,
     // reuse this field in revision
-    "/home/chunxy/repos/Compass/data/gt/crawl_2.correlated.hybrid.gt",
+    "/home/chunxy/repos/Compass/data/gt/crawl_2_20.correlated.hybrid.gt",
     300,
     1'989'995,
     10'000,
@@ -1820,6 +1822,8 @@ DataCard crawl_2_20_float32_correlated{
     2,
     10000,
     "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/crawl_2_20.correlated.value.bin"
 };
 
 DataCard glove100_1_30_float32_skewed{

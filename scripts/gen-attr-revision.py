@@ -96,6 +96,6 @@ if __name__ == "__main__":
     correlation_matrix = np.corrcoef(data[:, 0], data[:, 1])
     passrate = 0
     for i in range(n_queries):
-      passrate += np.sum((data[:, 0] <= rg[n_queries:, 0]) & (data[:, 0] >= rg[:n_queries, 0]) & (data[:, 1] <= rg[n_queries:, 1])
-                          & (data[:, 1] >= rg[:n_queries, 1])) / n
+      passrate += np.sum((data[:, 0] >= rg[i, 0]) & (data[:, 0] <= rg[i + n_queries, 0]) & (data[:, 1] >= rg[i, 1])
+                          & (data[:, 1] <= rg[i + n_queries, 1])) / n
     print(f"{dataset} passrate: {passrate / n_queries}, correlation: {correlation_matrix[0, 1]:.4f}")

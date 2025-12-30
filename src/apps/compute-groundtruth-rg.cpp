@@ -110,6 +110,10 @@ int main(int argc, char **argv) {
   std::ofstream ofs(path, std::ios_base::binary & std::ios_base::out);
   for (int i = 0; i < nq; i++) {
     uint32_t size = hybrid_topks[i].size();
+    if (size != k) {
+      fmt::print("Error: size ({}) != k ({})\n", size, k);
+      return 1;
+    }
     ofs.write((char *)&size, sizeof(size));
     for (int j = 0; j < hybrid_topks[i].size(); j++) {
       ofs.write((char *)&hybrid_topks[i][j].second, 4);
