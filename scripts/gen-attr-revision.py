@@ -56,26 +56,26 @@ if __name__ == "__main__":
     n_queries = dataset_nquery[dataset]
     data = gen_zipf_distribution_float32(n, zipf_alpha)
     data.tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_1_{zipf_rg_ub}.skewed.value.bin")
-    rg = np.zeros((n_queries, 2), dtype=np.float32)
-    rg[:, 0] = np.random.uniform(0, zipf_rg_ub, n_queries)
-    rg[:, 1] = np.random.uniform(rg[:, 0], zipf_rg_ub, n_queries)
-    if (rg[:, 0] > rg[:, 1]).any():
+    rg = np.zeros((n_queries * 2, 1), dtype=np.int32)
+    rg[:n_queries, 0] = np.random.randint(0, zipf_rg_ub, n_queries, dtype=np.int32)
+    rg[n_queries:, 0] = np.random.randint(rg[:n_queries, 0], zipf_rg_ub, n_queries, dtype=np.int32)
+    if (rg[:n_queries, 0] > rg[n_queries:, 0]).any():
       print("Error")
       exit()
     i = 0
     while i < n_queries:
-      pass_num = np.sum((data >= rg[i, 0]) & (data <= rg[i, 1]))
+      pass_num = np.sum((data >= rg[i]) & (data <= rg[i + n_queries]))
       if pass_num < 100:
         rg[i, 0] /= 2
-        rg[i, 1] = (rg[i, 1] + zipf_rg_ub) / 2
+        rg[i + n_queries, 0] = (rg[i + n_queries, 0] + zipf_rg_ub) / 2
         continue
       else:
         i += 1
-    rg.tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.skewed.rg.bin")
+    rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.skewed.rg.bin")
 
     passrate = 0
     for i in range(n_queries):
-      passrate += np.sum((data <= rg[i, 1]) & (data >= rg[i, 0])) / n
+      passrate += np.sum((data >= rg[i]) & (data <= rg[i + n_queries])) / n
     print(f"{dataset} passrate: {passrate / n_queries}")
 
   variance, corr = 10, 0.5
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     rg[:n_queries, 1] = np.random.uniform(-corr_rg_ub, corr_rg_ub, n_queries)
     rg[n_queries:, 0] = np.random.uniform(rg[:n_queries, 0], corr_rg_ub, n_queries)
     rg[n_queries:, 1] = np.random.uniform(rg[:n_queries, 1], corr_rg_ub, n_queries)
-    if (rg[:n_queries, 0] > rg[:n_queries, 0]).any() or (rg[n_queries:, 1] > rg[n_queries:, 1]).any():
+    if (rg[:n_queries, 0] > rg[n_queries:, 0]).any() or (rg[:n_queries, 1] > rg[n_queries:, 1]).any():
       print("Error")
       exit()
     i = 0

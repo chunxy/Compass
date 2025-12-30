@@ -30,6 +30,8 @@ const std::string HYBRID_RG_CHEATING_PATH_TMPL = GT_DATA_CHEATING + "/{}_{}_{}_{
 const std::string HYBRID_GT_PATH_TMPL_NEO = GT_DATA + "/{}_{}_{}_{}.hybrid.gt";  // {name}_{range}_{percentages}_{k}
 const std::string FILTER_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}.filter.gt";         // {name}_{range}_{k}
 const std::string HYBRID_RG_PATH_TMPL = RG_DATA + "/{}_{}_{}.hybrid.rg";         // {name}_{range}_{percentages}
+const std::string HYBRID_RG_SKEWED_PATH_TMPL = RG_DATA + "/{}_{}_{}.skewed.rg.bin";  // {name}_{da}_{range}
+const std::string HYBRID_RG_CORRELATED_PATH_TMPL = RG_DATA + "/{}_{}_{}.correlated.rg.bin";  // {name}_{da}_{range}'
 
 // workload names
 const std::string HYBRID_WORKLOAD_TMPL = "{}_{}_{}_{}_{}";           // {method}_{range}_{l}_{r}_{k}
