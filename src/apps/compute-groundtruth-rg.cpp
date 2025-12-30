@@ -44,19 +44,21 @@ void compute_groundtruth(
 #pragma omp parallel for schedule(static)
   for (int i = 0; i < nq; i++) {
     const float *query = xq + i * d;
-
-    bool ok = true;
-    for (int dim = 0; dim < da; dim++) {
-      if (attrs[i][dim] < l_bounds[i * da + dim] || attrs[i][dim] > u_bounds[i * da + dim]) {
-        ok = false;
-        break;
+    for (int j = 0; j < nb; j++) {
+      bool ok = true;
+      for (int dim = 0; dim < da; dim++) {
+        if (attrs[j][dim] < l_bounds[i * da + dim] || attrs[j][dim] > u_bounds[i * da + dim]) {
+          ok = false;
+          break;
+        }
+      }
+      if (ok) {
+        auto dist = space.get_dist_func()(query, xb + j * d, space.get_dist_func_param());
+        pq_topks[i].emplace(dist, j);
+        if (pq_topks[i].size() > k) pq_topks[i].pop();
       }
     }
-    if (ok) {
-      auto dist = space.get_dist_func()(query, xb + i * d, space.get_dist_func_param());
-      pq_topks[i].emplace(dist, i);
-      if (pq_topks[i].size() > k) pq_topks[i].pop();
-    }
+
     hybrid_topks[i].resize(pq_topks[i].size());
     int sz = pq_topks[i].size();
     while (pq_topks[i].size() != 0) {

@@ -62,6 +62,15 @@ if __name__ == "__main__":
     if (rg[:, 0] > rg[:, 1]).any():
       print("Error")
       exit()
+    i = 0
+    while i < n_queries:
+      pass_num = np.sum((data >= rg[i, 0]) & (data <= rg[i, 1]))
+      if pass_num < 100:
+        rg[i, 0] /= 2
+        rg[i, 1] = (rg[i, 1] + zipf_rg_ub) / 2
+        continue
+      else:
+        i += 1
     rg.tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.skewed.rg.bin")
 
     passrate = 0
@@ -90,6 +99,18 @@ if __name__ == "__main__":
     if (rg[:n_queries, 0] > rg[:n_queries, 0]).any() or (rg[n_queries:, 1] > rg[n_queries:, 1]).any():
       print("Error")
       exit()
+    i = 0
+    while i < n_queries:
+      pass_num = np.sum((data[:, 0] >= rg[i, 0]) & (data[:, 0] <= rg[i + n_queries, 0]) & (data[:, 1] >= rg[i, 1])
+                        & (data[:, 1] <= rg[i + n_queries, 1]))
+      if pass_num < 100:
+        rg[i, 0] = (rg[i, 0] - corr_rg_ub) / 2
+        rg[i, 1] = (rg[i, 1] - corr_rg_ub) / 2
+        rg[i + n_queries, 0] = (rg[i + n_queries, 0] + corr_rg_ub) / 2
+        rg[i + n_queries, 1] = (rg[i + n_queries, 1] + corr_rg_ub) / 2
+        continue
+      else:
+        i += 1
     rg.tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_2_{corr_rg_ub}.correlated.rg.bin")
 
     # Check actual correlation
