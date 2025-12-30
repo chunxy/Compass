@@ -45,9 +45,22 @@ void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, 
     i++;
   }
 
-  std::string attr_path = fmt::format(VALUE_PATH_TMPL, c.name, c.attr_dim, c.attr_range);
-  AttrReaderToVector<float> reader(attr_path);
-  attrs = reader.GetAttrs();
+  if (c.attr_path != "") {
+    // for revision
+    float *_attrs = load_float32(c.attr_path, c.n_base, c.attr_dim);
+    attrs.resize(c.n_base);
+    for (int i = 0; i < c.n_base; i++) {
+      attrs[i].resize(c.attr_dim);
+      for (int j = 0; j < c.attr_dim; j++) {
+        attrs[i][j] = _attrs[i * c.attr_dim + j];
+      }
+    }
+    delete[] _attrs;
+  } else {
+    std::string attr_path = fmt::format(VALUE_PATH_TMPL, c.name, c.attr_dim, c.attr_range);
+    AttrReaderToVector<float> reader(attr_path);
+    attrs = reader.GetAttrs();
+  }
 }
 
 void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, float *&attrs) {
@@ -72,9 +85,14 @@ void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, 
     i++;
   }
 
-  std::string attr_path = fmt::format(VALUE_PATH_TMPL, c.name, c.attr_dim, c.attr_range);
-  AttrReaderToRaw<float> reader(attr_path);
-  attrs = reader.GetAttrs();
+  if (c.attr_path != "") {
+    // for revision
+    attrs = load_float32(c.attr_path, c.n_base, c.attr_dim);
+  } else {
+    std::string attr_path = fmt::format(VALUE_PATH_TMPL, c.name, c.attr_dim, c.attr_range);
+    AttrReaderToRaw<float> reader(attr_path);
+    attrs = reader.GetAttrs();
+  }
 }
 
 void load_hybrid_query_gt(

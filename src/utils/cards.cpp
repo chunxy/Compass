@@ -1306,7 +1306,6 @@ DataCard video_dedup_1_100_int32{
     "int32",
 };
 
-
 DataCard video_dedup_1_10000_float32{
     "video-dedup",
     video_dedup_bpath,
@@ -1657,6 +1656,206 @@ DataCard gist_dedup_6_10000_float32{
 //     "float32",
 // };
 
+DataCard sift_dedup_1_30_float32_skewed{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/sift-dedup_1_30.skewed.hybrid.gt",
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/sift-dedup_1_30.skewed.value.bin"
+};
+
+DataCard sift_dedup_2_20_float32_correlated{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/sift-dedup_2_20.correlated.hybrid.gt",
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    2,
+    20,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/sift-dedup_2_20.correlated.value.bin"
+};
+
+DataCard audio_dedup_1_30_float32_skewed{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/audio-dedup_1_30.skewed.hybrid.gt",
+    128,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/audio-dedup_1_30.skewed.value.bin"
+};
+
+DataCard audio_dedup_2_20_float32_correlated{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/audio-dedup_2_20.correlated.hybrid.gt",
+    128,
+    1'000'000,
+    10'000,
+    100,
+    2,
+    20,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/audio-dedup_2_20.correlated.value.bin"
+};
+
+DataCard video_dedup_1_30_float32_skewed{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/video-dedup_1_30.skewed.hybrid.gt",
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/video-dedup_1_30.skewed.value.bin"
+};
+
+DataCard video_dedup_2_20_float32_correlated{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/video-dedup_2_20.correlated.hybrid.gt",
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    2,
+    20,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/video-dedup_2_20.correlated.value.bin"
+};
+
+DataCard gist_dedup_1_30_float32_skewed{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/gist-dedup_1_30.skewed.hybrid.gt",
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/gist-dedup_1_30.skewed.value.bin"
+};
+
+DataCard gist_dedup_2_20_float32_correlated{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/gist-dedup_2_20.correlated.hybrid.gt",
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    2,
+    20,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/gist-dedup_2_20.correlated.value.bin"
+};
+
+DataCard crawl_1_30_float32_skewed{
+    "crawl",
+    crawl_bpath,
+    crawl_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/crawl_1.skewed.hybrid.gt",
+    300,
+    1'989'995,
+    10'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
+DataCard crawl_2_20_float32_correlated{
+    "crawl",
+    crawl_bpath,
+    crawl_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/crawl_2.correlated.hybrid.gt",
+    300,
+    1'989'995,
+    10'000,
+    100,
+    2,
+    10000,
+    "float32",
+};
+
+DataCard glove100_1_30_float32_skewed{
+    "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/glove100_1_30.skewed.hybrid.gt",
+    100,
+    1'183'514,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/glove100_1_30.skewed.value.bin"
+};
+
+DataCard glove100_2_20_float32_correlated{
+    "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/glove100_2_20.correlated.hybrid.gt",
+    100,
+    1'183'514,
+    10'000,
+    100,
+    2,
+    20,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/glove100_2_20.correlated.value.bin"
+};
+
 std::map<std::string, DataCard> name_to_card{
     {"siftsmall_1_10_int32", siftsmall_1_10_int32},
     {"siftsmall_1_1000_int32", siftsmall_1_1000_int32},
@@ -1772,4 +1971,16 @@ std::map<std::string, DataCard> name_to_card{
     {"gist-dedup_4_10000_float32", gist_dedup_4_10000_float32},
     {"gist-dedup_5_10000_float32", gist_dedup_5_10000_float32},
     {"gist-dedup_6_10000_float32", gist_dedup_6_10000_float32},
+    {"sift-dedup_1_30_float32_skewed", sift_dedup_1_30_float32_skewed},
+    {"sift-dedup_2_20_float32_correlated", sift_dedup_2_20_float32_correlated},
+    {"video-dedup_1_30_float32_skewed", video_dedup_1_30_float32_skewed},
+    {"video-dedup_2_20_float32_correlated", video_dedup_2_20_float32_correlated},
+    {"audio-dedup_1_30_float32_skewed", audio_dedup_1_30_float32_skewed},
+    {"audio-dedup_2_20_float32_correlated", audio_dedup_2_20_float32_correlated},
+    {"glove100_1_30_float32_skewed", glove100_1_30_float32_skewed},
+    {"glove100_2_20_float32_correlated", glove100_2_20_float32_correlated},
+    {"crawl_1_30_float32_skewed", crawl_1_30_float32_skewed},
+    {"crawl_2_20_float32_correlated", crawl_2_20_float32_correlated},
+    {"gist-dedup_1_30_float32_skewed", gist_dedup_1_30_float32_skewed},
+    {"gist-dedup_2_20_float32_correlated", gist_dedup_2_20_float32_correlated},
 };
