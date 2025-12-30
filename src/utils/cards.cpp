@@ -1803,7 +1803,7 @@ DataCard crawl_1_30_float32_skewed{
     10'000,
     100,
     1,
-    10000,
+    30,
     "float32",
     // add this field in revision
     "/home/chunxy/repos/Compass/data/attr/crawl_1_30.skewed.value.bin"
@@ -1820,7 +1820,7 @@ DataCard crawl_2_20_float32_correlated{
     10'000,
     100,
     2,
-    10000,
+    20,
     "float32",
     // add this field in revision
     "/home/chunxy/repos/Compass/data/attr/crawl_2_20.correlated.value.bin"
