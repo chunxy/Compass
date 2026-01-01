@@ -55,6 +55,7 @@ if __name__ == "__main__":
   for dataset, n in datasets.items():
     n_queries = dataset_nquery[dataset]
     data = gen_zipf_distribution_float32(n, zipf_alpha)
+    data.sort()
     data.tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_1_{zipf_rg_ub}.skewed.value.bin")
     rg = np.zeros((n_queries * 2, 1), dtype=np.int32)
     rg[:n_queries, 0] = np.random.randint(0, zipf_rg_ub, n_queries, dtype=np.int32)
@@ -89,6 +90,8 @@ if __name__ == "__main__":
       mean=[0, 0],
       std=[variance, variance],
     )
+    indices = np.argsort(data[:, 0])
+    data = data[indices]
     data.tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_2_{corr_rg_ub}.correlated.value.bin")
 
     rg = np.zeros((n_queries * 2, 2), dtype=np.float32)
@@ -120,3 +123,4 @@ if __name__ == "__main__":
       passrate += np.sum((data[:, 0] >= rg[i, 0]) & (data[:, 0] <= rg[i + n_queries, 0]) & (data[:, 1] >= rg[i, 1])
                           & (data[:, 1] <= rg[i + n_queries, 1])) / n
     print(f"{dataset} passrate: {passrate / n_queries}, correlation: {correlation_matrix[0, 1]:.4f}")
+    print(f"{data[:, 1].min()}-{data[:, 1].max()} assigned to {n_queries} queries")

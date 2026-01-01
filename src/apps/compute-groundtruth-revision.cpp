@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
     }
     ofs.write((char *)&size, sizeof(size));
     for (int j = 0; j < hybrid_topks[i].size(); j++) {
-      ofs.write((char *)&hybrid_topks[i][j].second, 4);
+      ofs.write((char *)&hybrid_topks[i][j].second, sizeof(hybrid_topks[i][j].second));
     }
   }
 
