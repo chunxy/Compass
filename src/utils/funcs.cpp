@@ -228,11 +228,11 @@ void load_hybrid_query_gt_revision(const DataCard &c, const int k, vector<vector
   }
 
   hybrid_topks.resize(c.n_queries);
-  auto gt = load_uint32(c.groundtruth_path, c.n_queries, k);
+  auto gt = load_uint32(c.groundtruth_path, c.n_queries, c.n_groundtruth + 1); // because of the number of gt at the beginning
   for (int i = 0; i < c.n_queries; i++) {
     hybrid_topks[i].resize(k);
     for (int j = 0; j < k; j++) {
-      hybrid_topks[i][j] = gt[i * c.n_groundtruth + j];
+      hybrid_topks[i][j] = gt[i * (c.n_groundtruth + 1) + 1 + j];
     }
   }
   delete[] gt;
@@ -384,6 +384,7 @@ void stat_selectivity_revision(
 #pragma omp atomic update
     nsat += local_nsat;
   }
+  nsat /= nq;
 }
 
 void collect_batch_metric(

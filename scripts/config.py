@@ -195,7 +195,7 @@ M_WORKLOAD = {
     m: "{}_{}_10"
     for m in SOTA_POST_METHODS
   },
-  "ACORN": "{}_{}_10",
+  # "ACORN": "{}_{}_10", # For revision
   "CompassPostKThCh": "{}_{}_{}_{}_10",
 }
 

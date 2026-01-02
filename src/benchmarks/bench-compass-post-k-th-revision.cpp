@@ -61,7 +61,6 @@ int main(int argc, char **argv) {
   // Compute selectivity.
   int nsat;
   stat_selectivity_revision(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
-  nsat /= nq;
 
   CompassPostK<float, float> comp(
       nb, d, c.attr_dim, args.M, args.efc, args.nlist, args.M_cg, args.batch_k, args.initial_efs, args.delta_efs

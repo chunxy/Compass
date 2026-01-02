@@ -44,6 +44,8 @@ int main(int argc, char **argv) {
   // workload parameters
   required_configs.add_options()("datacard", po::value<decltype(dataname)>(&dataname)->required());
   required_configs.add_options()("k", po::value<decltype(k)>(&k)->required());
+  required_configs.add_options()("l", po::value<decltype(l_bounds)>(&l_bounds)->multitoken()->required());
+  required_configs.add_options()("r", po::value<decltype(u_bounds)>(&u_bounds)->multitoken()->required());
   // index construction parameters
   optional_configs.add_options()("M", po::value<decltype(M)>(&M));
   optional_configs.add_options()("beta", po::value<decltype(M_beta)>(&M_beta));
@@ -67,8 +69,6 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
 
   std::string method = "ACORN";
-  std::string workload = fmt::format(HYBRID_WORKLOAD_REVISION_TMPL, c.name, c.attr_range, k, c.type);
-  std::string build_param = fmt::format("M_{}_beta_{}_gamma_{}", M, M_beta, gamma);
 
   // Load data.
   float *xb, *xq;
@@ -77,24 +77,25 @@ int main(int argc, char **argv) {
   load_hybrid_data(c, xb, xq, gt, attrs);
   fmt::print("Finished loading data.\n");
 
-  // Load query range and groundtruth for hybrid search.
-  l_bounds.resize(c.n_queries * c.attr_dim);
-  u_bounds.resize(c.n_queries * c.attr_dim);
-  std::string rg_path = fmt::format(HYBRID_RG_REVISION_PATH_TMPL, c.name, c.attr_dim, c.attr_range, c.type);
-  auto rg = load_float32(rg_path, c.n_queries * 2, c.attr_dim);
-  memcpy(l_bounds.data(), rg, c.n_queries * c.attr_dim * sizeof(float));
-  memcpy(u_bounds.data(), rg + c.n_queries * c.attr_dim, c.n_queries * c.attr_dim * sizeof(float));
+  // Load groundtruth for hybrid search.
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt_revision(c, k, hybrid_topks);
-  fmt::print("Finished loading query range and groundtruth.\n");
-
+  load_hybrid_query_gt(c, l_bounds, u_bounds, k, hybrid_topks);
+  fmt::print("Finished loading groundtruth.\n");
   // Compute selectivity.
   int nsat;
-  stat_selectivity_revision(attrs, nb, c.attr_dim, l_bounds, u_bounds, nsat);
+  stat_selectivity(attrs, nb, c.attr_dim, l_bounds, u_bounds, nsat);
+
 
   vector<int> blabels(nb);
   for (int i = 0; i < nb; i++) {
-    blabels[i] = 1;
+    bool ok = true;
+    for (int j = 0; j < c.attr_dim; j++) {
+      if (attrs[i * c.attr_dim + j] < l_bounds[j] || attrs[i * c.attr_dim + j] > u_bounds[j]) {
+        ok = false;
+        break;
+      }
+    }
+    blabels[i] = (int)ok;
   }
   acorn::IndexACORNFlat *hybrid_index;
   fs::path ckp_root(CKPS);
@@ -122,7 +123,8 @@ int main(int argc, char **argv) {
     int initial_n3 = acorn::acorn_stats.n3;
     time_t ts = time(nullptr);
     auto tm = localtime(&ts);
-    std::string workload = fmt::format(HYBRID_WORKLOAD_REVISION_TMPL, c.name, c.attr_range, k, c.type);
+    std::string workload =
+        fmt::format(HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, fmt::join(l_bounds, "-"), fmt::join(u_bounds, "-"), k);
     std::string build = fmt::format("M_{}_beta_{}_gamma_{}", M, M_beta, gamma);
     std::string search = fmt::format("efs_{}", efs);
     std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
@@ -154,31 +156,34 @@ int main(int argc, char **argv) {
       return -1;
     }
 
+    // auto search_start = high_resolution_clock::now();
+    // int n_batches = (nq + (batch_size - 1)) / batch_size;
+    // vector<vector<char>> filter_id_maps(n_batches);
+    // for (int b = 0; b < n_batches; b++) {
+    //   filter_id_maps[b].resize(batch_size * nb);
+    //   for (int i = 0; i < batch_size; i++) {
+    //     for (int j = 0; j < nb; j++) {
+    //       filter_id_maps[b][i * nb + j] = (bool)(blabels[j] == 1);
+    //     }
+    //   }
+    // }
+
     auto search_start = high_resolution_clock::now();
     int n_batches = (nq + (batch_size - 1)) / batch_size;
     vector<char> filter_id_map(batch_size * nb);
-
-    for (int b = 0; b < n_batches; b++) {
-      for (int i = 0; i < batch_size; i++) {
-        for (int j = 0; j < nb; j++) {
-          filter_id_map[i * nb + j] = 1;
-          blabels[j] = 1;
-          for (int d = 0; d < c.attr_dim; d++) {
-            if (attrs[j * c.attr_dim + d] < l_bounds[(b * batch_size + i) * c.attr_dim + d] ||
-                attrs[j * c.attr_dim + d] > u_bounds[(b * batch_size + i) * c.attr_dim + d]) {
-              filter_id_map[i * nb + j] = 0;
-              blabels[j] = 0;
-              break;
-            }
-          }
-        }
+    for (int i = 0; i < batch_size; i++) {
+      for (int j = 0; j < nb; j++) {
+        filter_id_map[i * nb + j] = (bool)(blabels[j] == 1);
       }
+    }
+
+    for (int i = 0; i < n_batches; i++) {
       hybrid_index->search(
           batch_size,
-          xq + b * batch_size * d,
+          xq + i * batch_size * d,
           k,
-          dist.data() + b * batch_size * k,
-          nn.data() + b * batch_size * k,
+          dist.data() + i * batch_size * k,
+          nn.data() + i * batch_size * k,
           filter_id_map.data()
       );
     }
@@ -228,8 +233,6 @@ int main(int argc, char **argv) {
     }
 
     fmt::print(out, "Selectivity       : {}/{} = {:5.2f}%\n", nsat, nb, (double)nsat / nb * 100);
-    collate_acorn_stats(
-        search_time, acorn::acorn_stats.n3 - initial_n3, rec_at_ks, pre_at_ks, (log_dir / out_json).string(), out
-    );
+    collate_acorn_stats(search_time, acorn::acorn_stats.n3 - initial_n3, rec_at_ks, pre_at_ks, (log_dir / out_json).string(), out);
   }
 }

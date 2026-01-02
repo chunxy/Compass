@@ -73,7 +73,7 @@ for d in DATASETS:
   # best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500", "M_64_efc_200_efmax_500"]
   best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
-  best_d_m_b[d]["ACORN"] = ["M_16_beta_64_efc_200_gamma_12", "M_32_beta_64_efc_200_gamma_12"]
+  best_d_m_b[d]["ACORN"] = ["M_16_beta_64_efc_200_gamma_100", "M_32_beta_64_efc_200_gamma_100"]
   # best_d_m_b[d]["Ivf"] = ["nlist_10000", "nlist_20000"]
   # best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200"]
   # best_d_m_b[d]["Prefiltering"] = [""]
@@ -476,11 +476,11 @@ def camera_ready():
     best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
   for d in DATASETS:
     best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
-    best_d_m_b[d]["ACORN"] = ["M_16_beta_64_efc_200_gamma_12"]
+    best_d_m_b[d]["ACORN"] = ["M_16_beta_64_efc_200_gamma_100"]
     best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
   for d in ["video-dedup", "glove100"]:
     best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
-    best_d_m_b[d]["ACORN"] = ["M_32_beta_64_efc_200_gamma_12"]
+    best_d_m_b[d]["ACORN"] = ["M_32_beta_64_efc_200_gamma_100"]
 
   best_d_m_s = {d: {} for d in DATASETS}
   for d in DATASETS:
@@ -574,7 +574,7 @@ if __name__ == "__main__":
   # pick_dx()
   # compare_with_sotas() # old methods; slow
   compare_best_with_sotas()
-  # compare_conjunction()
-  # compare_disjunction()
+  compare_conjunction()
+  compare_disjunction()
   # summarize_multik(["crawl", "video-dedup", "gist-dedup", "glove100"])
   camera_ready()
