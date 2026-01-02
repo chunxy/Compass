@@ -15,6 +15,8 @@ using std::vector;
 
 float *load_float32(const string &path, const int n, const int d);
 
+uint32_t *load_uint32(const string &path, const int n, const int d);
+
 void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, vector<vector<float>> &attrs);
 
 void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, float *&attrs);
@@ -47,6 +49,8 @@ void load_hybrid_query_gt_percents(
     float *&u_bounds
 );
 
+void load_hybrid_query_gt_revision(const DataCard &c, const int k, vector<vector<labeltype>> &hybrid_topks);
+
 void load_filter_data(
     const DataCard &c,
     float *&xb,
@@ -68,6 +72,15 @@ void stat_selectivity(
 );
 
 void stat_selectivity(
+    const float *attrs,
+    const int n,
+    const int d,
+    const vector<float> &l_bounds,
+    const vector<float> &u_bounds,
+    int &nsat
+);
+
+void stat_selectivity_revision(
     const float *attrs,
     const int n,
     const int d,

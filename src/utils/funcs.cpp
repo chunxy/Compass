@@ -23,6 +23,16 @@ float *load_float32(const string &path, const int n, const int d) {
   return storage;
 }
 
+uint32_t *load_uint32(const string &path, const int n, const int d) {
+  std::ifstream in(path);
+  if (!in.good()) {
+    throw fmt::format("Failed to open file: {}", path);
+  }
+  auto storage = new uint32_t[n * d];
+  in.read((char *)storage, sizeof(float) * n * d);
+  return storage;
+}
+
 void load_hybrid_data(const DataCard &c, float *&xb, float *&xq, uint32_t *&gt, vector<vector<float>> &attrs) {
   auto d = c.dim, nb = c.n_base, nq = c.n_queries, ng = c.n_groundtruth;
   xb = new float[d * nb];
@@ -211,6 +221,23 @@ void load_hybrid_query_gt_percents(
   rg_file.read((char *)u_bounds, sizeof(float) * c.attr_dim * c.n_queries);
 }
 
+void load_hybrid_query_gt_revision(const DataCard &c, const int k, vector<vector<labeltype>> &hybrid_topks) {
+  if (k > c.n_groundtruth) {
+    fmt::print("k ({}) is greater than the number of groundtruth ({})\n", k, c.n_groundtruth);
+    return;
+  }
+
+  hybrid_topks.resize(c.n_queries);
+  auto gt = load_uint32(c.groundtruth_path, c.n_queries, k);
+  for (int i = 0; i < c.n_queries; i++) {
+    hybrid_topks[i].resize(k);
+    for (int j = 0; j < k; j++) {
+      hybrid_topks[i][j] = gt[i * c.n_groundtruth + j];
+    }
+  }
+  delete[] gt;
+}
+
 void load_filter_data(
     const DataCard &c,
     float *&xb,
@@ -327,6 +354,35 @@ void stat_selectivity(
         break;
       }
     }
+  }
+}
+
+void stat_selectivity_revision(
+    const float *attrs,
+    const int n,
+    const int d,
+    const vector<float> &l_bounds,
+    const vector<float> &u_bounds,
+    int &nsat
+) {
+  int nq = l_bounds.size() / d;
+  if (l_bounds.size() % d != 0 || u_bounds.size() % d != 0) {
+    throw std::invalid_argument("l_bounds and u_bounds must be multiple of d({}).");
+  }
+  nsat = 0;
+#pragma omp parallel for schedule(static)
+  for (int i = 0; i < nq; i++) {
+    int local_nsat = n;
+    for (int k = 0; k < n; k++) {
+      for (int j = 0; j < d; j++) {
+        if (l_bounds[i * d + j] > attrs[k * d + j] || attrs[k * d + j] > u_bounds[i * d + j]) {
+          local_nsat--;
+          break;
+        }
+      }
+    }
+#pragma omp atomic update
+    nsat += local_nsat;
   }
 }
 

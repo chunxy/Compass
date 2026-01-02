@@ -27,14 +27,14 @@ const std::string HYBRID_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}_{}_{}.hybrid.gt";  
 const std::string HYBRID_GT_CHEATING_PATH_TMPL =
     GT_DATA_CHEATING + "/{}_{}_{}_{}_{}.hybrid.gt";                                        // {name}_{perc}_{l}_{r}_{k}
 const std::string HYBRID_RG_CHEATING_PATH_TMPL = GT_DATA_CHEATING + "/{}_{}_{}_{}_{}.rg";  // {name}_{perc}_{l}_{r}_{k}
-const std::string HYBRID_GT_PATH_TMPL_NEO = GT_DATA + "/{}_{}_{}_{}.hybrid.gt";  // {name}_{range}_{percentages}_{k}
-const std::string FILTER_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}.filter.gt";         // {name}_{range}_{k}
-const std::string HYBRID_RG_PATH_TMPL = RG_DATA + "/{}_{}_{}.hybrid.rg";         // {name}_{range}_{percentages}
-const std::string HYBRID_RG_SKEWED_PATH_TMPL = RG_DATA + "/{}_{}_{}.skewed.rg.bin";  // {name}_{da}_{range}
-const std::string HYBRID_RG_CORRELATED_PATH_TMPL = RG_DATA + "/{}_{}_{}.correlated.rg.bin";  // {name}_{da}_{range}'
+const std::string HYBRID_GT_PATH_TMPL_NEO = GT_DATA + "/{}_{}_{}_{}.hybrid.gt";    // {name}_{range}_{percentages}_{k}
+const std::string FILTER_GT_PATH_TMPL = GT_DATA + "/{}_{}_{}.filter.gt";           // {name}_{range}_{k}
+const std::string HYBRID_RG_PATH_TMPL = RG_DATA + "/{}_{}_{}.hybrid.rg";           // {name}_{range}_{percentages}
+const std::string HYBRID_RG_REVISION_PATH_TMPL = RG_DATA + "/{}_{}_{}.{}.rg.bin";  // {name}_{da}_{range}_{type}
 
 // workload names
 const std::string HYBRID_WORKLOAD_TMPL = "{}_{}_{}_{}_{}";           // {method}_{range}_{l}_{r}_{k}
+const std::string HYBRID_WORKLOAD_REVISION_TMPL = "{}_{}_{}_{}";     // {method}_{range}_{k}_{type}
 const std::string HYBRID_CHEATING_WORKLOAD_TMPL = "{}_{}_{}_{}_{}";  // {method}_{perc}_{l}_{r}_{k}
 const std::string HYBRID_WORKLOAD_TMPL_NEO = "{}_{}_{}_{}";          // {method}_{range}_{percentages}_{k}
 const std::string FILTER_WORKLOAD_TMPL = "{}_{}_{}";                 // {method}_{range}_{k}
@@ -53,4 +53,4 @@ const std::string COMPASS_X_RANK_CHECKPOINT_TMPL = "{}-{}-{}.x.rank";           
 const std::string COMPASS_X_CGRAPH_CHECKPOINT_TMPL = "{}-{}-{}-{}.x.hnsw";       // {nlist}-{M}-{efc}-{dx}
 const std::string COMPASS_X_QCGRAPH_CHECKPOINT_TMPL = "{}-{}-{}-{}-{}.x.hnsw";   // {nlist}-{M}-{efc}-{dx}-{nbits}
 const std::string COMPASS_SQ_CHECKPOINT_TMPL = "{}-{}.sq";                       // {d}-{nbits}
-const std::string ACORN_CHECKPOINT_TMPL = "{}_{}_{}.acorn";                   // {M}_{M_beta}_{gamma}
+const std::string ACORN_CHECKPOINT_TMPL = "{}_{}_{}.acorn";                      // {M}_{M_beta}_{gamma}

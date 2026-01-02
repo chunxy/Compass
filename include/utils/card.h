@@ -9,4 +9,5 @@ struct DataCard {
   uint32_t attr_dim, attr_range;
   std::string attr_type;
   std::string attr_path = "";
+  std::string type = "";
 };

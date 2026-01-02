@@ -1670,7 +1670,8 @@ DataCard sift_dedup_1_30_float32_skewed{
     30,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/sift-dedup_1_30.skewed.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/sift-dedup_1_30.skewed.value.bin",
+    "skewed"
 };
 
 DataCard sift_dedup_2_20_float32_correlated{
@@ -1687,7 +1688,8 @@ DataCard sift_dedup_2_20_float32_correlated{
     20,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/sift-dedup_2_20.correlated.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/sift-dedup_2_20.correlated.value.bin",
+    "correlated"
 };
 
 DataCard audio_dedup_1_30_float32_skewed{
@@ -1704,7 +1706,8 @@ DataCard audio_dedup_1_30_float32_skewed{
     30,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/audio-dedup_1_30.skewed.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/audio-dedup_1_30.skewed.value.bin",
+    "skewed"
 };
 
 DataCard audio_dedup_2_20_float32_correlated{
@@ -1721,7 +1724,8 @@ DataCard audio_dedup_2_20_float32_correlated{
     20,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/audio-dedup_2_20.correlated.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/audio-dedup_2_20.correlated.value.bin",
+    "correlated"
 };
 
 DataCard video_dedup_1_30_float32_skewed{
@@ -1738,7 +1742,8 @@ DataCard video_dedup_1_30_float32_skewed{
     30,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/video-dedup_1_30.skewed.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/video-dedup_1_30.skewed.value.bin",
+    "skewed"
 };
 
 DataCard video_dedup_2_20_float32_correlated{
@@ -1755,7 +1760,8 @@ DataCard video_dedup_2_20_float32_correlated{
     20,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/video-dedup_2_20.correlated.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/video-dedup_2_20.correlated.value.bin",
+    "correlated"
 };
 
 DataCard gist_dedup_1_30_float32_skewed{
@@ -1772,7 +1778,8 @@ DataCard gist_dedup_1_30_float32_skewed{
     30,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/gist-dedup_1_30.skewed.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/gist-dedup_1_30.skewed.value.bin",
+    "skewed"
 };
 
 DataCard gist_dedup_2_20_float32_correlated{
@@ -1789,7 +1796,8 @@ DataCard gist_dedup_2_20_float32_correlated{
     20,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/gist-dedup_2_20.correlated.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/gist-dedup_2_20.correlated.value.bin",
+    "correlated"
 };
 
 DataCard crawl_1_30_float32_skewed{
@@ -1806,7 +1814,8 @@ DataCard crawl_1_30_float32_skewed{
     30,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/crawl_1_30.skewed.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/crawl_1_30.skewed.value.bin",
+    "skewed"
 };
 
 DataCard crawl_2_20_float32_correlated{
@@ -1823,7 +1832,8 @@ DataCard crawl_2_20_float32_correlated{
     20,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/crawl_2_20.correlated.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/crawl_2_20.correlated.value.bin",
+    "correlated"
 };
 
 DataCard glove100_1_30_float32_skewed{
@@ -1840,7 +1850,8 @@ DataCard glove100_1_30_float32_skewed{
     30,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/glove100_1_30.skewed.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/glove100_1_30.skewed.value.bin",
+    "skewed"
 };
 
 DataCard glove100_2_20_float32_correlated{
@@ -1857,7 +1868,8 @@ DataCard glove100_2_20_float32_correlated{
     20,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/glove100_2_20.correlated.value.bin"
+    "/home/chunxy/repos/Compass/data/attr/glove100_2_20.correlated.value.bin",
+    "correlated"
 };
 
 std::map<std::string, DataCard> name_to_card{

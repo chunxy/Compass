@@ -96,8 +96,7 @@ int main(int argc, char **argv) {
   l_bounds.resize(c.n_queries * c.attr_dim);
   u_bounds.resize(c.n_queries * c.attr_dim);
   // Particulalry for 1d skewed and 2d correlated.
-  std::string tmpl = c.attr_dim == 1 ? HYBRID_RG_SKEWED_PATH_TMPL : HYBRID_RG_CORRELATED_PATH_TMPL;
-  std::string rg_path = fmt::format(tmpl, c.name, c.attr_dim, c.attr_range);
+  std::string rg_path = fmt::format(HYBRID_RG_REVISION_PATH_TMPL, c.name, c.attr_dim, c.attr_range, c.type);
   auto rg = load_float32(rg_path, c.n_queries * 2, c.attr_dim);
   memcpy(l_bounds.data(), rg, c.n_queries * c.attr_dim * sizeof(float));
   memcpy(u_bounds.data(), rg + c.n_queries * c.attr_dim, c.n_queries * c.attr_dim * sizeof(float));
