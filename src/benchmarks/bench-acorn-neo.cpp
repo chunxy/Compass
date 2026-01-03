@@ -85,7 +85,6 @@ int main(int argc, char **argv) {
   int nsat;
   stat_selectivity(attrs, nb, c.attr_dim, l_bounds, u_bounds, nsat);
 
-
   vector<int> blabels(nb);
   for (int i = 0; i < nb; i++) {
     bool ok = true;
@@ -171,13 +170,13 @@ int main(int argc, char **argv) {
     auto search_start = high_resolution_clock::now();
     int n_batches = (nq + (batch_size - 1)) / batch_size;
     vector<char> filter_id_map(batch_size * nb);
-    for (int i = 0; i < batch_size; i++) {
-      for (int j = 0; j < nb; j++) {
-        filter_id_map[i * nb + j] = (bool)(blabels[j] == 1);
-      }
-    }
 
     for (int i = 0; i < n_batches; i++) {
+      for (int i = 0; i < batch_size; i++) {
+        for (int j = 0; j < nb; j++) {
+          filter_id_map[i * nb + j] = (bool)(blabels[j] == 1);
+        }
+      }
       hybrid_index->search(
           batch_size,
           xq + i * batch_size * d,
@@ -233,6 +232,8 @@ int main(int argc, char **argv) {
     }
 
     fmt::print(out, "Selectivity       : {}/{} = {:5.2f}%\n", nsat, nb, (double)nsat / nb * 100);
-    collate_acorn_stats(search_time, acorn::acorn_stats.n3 - initial_n3, rec_at_ks, pre_at_ks, (log_dir / out_json).string(), out);
+    collate_acorn_stats(
+        search_time, acorn::acorn_stats.n3 - initial_n3, rec_at_ks, pre_at_ks, (log_dir / out_json).string(), out
+    );
   }
 }

@@ -127,8 +127,8 @@ int main(int argc, char **argv) {
     std::string search = fmt::format("efs_{}", efs);
     std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
     std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-    // fs::path log_root(fmt::format(LOGS, k) + "_special");
-    fs::path log_root(fmt::format(LOGS, k));
+    fs::path log_root(fmt::format(LOGS, k) + "_special");
+    // fs::path log_root(fmt::format(LOGS, k));
     fs::path log_dir = log_root / method / workload / build / search;
 
     hybrid_index->acorn.efSearch = efs;
@@ -163,9 +163,9 @@ int main(int argc, char **argv) {
         for (int j = 0; j < nb; j++) {
           filter_id_map[i * nb + j] = 1;
           blabels[j] = 1;
-          for (int d = 0; d < c.attr_dim; d++) {
-            if (attrs[j * c.attr_dim + d] < l_bounds[(b * batch_size + i) * c.attr_dim + d] ||
-                attrs[j * c.attr_dim + d] > u_bounds[(b * batch_size + i) * c.attr_dim + d]) {
+          for (int da = 0; da < c.attr_dim; da++) {
+            if (attrs[j * c.attr_dim + da] < l_bounds[(b * batch_size + i) * c.attr_dim + da] ||
+                attrs[j * c.attr_dim + da] > u_bounds[(b * batch_size + i) * c.attr_dim + da]) {
               filter_id_map[i * nb + j] = 0;
               blabels[j] = 0;
               break;
