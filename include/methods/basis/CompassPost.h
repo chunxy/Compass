@@ -815,8 +815,8 @@ class CompassPost {
       const int nq,
       const int k,
       const attr_t *attrs,
-      const attr_t *l_bound,
-      const attr_t *u_bound,
+      const attr_t *batch_l_bound,
+      const attr_t *batch_u_bound,
       const int efs,
       const int nrel,
       const int nthread,
@@ -831,7 +831,9 @@ class CompassPost {
     // cg_.SetSearchParam(20, 20, 20);
 
     for (int q = 0; q < nq; q++) {
-      RangeQuery<attr_t> pred(l_bound + q * this->da_, u_bound + q * this->da_, attrs, this->n_, this->da_);
+      const attr_t *l_bound = batch_l_bound + q * this->da_;
+      const attr_t *u_bound = batch_u_bound + q * this->da_;
+      RangeQuery<attr_t> pred(l_bound, u_bound, attrs, this->n_, this->da_);
 #ifndef BENCH
       auto q_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
@@ -857,6 +859,7 @@ class CompassPost {
       IterativeSearchState<dist_t> cg_state(query_q, k);
       bool initialized = false;
       int clus_cnt = 0;
+      bool ivf_finished = false;
 
       int nround_graph = 0, num_graph_ppsl = 0, nround = 0;
       int num_ivf_ppsl = 0;
@@ -866,7 +869,7 @@ class CompassPost {
         // while (top_candidates.size() < k) { // For testing non-iterative version.
         // IVF is responsible for negative clustering and extremely low passrate.
         // Otherwise, post-filtering on graph should do.
-        if ((nround_graph >= 1 && (state.sel_ <= breaktie || graph_last_round == 0))) {
+        if (!ivf_finished && (nround_graph >= 1 && (state.sel_ <= breaktie || graph_last_round == 0))) {
 #ifndef BENCH
           auto ivf_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
@@ -934,6 +937,9 @@ class CompassPost {
 #endif
               int clus = next.second;
               if (clus == -1) {
+                if (cg_state.recycled_candidates_.empty()) {
+                  ivf_finished = true;
+                }
                 break;
               }
 #ifndef BENCH
@@ -1031,11 +1037,14 @@ class CompassPost {
         }
         // Believe in graph when the first-hop selectivity is not low.
         // "state.sel_ >=" means we do not always rely on graph.
-        if (nround_graph == 0 || state.sel_ >= breaktie) {
+        if (ivf_finished || nround_graph == 0 || state.sel_ >= breaktie) {
 #ifndef BENCH
           auto graph_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
           graph_.NextBatchTwoHop(&state, &pred);
+          if (ivf_finished && state.recycled_candidates_.empty()) {
+            break;  // No more candidates to recycle.
+          }
           priority_queue<pair<dist_t, labeltype>> &batch = state.result_set_;
           int i = 0;
           while (!batch.empty() && i < graph_.batch_k_) {

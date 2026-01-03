@@ -26,11 +26,11 @@ class IterativeSearchState {
   int cur_cnt;
   bool has_ran_;
 
-  priority_queue<pair<dist_t, int64_t>> recycled_candidates_;  // min heap
  public:
-  priority_queue<pair<dist_t, labeltype>> top_candidates_;  // max heap
-  priority_queue<pair<dist_t, labeltype>> candidate_set_;   // min heap
-  priority_queue<pair<dist_t, labeltype>> result_set_;      // min heap
+  priority_queue<pair<dist_t, int64_t>> recycled_candidates_;  // min heap, determines whether the search can continue
+  priority_queue<pair<dist_t, labeltype>> top_candidates_;     // max heap
+  priority_queue<pair<dist_t, labeltype>> candidate_set_;      // min heap
+  priority_queue<pair<dist_t, labeltype>> result_set_;         // min heap
   float sel_;
 
  private:
