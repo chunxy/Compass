@@ -1814,7 +1814,7 @@ DataCard audio_dedup_1_30_float32_point{
     30,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/audio-dedup_1_30.skew.value.bin",
+    "/home/chunxy/repos/Compass/data/attr/audio-dedup_1_30.skewed.value.bin",
     "point"
 };
 
