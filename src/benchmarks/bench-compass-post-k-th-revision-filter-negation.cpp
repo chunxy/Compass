@@ -35,6 +35,11 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
   assert(nq % args.batchsz == 0);
 
+  if (c.type != "negation" || c.attr_dim != 1) { // negation-only
+    throw std::runtime_error("Must be 1d negation\n");
+    exit(1);
+  }
+
   std::string method = "CompassPostKTh";
   // Particulalry for 1d skewed and 2d correlated.
   std::string workload = fmt::format(HYBRID_WORKLOAD_REVISION_TMPL, c.name, c.attr_range, args.k, c.type);
@@ -49,24 +54,16 @@ int main(int argc, char **argv) {
 
   // Load query range and groundtruth for hybrid search.
   args.l_bounds.resize(c.n_queries * c.attr_dim);
-  args.u_bounds.resize(c.n_queries * c.attr_dim);
   std::string rg_path = fmt::format(HYBRID_RG_REVISION_PATH_TMPL, c.name, c.attr_dim, c.attr_range, c.type);
   auto rg = load_float32(rg_path, c.n_queries, c.attr_dim);
   memcpy(args.l_bounds.data(), rg, c.n_queries * c.attr_dim * sizeof(float));
-  for (int i = 0; i < c.n_queries; i++) {
-    if (c.type == "onesided") {
-      args.u_bounds[i] = std::numeric_limits<float>::max();
-    } else if (c.type == "point") {
-      args.u_bounds[i] = args.l_bounds[i];
-    }
-  }
   vector<vector<labeltype>> hybrid_topks(nq);
   load_hybrid_query_gt_revision(c, args.k, hybrid_topks);
   fmt::print("Finished loading query range and groundtruth.\n");
 
   // Compute selectivity.
-  int nsat;
-  stat_selectivity_revision(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
+  int nsat = 0;
+  // stat_selectivity_revision(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
 
   CompassPostK<float, float> comp(
       nb, d, c.attr_dim, args.M, args.efc, args.nlist, args.M_cg, args.batch_k, args.initial_efs, args.delta_efs
@@ -174,13 +171,12 @@ int main(int argc, char **argv) {
       for (int j = 0; j < nq; j += args.batchsz) {
         int b = j / args.batchsz;
         auto batch_start = high_resolution_clock::system_clock::now();
-        results[b] = comp.SearchKnnPostFilteredTwoHopRevision(
+        results[b] = comp.SearchKnnPostFilteredTwoHopRevisionNegation(
             xq + j * d,
             args.batchsz,
             args.k,
             attrs,
             args.l_bounds.data() + j * c.attr_dim,
-            args.u_bounds.data() + j * c.attr_dim,
             efs,
             nrel,
             args.nthread,

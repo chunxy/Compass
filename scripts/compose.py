@@ -265,11 +265,12 @@ def compose_revision():
 
             workloads = ["onesided", "point", "negation"]
             inner_tmpl = \
-'''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-{}-revision-filter \
+'''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-{}-revision-filter{} \
 --datacard ${{dataset}}_{}_{}_float32_{} --k ${{k}} {} {}'''
             inner = '\n'.join([
               inner_tmpl.format(
                 "-".join(parts),
+                "-negation" if wl == "negation" and m == "CompassPostKTh" else "",
                 1,
                 30,
                 wl,
