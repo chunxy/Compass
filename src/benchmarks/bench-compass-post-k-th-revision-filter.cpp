@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
     if (c.type == "onesided") {
       args.u_bounds[i] = std::numeric_limits<float>::max();
     } else if (c.type == "point") {
-      args.u_bounds[i] = args.l_bounds[i];
+      args.u_bounds[i] = args.l_bounds[i] + 1e-5;
     }
   }
   vector<vector<labeltype>> hybrid_topks(nq);
