@@ -1692,6 +1692,60 @@ DataCard sift_dedup_2_20_float32_correlated{
     "correlated"
 };
 
+DataCard sift_dedup_1_30_float32_onesided{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/sift-dedup_1_30.onesided.hybrid.gt",
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/sift-dedup_1_30.skewed.value.bin",
+    "onesided"
+};
+
+DataCard sift_dedup_1_30_float32_point{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/sift-dedup_1_30.point.hybrid.gt",
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/sift-dedup_1_30.skewed.value.bin",
+    "point"
+};
+
+DataCard sift_dedup_1_30_float32_negation{
+    "sift-dedup",
+    sift_dedup_bpath,
+    sift_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/sift-dedup_1_30.negation.hybrid.gt",
+    128,
+    1'000'000 - 14538,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/sift-dedup_1_30.skewed.value.bin",
+    "negation"
+};
+
 DataCard audio_dedup_1_30_float32_skewed{
     "audio-dedup",
     audio_dedup_bpath,
@@ -1726,6 +1780,60 @@ DataCard audio_dedup_2_20_float32_correlated{
     // add this field in revision
     "/home/chunxy/repos/Compass/data/attr/audio-dedup_2_20.correlated.value.bin",
     "correlated"
+};
+
+DataCard audio_dedup_1_30_float32_onesided{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/audio-dedup_1_30.onesided.hybrid.gt",
+    128,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/audio-dedup_1_30.skewed.value.bin",
+    "onesided"
+};
+
+DataCard audio_dedup_1_30_float32_point{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/audio-dedup_1_30.point.hybrid.gt",
+    128,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/audio-dedup_1_30.skew.value.bin",
+    "point"
+};
+
+DataCard audio_dedup_1_30_float32_negation{
+    "audio-dedup",
+    audio_dedup_bpath,
+    audio_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/audio-dedup_1_30.negation.hybrid.gt",
+    128,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/audio-dedup_1_30.skewed.value.bin",
+    "negation"
 };
 
 DataCard video_dedup_1_30_float32_skewed{
@@ -1764,6 +1872,60 @@ DataCard video_dedup_2_20_float32_correlated{
     "correlated"
 };
 
+DataCard video_dedup_1_30_float32_onesided{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/video-dedup_1_30.onesided.hybrid.gt",
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/video-dedup_1_30.skewed.value.bin",
+    "onesided"
+};
+
+DataCard video_dedup_1_30_float32_point{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/video-dedup_1_30.point.hybrid.gt",
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/video-dedup_1_30.skewed.value.bin",
+    "point"
+};
+
+DataCard video_dedup_1_30_float32_negation{
+    "video-dedup",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/video-dedup_1_30.negation.hybrid.gt",
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/video-dedup_1_30.skewed.value.bin",
+    "negation"
+};
+
 DataCard gist_dedup_1_30_float32_skewed{
     "gist-dedup",
     gist_dedup_bpath,
@@ -1798,6 +1960,60 @@ DataCard gist_dedup_2_20_float32_correlated{
     // add this field in revision
     "/home/chunxy/repos/Compass/data/attr/gist-dedup_2_20.correlated.value.bin",
     "correlated"
+};
+
+DataCard gist_dedup_1_30_float32_onesided{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/gist-dedup_1_30.onesided.hybrid.gt",
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/gist-dedup_1_30.skewed.value.bin",
+    "onesided"
+};
+
+DataCard gist_dedup_1_30_float32_point{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/gist-dedup_1_30.point.hybrid.gt",
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/gist-dedup_1_30.skewed.value.bin",
+    "point"
+};
+
+DataCard gist_dedup_1_30_float32_negation{
+    "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/gist-dedup_1_30.negation.hybrid.gt",
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/gist-dedup_1_30.skewed.value.bin",
+    "negation"
 };
 
 DataCard crawl_1_30_float32_skewed{
@@ -1836,6 +2052,60 @@ DataCard crawl_2_20_float32_correlated{
     "correlated"
 };
 
+DataCard crawl_1_30_float32_onesided{
+    "crawl",
+    crawl_bpath,
+    crawl_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/crawl_1_30.onesided.hybrid.gt",
+    300,
+    1'989'995,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/crawl_1_30.skewed.value.bin",
+    "onesided"
+};
+
+DataCard crawl_1_30_float32_point{
+    "crawl",
+    crawl_bpath,
+    crawl_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/crawl_1_30.point.hybrid.gt",
+    300,
+    1'989'995,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/crawl_1_30.skewed.value.bin",
+    "point"
+};
+
+DataCard crawl_1_30_float32_negation{
+    "crawl",
+    crawl_bpath,
+    crawl_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/crawl_1_30.negation.hybrid.gt",
+    300,
+    1'989'995,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/crawl_1_30.skewed.value.bin",
+    "negation"
+};
+
 DataCard glove100_1_30_float32_skewed{
     "glove100",
     glove100_bpath,
@@ -1870,6 +2140,60 @@ DataCard glove100_2_20_float32_correlated{
     // add this field in revision
     "/home/chunxy/repos/Compass/data/attr/glove100_2_20.correlated.value.bin",
     "correlated"
+};
+
+DataCard glove100_1_30_float32_onesided{
+    "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/glove100_1_30.onesided.hybrid.gt",
+    100,
+    1'183'514,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/glove100_1_30.skewed.value.bin",
+    "onesided"
+};
+
+DataCard glove100_1_30_float32_point{
+    "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/glove100_1_30.point.hybrid.gt",
+    100,
+    1'183'514,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/glove100_1_30.skewed.value.bin",
+    "point"
+};
+
+DataCard glove100_1_30_float32_negation{
+    "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/glove100_1_30.negation.hybrid.gt",
+    100,
+    1'183'514,
+    10'000,
+    100,
+    1,
+    30,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/glove100_1_30.skewed.value.bin",
+    "negation"
 };
 
 std::map<std::string, DataCard> name_to_card{
@@ -1989,14 +2313,32 @@ std::map<std::string, DataCard> name_to_card{
     {"gist-dedup_6_10000_float32", gist_dedup_6_10000_float32},
     {"sift-dedup_1_30_float32_skewed", sift_dedup_1_30_float32_skewed},
     {"sift-dedup_2_20_float32_correlated", sift_dedup_2_20_float32_correlated},
+    {"sift-dedup_1_30_float32_onesided", sift_dedup_1_30_float32_onesided},
+    {"sift-dedup_1_30_float32_point", sift_dedup_1_30_float32_point},
+    {"sift-dedup_1_30_float32_negation", sift_dedup_1_30_float32_negation},
     {"video-dedup_1_30_float32_skewed", video_dedup_1_30_float32_skewed},
     {"video-dedup_2_20_float32_correlated", video_dedup_2_20_float32_correlated},
+    {"video-dedup_1_30_float32_onesided", video_dedup_1_30_float32_onesided},
+    {"video-dedup_1_30_float32_point", video_dedup_1_30_float32_point},
+    {"video-dedup_1_30_float32_negation", video_dedup_1_30_float32_negation},
     {"audio-dedup_1_30_float32_skewed", audio_dedup_1_30_float32_skewed},
     {"audio-dedup_2_20_float32_correlated", audio_dedup_2_20_float32_correlated},
+    {"audio-dedup_1_30_float32_onesided", audio_dedup_1_30_float32_onesided},
+    {"audio-dedup_1_30_float32_point", audio_dedup_1_30_float32_point},
+    {"audio-dedup_1_30_float32_negation", audio_dedup_1_30_float32_negation},
     {"glove100_1_30_float32_skewed", glove100_1_30_float32_skewed},
     {"glove100_2_20_float32_correlated", glove100_2_20_float32_correlated},
+    {"glove100_1_30_float32_onesided", glove100_1_30_float32_onesided},
+    {"glove100_1_30_float32_point", glove100_1_30_float32_point},
+    {"glove100_1_30_float32_negation", glove100_1_30_float32_negation},
     {"crawl_1_30_float32_skewed", crawl_1_30_float32_skewed},
     {"crawl_2_20_float32_correlated", crawl_2_20_float32_correlated},
+    {"crawl_1_30_float32_onesided", crawl_1_30_float32_onesided},
+    {"crawl_1_30_float32_point", crawl_1_30_float32_point},
+    {"crawl_1_30_float32_negation", crawl_1_30_float32_negation},
     {"gist-dedup_1_30_float32_skewed", gist_dedup_1_30_float32_skewed},
     {"gist-dedup_2_20_float32_correlated", gist_dedup_2_20_float32_correlated},
+    {"gist-dedup_1_30_float32_onesided", gist_dedup_1_30_float32_onesided},
+    {"gist-dedup_1_30_float32_point", gist_dedup_1_30_float32_point},
+    {"gist-dedup_1_30_float32_negation", gist_dedup_1_30_float32_negation},
 };

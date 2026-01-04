@@ -163,5 +163,41 @@ class InplaceRangeQuery : public hnswlib::BaseFilterFunctor {
     return true;
   }
 
-  const attr_t* prefetch(labeltype label) { return attrs_ + label * d_; }
+  const attr_t *prefetch(labeltype label) { return attrs_ + label * d_; }
+};
+
+template <typename attr_t>
+class GeqQuery : public hnswlib::BaseFilterFunctor {
+ private:
+  const attr_t value;
+  const attr_t *attrs_;
+  const int da_;
+
+ public:
+  GeqQuery(const attr_t value, const attr_t *attrs, size_t da) : value(value), attrs_(attrs), da_(da) {}
+  bool operator()(hnswlib::labeltype label) override { return attrs_[label * da_] >= value; }
+};
+
+template <typename attr_t>
+class PointQuery : public hnswlib::BaseFilterFunctor {
+ private:
+  const attr_t value;
+  const attr_t *attrs_;
+  const int da_;
+
+ public:
+  PointQuery(const attr_t value, const attr_t *attrs, size_t da) : value(value), attrs_(attrs), da_(da) {}
+  bool operator()(hnswlib::labeltype label) override { return attrs_[label * da_] == value; }
+};
+
+template <typename attr_t>
+class NegationQuery : public hnswlib::BaseFilterFunctor {
+ private:
+  const attr_t value_;
+  const attr_t *attrs_;
+  const int da_;
+
+ public:
+  NegationQuery(const attr_t value, const attr_t *attrs, size_t da) : value_(value), attrs_(attrs), da_(da) {}
+  bool operator()(hnswlib::labeltype label) override { return attrs_[label * da_] != value_; }
 };
