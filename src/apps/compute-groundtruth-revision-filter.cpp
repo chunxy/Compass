@@ -46,16 +46,16 @@ void compute_groundtruth(
 #pragma omp parallel for schedule(static)
   for (int i = 0; i < nq; i++) {
     const float *query = xq + i * d;
-    hnswlib::BaseFilterFunctor filter;
+    hnswlib::BaseFilterFunctor* filter;
     if (type == "onesided") {
-      filter = GeqQuery<float>(values[i * da], attrs, da);
+      filter = new GeqQuery<float>(values[i * da], attrs, da);
     } else if (type == "point") {
-      filter = PointQuery<float>(values[i * da], attrs, da);
+      filter = new PointQuery<float>(values[i * da], attrs, da);
     } else if (type == "negation") {
-      filter = NegationQuery<float>(values[i * da], attrs, da);
+      filter = new NegationQuery<float>(values[i * da], attrs, da);
     }
     for (int j = 0; j < nb; j++) {
-      bool ok = filter(j);
+      bool ok = (*filter)(j);
       if (ok) {
         auto dist = space.get_dist_func()(query, xb + j * d, space.get_dist_func_param());
         pq_topks[i].emplace(dist, j);
