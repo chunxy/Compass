@@ -241,6 +241,52 @@ def compose_revision():
             f.write(inner)
             f.write('\n')
 
+  for m in ["CompassPostKTh", "ACORN"]:
+    k_s = [10]
+    idx = 0
+    for group, datasets in M_GROUP_DATASET[m].items():
+      parts = [p.lower() for p in re.findall(r'[A-Z][a-z]*', ("Acorn" if m == "ACORN" else m))]
+      for d in datasets:
+        for M in D_ARGS[d].get("M", M_ARGS[m].get("M", [1])):
+          idx += 1
+          filename = "revision-filter-" + "-".join(parts) + f"-exp-{idx}.sh"
+          with open(EXP_ROOT / filename, "w") as f:
+            f.write(f'dataset={d}\n')
+            for bp in M_PARAM[m]["build"]:
+              if bp == "M":
+                f.write(f'{bp}_s=({M})\n')
+              else:
+                f.write(f'{bp}_s=({" ".join(map(str, D_ARGS[d].get(bp, M_ARGS[m][bp])))})\n')
+            for sp in M_PARAM[m]["search"]:
+              f.write(f'{sp}_s=({" ".join(map(str, D_ARGS[d].get(sp, M_ARGS[m][sp])))})\n')
+
+            build_string = " ".join(map(lambda x: f"--{x} ${{{x}}}", M_PARAM[m]["build"]))
+            search_string = " ".join(map(lambda x: f"--{x} ${{{x}_s[@]}}", M_PARAM[m]["search"]))
+
+            workloads = ["onesided", "point", "negation"]
+            inner_tmpl = \
+'''/home/chunxy/repos/Compass/build/Release/src/benchmarks/bench-{}-revision-filter \
+--datacard ${{dataset}}_{}_{}_float32_{} --k ${{k}} {} {}'''
+            inner = '\n'.join([
+              inner_tmpl.format(
+                "-".join(parts),
+                1,
+                30,
+                wl,
+                build_string,
+                search_string,
+              ) for wl in workloads
+            ])
+
+            for bp in M_PARAM[m]["build"][::-1]:
+              inner = __enclose_for(bp, f"{bp}_s", inner)
+            # if m == "CompassPostKTh" and da == 1:
+            #   k_s = [5, 10, 15, 20, 25]
+            inner = __enclose_for("k", "k_s", inner)
+            inner = (f'k_s=({" ".join(map(str, k_s))})\n') + inner
+            f.write(inner)
+            f.write('\n')
+
 
 if __name__ == "__main__":
   # compose()
