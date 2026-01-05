@@ -939,6 +939,7 @@ class CompassPost {
               if (clus == -1) {
                 if (cg_state.recycled_candidates_.empty()) {
                   ivf_finished = true;
+                  break;
                 }
                 continue;
               }
@@ -1237,6 +1238,7 @@ class CompassPost {
               if (clus == -1) {
                 if (cg_state.recycled_candidates_.empty()) {
                   ivf_finished = true;
+                  break;
                 }
                 continue;
               }
