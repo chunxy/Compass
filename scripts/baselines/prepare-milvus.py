@@ -2,12 +2,17 @@ from pymilvus import MilvusClient, DataType
 from utils import DA_S, CARDS, DATASET_M
 from utils import load_fvecs, load_attr
 import argparse
+from pathlib import Path
+import time
+import json
 
+BUILD_DIR = Path("/home/chunxy/milvus")
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="Prepare Milvus")
-  parser.add_argument("--names", type=str, nargs='+', required=True, help="Dataset name to process")
+  parser.add_argument("--names", type=str, nargs='+', required=False, help="Dataset name to process")
   args = parser.parse_args()
+  # args.names = ["sift-dedup"]
 
   for name in args.names:
     if name not in CARDS.keys():
@@ -19,6 +24,7 @@ if __name__ == "__main__":
     token="root:Milvus",
   )
 
+  build_time = {}
   for d in args.names:
     for da in DA_S:
       database_name = f"{d}_{da}".replace("-", "_")
@@ -75,7 +81,14 @@ if __name__ == "__main__":
       }
               for i, (attr, vector) in enumerate(zip(attrs, vectors))]
 
+      time_start = time.perf_counter_ns()
       for i in range(0, len(data), 1000):
         st, ed = i, min(i + 1000, len(data))
         res = client.insert(collection_name=database_name, data=data[st:ed])
+        print(f"Inserted {ed - st} objects into the {database_name}")
+      time_end = time.perf_counter_ns()
+      time_taken = time_end - time_start
+      build_time[f"{d}_{da}"] = time_taken / 1e9
 
+  with open(BUILD_DIR / "build_time_in_seconds.json", "w") as f:
+    json.dump(build_time, f, indent=2)

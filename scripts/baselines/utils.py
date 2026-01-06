@@ -1,6 +1,8 @@
 import numpy as np
 
 METHODS = ["Weaviate", "Milvus"]
+N_QUERIES = 200
+TOPK = 10
 
 DATASET_NBASE = {
   "sift-dedup": 1000000 - 14538,
@@ -66,9 +68,7 @@ da_interval = {
   ],
 }
 
-WORKLOAD = "{}_10000_{}_{}_10"
-# w = WORKLOAD.format(d, *map(lambda ele: "-".join(map(str, ele)), itvl))
-
+WORKLOAD = "{}_10000_{}_{}_10" # Search for top-10.
 
 class Datacard:
 
@@ -80,6 +80,7 @@ class Datacard:
     attr_path,
     interval,
     groundtruth_path,
+    workload,
     dim,
     n_base,
     n_queries,
@@ -92,6 +93,7 @@ class Datacard:
     self.attr_path = attr_path
     self.interval = interval
     self.groundtruth_path = groundtruth_path
+    self.workload = workload
     self.dim = dim
     self.n_base = n_base
     self.n_queries = n_queries
@@ -114,6 +116,7 @@ CARDS = {
         attr_path=ATTR.format(d, da, 10000),
         interval=itvl,
         groundtruth_path=GT.format(d, 10000, ", ".join(map(str, itvl[0])), ", ".join(map(str, itvl[1])), 100),
+        workload=WORKLOAD.format(d, *map(lambda ele: "-".join(map(str, ele)), itvl)),
         dim=DATASET_NDIM[d],
         n_base=DATASET_NBASE[d],
         n_queries=DATASET_NQUERY[d],
@@ -126,6 +129,10 @@ CARDS = {
   for d in DATASET_NBASE.keys()
 }
 
+EFS_S = [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110,
+          120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260,
+          270, 280, 290, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 600,
+          700, 800, 900, 1000]
 
 def load_fvecs(path, n, dim):
   fvecs = np.fromfile(path, dtype=np.float32).reshape((n, dim + 1))
