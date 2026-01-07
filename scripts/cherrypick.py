@@ -16,15 +16,15 @@ from summarize import (
 )
 from camera import (
   draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked,
-  draw_qps_comp_fixing_selectivity_by_k_camera,
-  draw_qps_comp_with_disjunction_by_dimension_camera_shrinked,
-  draw_qps_comp_wrt_recall_by_selectivity_camera,
-  draw_qps_comp_fixing_recall_by_selectivity_camera,
-  draw_qps_comp_with_disjunction_by_dimension_camera,
   draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera,
+  draw_qps_comp_with_disjunction_by_dimension_camera_shrinked,
+  draw_qps_comp_with_disjunction_by_dimension_camera,
   draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked,
+  draw_qps_comp_wrt_recall_by_selectivity_camera,
   # draw_qps_comp_fixing_selectivity_by_k_camera_shrinked,
-  summarize_multik,
+  # draw_qps_comp_fixing_recall_by_selectivity_camera,
+  # draw_qps_comp_fixing_selectivity_by_k_camera,
+  # summarize_multik,
   draw_time_breakdown,
 )
 
@@ -500,9 +500,13 @@ def camera_ready():
     best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
     best_d_m_b[d]["ACORN"] = ["M_16_beta_64_gamma_100"]
     best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
+    best_d_m_b[d]["Milvus"] = ["M_16_efc_200"]
+    best_d_m_b[d]["Weaviate"] = ["M_16_efc_200"]
   for d in ["video-dedup", "glove100"]:
     best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
     best_d_m_b[d]["ACORN"] = ["M_32_beta_64_gamma_100"]
+    best_d_m_b[d]["Milvus"] = ["M_32_efc_200"]
+    best_d_m_b[d]["Weaviate"] = ["M_32_efc_200"]
 
   best_d_m_s = {d: {} for d in DATASETS}
   for d in DATASETS:
@@ -513,10 +517,10 @@ def camera_ready():
 
   datasets = ["crawl", "video-dedup", "gist-dedup", "glove100"]
   # Figure 1: multi-attribute conjunction, fix dimension passrate
-  draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "fix-dim", "camera-ready")
+  draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(datasets, best_d_m_b, best_d_m_s, "fix-dim", "camera-ready")
 
   # Figure 3: QPS-Recall, #Comp-Recall
-  draw_qps_comp_wrt_recall_by_selectivity_camera(
+  draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(
     da=1,
     datasets=datasets,
     methods=METHODS,
@@ -527,13 +531,13 @@ def camera_ready():
   )
 
   # Figure 2: multi-attribute disjunction
-  draw_qps_comp_with_disjunction_by_dimension_camera(datasets, best_d_m_b, best_d_m_s, "or-dim", "camera-ready")
+  draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, best_d_m_b, best_d_m_s, "or-dim", "camera-ready")
 
-  # Figure 5: muiti-k
-  draw_qps_comp_fixing_selectivity_by_k_camera(datasets, best_d_m_b, best_d_m_s, "multi-k", "camera-ready")
+  # # Figure 5: muiti-k
+  # draw_qps_comp_fixing_selectivity_by_k_camera(datasets, best_d_m_b, best_d_m_s, "multi-k", "camera-ready")
 
-  # Figure 6: time breakdown
-  draw_time_breakdown()
+  # # Figure 6: time breakdown
+  # draw_time_breakdown()
 
   # Figure 4: ablation study
   for d in ("sift-dedup", "audio-dedup"):
@@ -561,7 +565,7 @@ def camera_ready():
   best_d_m_s["crawl"]["CompassGraph"] = {"nrel": [50]}
   best_d_m_s["glove100"]["CompassGraph"] = {"nrel": [100]}
   best_d_m_s["video-dedup"]["CompassGraph"] = {"nrel": [50]}
-  draw_qps_comp_wrt_recall_by_selectivity_camera(
+  draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(
     da=1,
     datasets=datasets,
     methods=METHODS,
