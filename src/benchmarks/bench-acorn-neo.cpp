@@ -171,18 +171,18 @@ int main(int argc, char **argv) {
     int n_batches = (nq + (batch_size - 1)) / batch_size;
     vector<char> filter_id_map(batch_size * nb);
 
-    for (int i = 0; i < n_batches; i++) {
-      for (int ii = 0; ii < batch_size; ii++) {
-        for (int j = 0; j < nb; j++) {
-          filter_id_map[ii * nb + j] = 1;
-          for (int da = 0; da < c.attr_dim; da++) {
-            if (attrs[j * c.attr_dim + da] < l_bounds[da] || attrs[j * c.attr_dim + da] > u_bounds[da]) {
-              filter_id_map[ii * nb + j] = 0;
-              break;
-            }
+    for (int ii = 0; ii < batch_size; ii++) {
+      for (int j = 0; j < nb; j++) {
+        filter_id_map[ii * nb + j] = 1;
+        for (int da = 0; da < c.attr_dim; da++) {
+          if (attrs[j * c.attr_dim + da] < l_bounds[da] || attrs[j * c.attr_dim + da] > u_bounds[da]) {
+            filter_id_map[ii * nb + j] = 0;
+            break;
           }
         }
       }
+    }
+    for (int i = 0; i < n_batches; i++) {
       hybrid_index->search(
           batch_size,
           xq + i * batch_size * d,
