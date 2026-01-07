@@ -176,7 +176,9 @@ BASE_METHODS = [
   "CompassRelational",
   "CompassGraph",
   "Navix",
-  "ACORN"
+  "ACORN",
+  "Milvus",
+  "Weaviate"
 ]
 METHODS = COMPASS_METHODS + SOTA_METHODS + BASE_METHODS
 SOTA_POST_METHODS = ["SeRF+Post", "iRangeGraph+Post"]
@@ -224,6 +226,8 @@ M_DA_RUN = {
   "Navix": navix_da_interval,
   # "ACORN": acorn_da_nlabel,
   "ACORN": compass_post_da_interval, # for revision
+  "Milvus": compass_post_da_interval, # for revision
+  "Weaviate": compass_post_da_interval, # for revision
 }
 
 compass_group_dataset = {
@@ -320,6 +324,8 @@ postfiltering_parameters = {"build": ["M", "efc"], "search": ["efs"]}
 compass_graph_parameters = {"build": ["M", "efc"], "search": ["efs", "nrel"]}
 navix_parameters = {"build": ["M", "efc"], "search": ["efs"]}
 acorn_parameters = {"build": ["M", "beta", "gamma"], "search": ["efs"]}
+milvus_parameters = {"build": ["M", "efc"], "search": ["efs"]}
+weaviate_parameters = {"build": ["M", "efc"], "search": ["efs"]}
 
 # method - parameter
 M_PARAM = {
@@ -353,6 +359,8 @@ M_PARAM = {
   "Ivf": ivf_parameters,
   "Navix": navix_parameters,
   "ACORN": acorn_parameters,
+  "Milvus": milvus_parameters,
+  "Weaviate": weaviate_parameters,
 }
 
 compass_args = {
@@ -434,6 +442,22 @@ acorn_args = {
           270, 280, 290, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520,
           540, 560, 580, 600, 700, 800, 900, 1000],
 }
+milvus_args = {
+  "M": [16, 32],
+  "efc": [200],
+  "efs": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110,
+          120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260,
+          270, 280, 290, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520,
+          540, 560, 580, 600, 700, 800, 900, 1000],
+}
+weaviate_args = {
+  "M": [16, 32],
+  "efc": [200],
+  "efs": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110,
+          120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260,
+          270, 280, 290, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520,
+          540, 560, 580, 600, 700, 800, 900, 1000],
+}
 
 M_ARGS = {
   **{
@@ -458,6 +482,8 @@ M_ARGS = {
   "Ivf": ivf_args,
   "Navix": navix_args,
   "ACORN": acorn_args,
+  "Milvus": milvus_args,
+  "Weaviate": weaviate_args,
 }
 
 D_ARGS = {
@@ -588,5 +614,11 @@ M_STYLE = {
   },
   "ACORN": {
     "marker": "d", "color": "brown"
+  },
+  "Milvus": {
+    "marker": "^", "color": "green"
+  },
+  "Weaviate": {
+    "marker": "s", "color": "blue"
   },
 }

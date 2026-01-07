@@ -28,6 +28,10 @@ from camera import (
   draw_time_breakdown,
 )
 
+from revision import (
+  draw_qps_comp_wrt_recall_by_workload,
+)
+
 nrel_100 = {d: {} for d in DATASETS}
 nrel_50_100 = {d: {} for d in DATASETS}
 nrel_100_200 = {d: {} for d in DATASETS}
@@ -53,21 +57,29 @@ for d in ("sift-dedup", "audio-dedup"):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
   best_d_m_b[d]["CompassPostKThCh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
+  best_d_m_b[d]["Milvus"] = ["M_16_efc_200"]
+  best_d_m_b[d]["Weaviate"] = ["M_16_efc_200"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
 for d in ("gist-dedup", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKThCh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  best_d_m_b[d]["Milvus"] = ["M_16_efc_200"]
+  best_d_m_b[d]["Weaviate"] = ["M_16_efc_200"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 for d in ("crawl", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
   best_d_m_b[d]["CompassPostKThCh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
+  best_d_m_b[d]["Milvus"] = ["M_16_efc_200"]
+  best_d_m_b[d]["Weaviate"] = ["M_16_efc_200"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
 for d in ("video-dedup", "glove100"):
   # best_d_m_b[d]["CompassPostK"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
   best_d_m_b[d]["CompassPostKThCh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  best_d_m_b[d]["Milvus"] = ["M_32_efc_200"]
+  best_d_m_b[d]["Weaviate"] = ["M_32_efc_200"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
 for d in DATASETS:
   # best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
@@ -464,6 +476,16 @@ def compare_disjunction():
     prefix="disjunction",
   )
 
+def compare_revision():
+  draw_qps_comp_wrt_recall_by_workload(
+    datasets=DATASETS,
+    methods=METHODS,
+    anno="MoM",
+    d_m_b=best_d_m_b,
+    d_m_s=best_d_m_s,
+    prefix="revision",
+  )
+
 def camera_ready():
   best_d_m_b = {d: {} for d in DATASETS}
   for d in ("sift-dedup", "audio-dedup"):
@@ -576,5 +598,6 @@ if __name__ == "__main__":
   compare_best_with_sotas()
   compare_conjunction()
   compare_disjunction()
+  compare_revision()
   # summarize_multik(["crawl", "video-dedup", "gist-dedup", "glove100"])
-  # camera_ready()
+  camera_ready()
