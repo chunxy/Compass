@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
     } else if (c.type == "point") {
       predicate << "e.skewed = " << args.l_bounds[i];
     } else if (c.type == "negation") {
-      predicate << "e.skewed != " << args.l_bounds[i];
+      predicate << "e.skewed <> " << args.l_bounds[i];
     } else {
       throw std::runtime_error("Unsupported type: " + c.type);
     }
