@@ -25,7 +25,7 @@ if __name__ == "__main__":
     for d in args.names:
       for da in DA_S:
         # Step 1.2: Create a collection
-        database_name = f"{d}_{da}".replace("-", "_")
+        database_name = f"{d}_{da}".replace("-", "_").capitalize()
         # Step 2.2: Use this collection
         db = client.collections.use(database_name)
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
                 name="vector",
                 vector_index_config=Reconfigure.VectorIndex.hnsw(
                   ef=efs,
-                  filter_strategy=VectorFilterStrategy.SWEEPING,
+                  filter_strategy=VectorFilterStrategy.ACORN,
                 ),
               )
             )
@@ -50,14 +50,18 @@ if __name__ == "__main__":
             time_start = time.perf_counter_ns()
             for i, query_vector in enumerate(query_vectors):
               # Search for top-10.
-              response = db.query.near_vector(near_vector=query_vector, filters=predicate, limit=TOPK)
-              responses[i] = response
+              responses[i] = db.query.near_vector(
+                near_vector=query_vector,
+                filters=predicate,
+                limit=TOPK,
+                return_properties="vid",
+              )
             time_end = time.perf_counter_ns()
             time_taken = time_end - time_start
 
             groundtruth = load_ivecs(card.groundtruth_path, card.n_queries, card.n_groundtruth)[:N_QUERIES, :TOPK]
             recall = 0
-            for response in responses:
+            for i, response in enumerate(responses):
               for obj in response.objects:
                 if obj.properties["vid"] in groundtruth[i]:
                   recall += 1
