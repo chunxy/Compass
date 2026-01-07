@@ -82,10 +82,12 @@ if __name__ == "__main__":
               for i, (attr, vector) in enumerate(zip(attrs, vectors))]
 
       time_start = time.perf_counter_ns()
-      for i in range(0, len(data), 1000):
-        st, ed = i, min(i + 1000, len(data))
-        res = client.insert(collection_name=database_name, data=data[st:ed])
-        print(f"Inserted {ed - st} objects into the {database_name}")
+      # for i in range(0, len(data), 1000):
+      #   st, ed = i, min(i + 1000, len(data))
+      #   res = client.insert(collection_name=database_name, data=data[st:ed])
+      #   print(f"Inserted {ed - st} objects into the {database_name}")
+      for i in range(len(data)):
+        res = client.insert(collection_name=database_name, data=data[i])
       time_end = time.perf_counter_ns()
       time_taken = time_end - time_start
       build_time[f"{d}_{da}"] = time_taken / 1e9

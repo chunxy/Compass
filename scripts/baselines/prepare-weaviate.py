@@ -66,7 +66,7 @@ if __name__ == "__main__":
         # Insert the objects with vectors
         db = client.collections.get(database_name)
         time_start = time.perf_counter_ns()
-        with db.batch.fixed_size(batch_size=200) as batch:
+        with db.batch.fixed_size(batch_size=1) as batch:
           for obj in data_objects:
             batch.add_object(properties=obj["properties"], vector=obj["vector"])
         time_end = time.perf_counter_ns()
