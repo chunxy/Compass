@@ -20,14 +20,17 @@ add_executable(bench-compass-post-k-th-revision-filter-negation bench-compass-po
 add_executable(bench-compass-post-k-thb bench-compass-post-k-thb.cpp)
 add_executable(bench-compass-post-k-th-bs bench-compass-post-k-th-bs.cpp)
 add_executable(bench-compass-post-k-th-ch bench-compass-post-k-th-ch.cpp)
+add_executable(bench-compass-build bench-compass-build.cpp)
 add_executable(bench-acorn bench-acorn.cpp)
 add_executable(bench-acorn-neo bench-acorn-neo.cpp)
 add_executable(bench-acorn-revision bench-acorn-revision.cpp)
 add_executable(bench-acorn-revision-filter bench-acorn-revision-filter.cpp)
+add_executable(bench-acorn-build bench-acorn-build.cpp)
 target_link_libraries(bench-acorn ACORN)
 target_link_libraries(bench-acorn-neo ACORN)
 target_link_libraries(bench-acorn-revision ACORN)
 target_link_libraries(bench-acorn-revision-filter ACORN)
+target_link_libraries(bench-acorn-build ACORN)
 # add_executable(bench-compass-nsg bench-compass-nsg.cpp)
 
 # Legacy
