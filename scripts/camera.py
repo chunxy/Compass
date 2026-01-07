@@ -16,11 +16,9 @@ from config import (
   M_DA_RUN,
   M_PARAM,
   M_STYLE,
-  M_WORKLOAD,
   compass_args,
 )
 
-import json
 
 LOG_ROOT = Path("/home/chunxy/repos/Compass/logs_10")
 
@@ -485,7 +483,7 @@ def draw_qps_comp_with_disjunction_by_dimension_camera(datasets, d_m_b, d_m_s, a
         "video-dedup": 80000,
         "glove100": 80000,
       }
-      if ndis == 4: dataset_comp_ylim = dataset_comp_ylim_4d
+      if ndis == 4: dataset_comp_ylim = dataset_comp_ylim_4d  # noqa: E701
       df = pd.read_csv("stats-1d.csv", dtype=types)
       for i, d in enumerate(datasets):
         data = df[df["dataset"] == d]
@@ -796,7 +794,7 @@ def summarize_multik(datasets):
   df["prop"] = prop
   df["initial_ncomp"] = initial_ncomp
 
-  df.to_csv(f"stats-1d-multik.csv")
+  df.to_csv("stats-1d-multik.csv")
 
 
 def draw_qps_comp_fixing_selectivity_by_k_camera(datasets, d_m_b, d_m_s, anno, prefix):
@@ -809,7 +807,7 @@ def draw_qps_comp_fixing_selectivity_by_k_camera(datasets, d_m_b, d_m_s, anno, p
     "glove100": 30000,
   }
 
-  all = pd.read_csv(f"stats-1d-multik.csv", dtype=types)
+  all = pd.read_csv("stats-1d-multik.csv", dtype=types)
 
   m_s = ["CompassPostKTh", "Navix", "SeRF"]
   for rec in [0.8, 0.85, 0.9, 0.95]:
@@ -976,6 +974,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
               rec_qps_comp["total_ncomp"] = rec_qps_comp["initial_ncomp"] + rec_qps_comp["ncomp"]
 
               recall_above = rec_qps_comp[rec_qps_comp["recall"].gt(xlim[0])]
+              # Need comment out following two lines when plotting for ablation due to the index-out-of-range.
               rg_d_b[rg][d][b]["recall"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["recall"].to_list()[0]
               rg_d_b[rg][d][b]["search"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["search"].to_list()[0]
               axs[0][i].plot(recall_above["recall"], recall_above["qps"], **marker)
@@ -1339,7 +1338,7 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
         "video-dedup": 80000,
         "glove100": 80000,
       }
-      if ndis == 4: dataset_comp_ylim = dataset_comp_ylim_4d
+      if ndis == 4: dataset_comp_ylim = dataset_comp_ylim_4d  # noqa: E701
       df = pd.read_csv("stats-1d.csv", dtype=types)
       for i, d in enumerate(datasets):
         data = df[df["dataset"] == d]
