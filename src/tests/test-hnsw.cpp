@@ -80,6 +80,10 @@ int main(int argc, char **argv) {
     auto build_index_start = high_resolution_clock::now();
     for (int i = 0; i < nb; i++) comp->addPoint(xb + i * d, i);
     auto build_index_stop = high_resolution_clock::now();
+    fmt::print(
+        "Finished building index, took {} seconds.\n",
+        duration_cast<milliseconds>(build_index_stop - build_index_start).count() / 1000.0
+    );
     comp->saveIndex(ckp_path.string());
   }
   fmt::print("Finished loading/building index\n");
