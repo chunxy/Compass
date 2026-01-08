@@ -86,12 +86,12 @@ if __name__ == "__main__":
       for i in range(0, len(data), bs):
         st, ed = i, min(i + bs, len(data))
         res = client.insert(collection_name=database_name, data=data[st:ed])
-        print(f"Inserted {ed - st} objects into the {database_name}")
       # for i in range(len(data)):
       #   res = client.insert(collection_name=database_name, data=data[i])
       time_end = time.perf_counter_ns()
       time_taken = time_end - time_start
       build_time[f"{d}_{da}"] = time_taken / 1e9
+      print(f"Imported {len(data)} objects into the {database_name}")
 
     with open(BUILD_DIR / "build_time_in_seconds.json", "w") as f:
       json.dump(build_time, f, indent=2)

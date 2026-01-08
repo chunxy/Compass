@@ -34,20 +34,25 @@ if __name__ == "__main__":
         predicate = " and ".join([f"attr_{i} >= {card.interval[0][i]} and attr_{i} <= {card.interval[1][i]}" for i in range(card.attr_dim)])
         for efs in EFS_S:
           time_start = time.perf_counter_ns()
-          res = client.search(
-            collection_name=database_name,
-            anns_field="vector",
-            data=query_vectors,
-            limit=TOPK,
-            filter=predicate,
-            output_fields=["id"],
-            search_params={
-              # "hints": "iterative_filter",
-              "params": {
-                "ef": efs
-              },
-            }
-          )
+          res = []
+          bs = 100
+          for i in range(0, len(query_vectors), bs):
+            st, ed = i, min(i + bs, len(query_vectors))
+            partial_res = client.search(
+              collection_name=database_name,
+              anns_field="vector",
+              data=query_vectors[st:ed],
+              limit=TOPK,
+              filter=predicate,
+              output_fields=["id"],
+              search_params={
+                # "hints": "iterative_filter",
+                "params": {
+                  "ef": efs
+                },
+              }
+            )
+            res.extend(partial_res)
           time_end = time.perf_counter_ns()
           time_taken = time_end - time_start
 
