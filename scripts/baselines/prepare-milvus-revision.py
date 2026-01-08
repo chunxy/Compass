@@ -12,7 +12,7 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="Prepare Milvus")
   parser.add_argument("--names", type=str, nargs='+', required=False, help="Dataset name to process")
   args = parser.parse_args()
-  args.names = ["sift-dedup"]
+  # args.names = ["sift-dedup"]
 
   for name in args.names:
     if name not in REVISION_CARDS.keys():
