@@ -25,8 +25,8 @@ if __name__ == "__main__":
   )
 
   build_time = {}
-  for d in args.names:
-    for da in DA_S:
+  for da in DA_S:
+    for d in args.names:
       database_name = f"{d}_{da}".replace("-", "_")
       card = CARDS[d][da][0]
 
@@ -93,5 +93,5 @@ if __name__ == "__main__":
       time_taken = time_end - time_start
       build_time[f"{d}_{da}"] = time_taken / 1e9
 
-  with open(BUILD_DIR / "build_time_in_seconds.json", "w") as f:
-    json.dump(build_time, f, indent=2)
+    with open(BUILD_DIR / "build_time_in_seconds.json", "w") as f:
+      json.dump(build_time, f, indent=2)

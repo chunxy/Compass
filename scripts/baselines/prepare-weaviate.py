@@ -22,8 +22,8 @@ if __name__ == "__main__":
   build_time = {}
   # Step 1.1: Connect to your local Weaviate instance
   with weaviate.connect_to_local() as client:
-    for d in args.names:
-      for da in DA_S:
+    for da in DA_S:
+      for d in args.names:
         # Step 1.2: Create a collection
         database_name = f"{d}_{da}".replace("-", "_")
         client.collections.delete(database_name)
@@ -75,5 +75,5 @@ if __name__ == "__main__":
         build_time[f"{d}_{da}"] = time_taken / 1e9
         print(f"Imported {len(data_objects)} objects into the {database_name}")
 
-  with open(BUILD_DIR / "build_time_in_seconds.json", "w") as f:
-    json.dump(build_time, f, indent=2)
+      with open(BUILD_DIR / "build_time_in_seconds.json", "w") as f:
+        json.dump(build_time, f, indent=2)
