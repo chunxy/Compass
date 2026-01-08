@@ -1239,12 +1239,13 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
               if m.startswith("Compass"):
                 axs[1][i].scatter(das, rec_d_m_sel[rec][d][m][sel][label]["total_ncomp"], label=label, **marker)
                 axs[1][i].plot(das, rec_d_m_sel[rec][d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
-              else:
+              elif m not in {"Milvus", "Weaviate"}:
                 axs[1][i].scatter(das, rec_d_m_sel[rec][d][m][sel][label]["ncomp"], label=label, **marker)
                 axs[1][i].plot(das, rec_d_m_sel[rec][d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
               for tick in rec_d_m_sel[rec][d][m][sel][label].get("fallout", []):
                 # mark a cross sign at (tick, fallout_qps)
                 axs[0][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+                if m in {"Milvus", "Weaviate"}: continue  # noqa: E701
                 axs[1][i].scatter(tick, rec_d_m_sel[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
           dt = d.split("-")[0].upper()
           # axs[0][i].set_xlabel('Dimension')
@@ -1499,12 +1500,13 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
               if m.startswith("Compass"):
                 axs[1][i].scatter(ndisjunctions, rec_d_m[rec][d][m][sel][label]["total_ncomp"], label=label, **marker)
                 axs[1][i].plot(ndisjunctions, rec_d_m[rec][d][m][sel][label]["total_ncomp"], color=sc.get_facecolor()[0])
-              else:
+              elif m not in {"Milvus", "Weaviate"}:
                 axs[1][i].scatter(ndisjunctions, rec_d_m[rec][d][m][sel][label]["ncomp"], label=label, **marker)
                 axs[1][i].plot(ndisjunctions, rec_d_m[rec][d][m][sel][label]["ncomp"], color=sc.get_facecolor()[0])
               for tick in rec_d_m[rec][d][m][sel][label].get("fallout", []):
                 # mark a cross sign at (tick, fallout_qps)
                 axs[0][i].scatter(tick, rec_d_m[rec][d][m][sel][label]["qps"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
+                if m in {"Milvus", "Weaviate"}: continue  # noqa: E701
                 axs[1][i].scatter(tick, rec_d_m[rec][d][m][sel][label]["ncomp"][tick - 1], s=100, color=sc.get_facecolor()[0], marker='x')
 
           dt = d.split("-")[0].upper()
