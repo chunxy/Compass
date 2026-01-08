@@ -68,7 +68,8 @@ da_interval = {
   ],
 }
 
-WORKLOAD = "{}_10000_{}_{}_10" # Search for top-10.
+WORKLOAD = "{}_10000_{}_{}_10"  # Search for top-10.
+
 
 class Datacard:
 
@@ -129,6 +130,68 @@ CARDS = {
   for d in DATASET_NBASE.keys()
 }
 
+class RevisionDatacard:
+  def __init__(
+    self,
+    name,
+    base_path,
+    query_path,
+    attr_path,
+    wtype,
+    rg_path,
+    groundtruth_path,
+    workload,
+    dim,
+    n_base,
+    n_queries,
+    n_groundtruth,
+    attr_dim,
+  ):
+    self.name = name
+    self.base_path = base_path
+    self.query_path = query_path
+    self.attr_path = attr_path
+    self.wtype = wtype
+    self.rg_path = rg_path
+    self.groundtruth_path = groundtruth_path
+    self.workload = workload
+    self.dim = dim
+    self.n_base = n_base
+    self.n_queries = n_queries
+    self.n_groundtruth = n_groundtruth
+    self.attr_dim = attr_dim
+
+
+REV_ATTR = "/home/chunxy/repos/Compass/data/attr/{}_{}_{}.{}.value.bin"
+REV_RG = "/home/chunxy/repos/Compass/data/range/{}_{}_{}.{}.rg.bin"  # float32
+REV_GT = "/home/chunxy/repos/Compass/data/gt/{}_{}_{}.{}.hybrid.gt"  # ivecs
+REV_WORKLOAD = "{}_{}_{}_{}"
+REV_DA_S = (1, 2, 1, 1, 1)
+REV_SPANS = (30, 20, 30, 30, 30)
+REV_WTYPES = ("skewed", "correlated", "onesided", "point", "negation")
+
+REVISION_CARDS = {
+  d: [
+    RevisionDatacard(
+      name=d,
+      base_path=BASE.format(d, d),
+      query_path=QUERY.format(d, d),
+      attr_path=REV_ATTR.format(d, da, span, wtype),
+      wtype=wtype,
+      rg_path=REV_RG.format(d, da, span, wtype),
+      groundtruth_path=REV_GT.format(d, da, span, wtype),
+      workload=REV_WORKLOAD.format(d, da, span, wtype),
+      dim=DATASET_NDIM[d],
+      n_base=DATASET_NBASE[d],
+      n_queries=DATASET_NQUERY[d],
+      n_groundtruth=100,
+      attr_dim=da,
+    )
+    for da, span, wtype in zip(REV_DA_S, REV_SPANS, REV_WTYPES)
+  ]
+  for d in DATASET_NBASE.keys()
+}
+
 EFS_S = [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110,
           120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260,
           270, 280, 290, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 600,
@@ -150,6 +213,9 @@ def load_attr(path, n, da):
   attrs = np.fromfile(path, dtype=np.float32).reshape((n, da + 1))
   data = attrs[:, 1:]
   return data
+
+def load_float32(path, n, da):
+  return np.fromfile(path, dtype=np.float32).reshape((n, da))
 
 
 if __name__ == "__main__":
