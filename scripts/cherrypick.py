@@ -85,7 +85,7 @@ for d in DATASETS:
   # best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500", "M_64_efc_200_efmax_500"]
   best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
-  best_d_m_b[d]["ACORN"] = ["M_16_beta_64_200_gamma_100", "M_32_beta_64_gamma_100"]
+  best_d_m_b[d]["ACORN"] = ["M_16_beta_64_gamma_100", "M_32_beta_64_gamma_100"]
   # best_d_m_b[d]["Ivf"] = ["nlist_10000", "nlist_20000"]
   # best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200"]
   # best_d_m_b[d]["Prefiltering"] = [""]
@@ -106,12 +106,12 @@ for d in DATASETS:
   best_d_m_s[d]["CompassPostKThCh"] = {"nrel": [50]}
   # best_d_m_s[d]["CompassPostKNavix"] = {"nrel": [50]}
   # best_d_m_s[d]["CompassGraph"] = {"nrel": [100, 200]}
-best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [50, 100]}
-best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [50, 100]}
-best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [100]}
-best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [100]}
-best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
-best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+# best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [50, 100]}
+# best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [50, 100]}
+best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+# best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
+# best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 # best_d_m_s["crawl"]["CompassPostKNavix"] = {"nrel": [100]}
 
 
@@ -599,9 +599,9 @@ if __name__ == "__main__":
   # pick_nlist()
   # pick_dx()
   # compare_with_sotas() # old methods; slow
-  compare_best_with_sotas()
-  compare_conjunction()
-  compare_disjunction()
+  # compare_best_with_sotas()
+  # compare_conjunction()
+  # compare_disjunction()
   compare_revision()
   # summarize_multik(["crawl", "video-dedup", "gist-dedup", "glove100"])
-  camera_ready()
+  # camera_ready()

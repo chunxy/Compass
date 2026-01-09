@@ -9,6 +9,7 @@ thirdparty/*
 *.bkp
 *.jpg
 /*.sh
+/*.py
 src/tests/test_rng/
 src/tests/test_hnsw/
 src/tests/test_reentrant_hnsw/

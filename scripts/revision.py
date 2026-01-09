@@ -1,6 +1,4 @@
 from config import (
-  SOTA_METHODS,
-  SOTA_POST_METHODS,
   M_ARGS,
   M_PARAM,
   M_STYLE,
@@ -138,7 +136,7 @@ def summarize_revision():
   entries = []
   for d in DATASET_NBASE.keys():
     for card in REVISION_CARDS[d]:
-      for m in ["SeRF", "SeRF+Post", "CompassPostKTh", "ACORN", "Navix"]:
+      for m in ["SeRF", "SeRF+Post", "CompassPostKTh", "ACORN", "Navix", "Milvus", "Weaviate"]:
         w = card.workload if not m.startswith("SeRF") else f"{d}_{10}_{card.wtype}"
         bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
         st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
@@ -216,21 +214,22 @@ def summarize_revision():
         initial_ncomp.append(0)
       else:
         initial_ncomp.append(0)
-    if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS or e[1].startswith("CompassPost"):
-      nsample, averaged_qps = min(len(jsons), 3), qps[-1]
-      for i in range(2, nsample + 1):
-        with open(jsons[-i]) as f:
-          stat = json.load(f)
-          averaged_qps += stat["aggregated"]["qps"]
-      averaged_qps /= nsample
-      qps[-1] = averaged_qps
-    elif e[1].startswith("CompassPost"):
-      nsample, max_qps = min(len(jsons), 3), qps[-1]
-      for i in range(2, nsample + 1):
-        with open(jsons[-i]) as f:
-          stat = json.load(f)
-          max_qps = max(max_qps, stat["aggregated"]["qps"])
-      qps[-1] = max_qps
+    # Not to use average for now.
+    # if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS or e[1].startswith("CompassPost"):
+    #   nsample, averaged_qps = min(len(jsons), 3), qps[-1]
+    #   for i in range(2, nsample + 1):
+    #     with open(jsons[-i]) as f:
+    #       stat = json.load(f)
+    #       averaged_qps += stat["aggregated"]["qps"]
+    #   averaged_qps /= nsample
+    #   qps[-1] = averaged_qps
+    # elif e[1].startswith("CompassPost"):
+    #   nsample, max_qps = min(len(jsons), 3), qps[-1]
+    #   for i in range(2, nsample + 1):
+    #     with open(jsons[-i]) as f:
+    #       stat = json.load(f)
+    #       max_qps = max(max_qps, stat["aggregated"]["qps"])
+    #   qps[-1] = max_qps
 
   df["recall"] = rec
   df["qps"] = qps

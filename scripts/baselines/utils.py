@@ -165,7 +165,7 @@ class RevisionDatacard:
 REV_ATTR = "/home/chunxy/repos/Compass/data/attr/{}_{}_{}.{}.value.bin"
 REV_RG = "/home/chunxy/repos/Compass/data/range/{}_{}_{}.{}.rg.bin"  # float32
 REV_GT = "/home/chunxy/repos/Compass/data/gt/{}_{}_{}.{}.hybrid.gt"  # ivecs
-REV_WORKLOAD = "{}_{}_{}_{}"
+REV_WORKLOAD = "{}_{}_10_{}" # Search for top-10.
 REV_DA_S = (1, 2, 1, 1, 1)
 REV_SPANS = (30, 20, 30, 30, 30)
 REV_WTYPES = ("skewed", "correlated", "onesided", "point", "negation")
@@ -180,7 +180,7 @@ REVISION_CARDS = {
       wtype=wtype,
       rg_path=REV_RG.format(d, da, span, wtype),
       groundtruth_path=REV_GT.format(d, da, span, wtype),
-      workload=REV_WORKLOAD.format(d, da, span, wtype),
+      workload=REV_WORKLOAD.format(d, span, wtype),
       dim=DATASET_NDIM[d],
       n_base=DATASET_NBASE[d],
       n_queries=DATASET_NQUERY[d],
