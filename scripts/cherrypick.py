@@ -57,35 +57,33 @@ for d in ("sift-dedup", "audio-dedup"):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
   best_d_m_b[d]["CompassPostKThCh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
-  best_d_m_b[d]["Milvus"] = ["M_16_efc_200"]
-  best_d_m_b[d]["Weaviate"] = ["M_16_efc_200"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
 for d in ("gist-dedup", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKThCh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
-  best_d_m_b[d]["Milvus"] = ["M_16_efc_200"]
-  best_d_m_b[d]["Weaviate"] = ["M_16_efc_200"]
   # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
 for d in ("crawl", ):
   # best_d_m_b[d]["CompassPostK"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
   best_d_m_b[d]["CompassPostKThCh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
+  # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
+for d in ("sift-dedup", "audio-dedup", "gist-dedup", "crawl"):
   best_d_m_b[d]["Milvus"] = ["M_16_efc_200"]
   best_d_m_b[d]["Weaviate"] = ["M_16_efc_200"]
-  # best_d_m_b[d]["CompassPostKNavix"] = ["M_16_efc_200_nlist_20000_M_cg_8"]
+  best_d_m_b[d]["ACORN"] = ["M_16_beta_64_gamma_100"]
 for d in ("video-dedup", "glove100"):
   # best_d_m_b[d]["CompassPostK"] = ["M_32_efc_200_nlist_10000_M_cg_4"]
   best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
   best_d_m_b[d]["CompassPostKThCh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  # best_d_m_b[d]["CompassPostKNavix"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
   best_d_m_b[d]["Milvus"] = ["M_32_efc_200"]
   best_d_m_b[d]["Weaviate"] = ["M_32_efc_200"]
-  # best_d_m_b[d]["CompassPostKNavix"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  best_d_m_b[d]["ACORN"] = ["M_32_beta_64_gamma_100"]
 for d in DATASETS:
   # best_d_m_b[d]["iRangeGraph"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500", "M_64_efc_200_efmax_500"]
   best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
-  best_d_m_b[d]["ACORN"] = ["M_16_beta_64_gamma_100", "M_32_beta_64_gamma_100"]
   # best_d_m_b[d]["Ivf"] = ["nlist_10000", "nlist_20000"]
   # best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200"]
   # best_d_m_b[d]["Prefiltering"] = [""]
@@ -112,7 +110,6 @@ best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [50, 100]}
 best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 # best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
 # best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50, 100]}
-# best_d_m_s["crawl"]["CompassPostKNavix"] = {"nrel": [100]}
 
 
 # Compare clustering methods.
