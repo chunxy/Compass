@@ -193,6 +193,18 @@ REVISION_CARDS = {
 }
 
 REAL_DATASETS = ("flickr", "video-dedup")
+RDATA_NDIM = {
+  "flickr": 512,
+  "video-dedup": 1024,
+}
+RDATA_NBASE = {
+  "flickr": 4203901,
+  "video-dedup": 1000000,
+}
+RDATA_NQUERY = {
+  "flickr": 29999,
+  "video-dedup": 10000,
+}
 REAL_DA_S = (2, 2)
 REAL_SPANS = (180, 10000)
 REAL_WTYPES = ("real", "real")
@@ -208,9 +220,9 @@ REAL_CARDS = [
     rg_path=REV_RG.format(d, da, span, wtype),
     groundtruth_path=REV_GT.format(d, da, span, wtype),
     workload=REV_WORKLOAD.format(d, span, wtype),
-    dim=DATASET_NDIM[d],
-    n_base=DATASET_NBASE[d],
-    n_queries=DATASET_NQUERY[d],
+    dim=RDATA_NDIM[d],
+    n_base=RDATA_NBASE[d],
+    n_queries=RDATA_NQUERY[d],
     n_groundtruth=100,
     attr_dim=da,
   )

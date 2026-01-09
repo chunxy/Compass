@@ -14,6 +14,7 @@ attribute = namedtuple("attribute", ["da", "span", "type"])
 attributes = [
   attribute(1, 30, "skewed"),
   attribute(2, 20, "correlated"),
+  attribute(2, 20, "anticorrelated"),
   # attribute(1, 30, "real"), # to be added
 ]
 out_template = "/home/chunxy/repos/Compass/data/navix/{}_revision.value.parquet"
@@ -40,7 +41,7 @@ for d in datasets:
       raw = np.fromfile(f, dtype=np.float32).reshape((-1, w.da))
     if w.da == 1:
       df[f"{w.type}"] = raw.flatten()
-    else:  # must be correlated workload
-      df["correlated1"] = raw[:, 0]
-      df["correlated2"] = raw[:, 1]
+    else:
+      for i in range(w.da):
+        df[f"{w.type}{i + 1}"] = raw[:, i]
   df.to_parquet(out_template.format(d), engine="pyarrow", index=False)
