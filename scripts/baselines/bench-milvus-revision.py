@@ -11,8 +11,10 @@ LOGS_DIR = Path("/home/chunxy/milvus/logs_10")
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description="Bench Milvus")
   parser.add_argument("--names", type=str, nargs='+', required=False, help="Dataset name to process")
+  parser.add_argument("--wtypes", type=str, nargs='+', required=False, help="Workload types to process")
   args = parser.parse_args()
   # args.names = ["sift-dedup"]
+  # args.wtypes = ["skewed", "correlated", "anticorrelated"]
 
   for name in args.names:
     if name not in REVISION_CARDS.keys():
@@ -28,8 +30,10 @@ if __name__ == "__main__":
     database_name = f"{d}_revision".replace("-", "_")
 
     for card in REVISION_CARDS[d]:
+      if args.wtypes is not None and card.wtype not in args.wtypes:
+        continue
       query_vectors_np = load_fvecs(card.query_path, card.n_queries, card.dim)[:N_QUERIES]
-      if card.wtype == "skewed" or card.wtype == "correlated":
+      if card.wtype == "skewed" or card.wtype == "correlated" or card.wtype == "anticorrelated":
         rg = load_float32(card.rg_path, card.n_queries * 2, card.attr_dim)
         l_bounds = rg[:card.n_queries]
         u_bounds = rg[card.n_queries:]
