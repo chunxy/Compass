@@ -2611,7 +2611,7 @@ DataCard deep10m_2_20_float32_correlated{
     20,
     "float32",
     // add this field in revision
-    "/home/chunxy/repos/Compass/data/attr/deep10m_1_30.correlated.value.bin",
+    "/home/chunxy/repos/Compass/data/attr/deep10m_2_20.correlated.value.bin",
     "correlated"
 };
 
