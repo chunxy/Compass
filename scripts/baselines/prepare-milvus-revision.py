@@ -40,13 +40,13 @@ if __name__ == "__main__":
     schema.add_field(field_name="id", datatype=DataType.INT64, is_primary=True)
     schema.add_field(field_name="vector", datatype=DataType.FLOAT_VECTOR, dim=card0.dim)
     for card in REVISION_CARDS[d]:
-      if card.wtype not in ["skewed", "correlated", "real"]:
+      if card.wtype not in ["skewed", "correlated", "anticorrelated", "real"]:
         continue
       if card.attr_dim == 1:
         schema.add_field(field_name=f"{card.wtype}", datatype=DataType.FLOAT, dim=1)
       else:
-        for i in range(1, card.attr_dim + 1):
-          schema.add_field(field_name=f"{card.wtype}{i}", datatype=DataType.FLOAT, dim=1)
+        for i in range(card.attr_dim):
+          schema.add_field(field_name=f"{card.wtype}{i+1}", datatype=DataType.FLOAT, dim=1)
 
     # 3.3. Prepare index parameters
     index_params = client.prepare_index_params()
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     data = [{"id": i, "vector": vector.tolist()} for i, vector in enumerate(vectors)]
     # Load attribute values.
     for card in REVISION_CARDS[d]:
-      if card.wtype in ["skewed", "correlated", "real"]:
+      if card.wtype in ["skewed", "correlated", "anticorrelated", "real"]:
         attrs = load_float32(card.attr_path, card.n_base, card.attr_dim)
         if (vectors.shape[0] != attrs.shape[0]):
           raise ValueError(f"Vectors and attrs have different lengths for {d}_{card.wtype}")

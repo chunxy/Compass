@@ -166,9 +166,9 @@ REV_ATTR = "/home/chunxy/repos/Compass/data/attr/{}_{}_{}.{}.value.bin"
 REV_RG = "/home/chunxy/repos/Compass/data/range/{}_{}_{}.{}.rg.bin"  # float32
 REV_GT = "/home/chunxy/repos/Compass/data/gt/{}_{}_{}.{}.hybrid.gt"  # ivecs
 REV_WORKLOAD = "{}_{}_10_{}" # Search for top-10.
-REV_DA_S = (1, 2, 1, 1, 1)
-REV_SPANS = (30, 20, 30, 30, 30)
-REV_WTYPES = ("skewed", "correlated", "onesided", "point", "negation")
+REV_DA_S = (1, 2, 2, 1, 1, 1)
+REV_SPANS = (30, 20, 20, 30, 30, 30)
+REV_WTYPES = ("skewed", "correlated", "anticorrelated", "onesided", "point", "negation")
 
 REVISION_CARDS = {
   d: [
@@ -191,6 +191,31 @@ REVISION_CARDS = {
   ]
   for d in DATASET_NBASE.keys()
 }
+
+REAL_DATASETS = ("flickr", "video-dedup")
+REAL_DA_S = (2, 2)
+REAL_SPANS = (180, 10000)
+REAL_WTYPES = ("real", "real")
+
+# Not to add REAL_CARDS first.
+REAL_CARDS = [
+  RevisionDatacard(
+    name=d,
+    base_path=BASE.format(d, d),
+    query_path=QUERY.format(d, d),
+    attr_path=REV_ATTR.format(d, da, span, wtype),
+    wtype=wtype,
+    rg_path=REV_RG.format(d, da, span, wtype),
+    groundtruth_path=REV_GT.format(d, da, span, wtype),
+    workload=REV_WORKLOAD.format(d, span, wtype),
+    dim=DATASET_NDIM[d],
+    n_base=DATASET_NBASE[d],
+    n_queries=DATASET_NQUERY[d],
+    n_groundtruth=100,
+    attr_dim=da,
+  )
+  for d, da, span, wtype in zip(REAL_DATASETS, REAL_DA_S, REAL_SPANS, REAL_WTYPES)
+]
 
 EFS_S = [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100, 110,
           120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260,

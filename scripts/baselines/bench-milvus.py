@@ -35,7 +35,7 @@ if __name__ == "__main__":
         for efs in EFS_S:
           time_start = time.perf_counter_ns()
           res = []
-          bs = 100
+          bs = 1
           for i in range(0, len(query_vectors), bs):
             st, ed = i, min(i + bs, len(query_vectors))
             partial_res = client.search(

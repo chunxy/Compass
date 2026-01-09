@@ -63,6 +63,24 @@ if __name__ == "__main__":
                 Filter.by_property("correlated2").less_or_equal(u_bounds[i][1])
               ]) for i in range(card.n_queries)
             ]
+          elif card.wtype == "anticorrelated":
+            predicate = [
+              Filter.all_of([
+                Filter.by_property("anticorrelated1").greater_or_equal(l_bounds[i][0]),
+                Filter.by_property("anticorrelated1").less_or_equal(u_bounds[i][0]),
+                Filter.by_property("anticorrelated2").greater_or_equal(l_bounds[i][1]),
+                Filter.by_property("anticorrelated2").less_or_equal(u_bounds[i][1])
+              ]) for i in range(card.n_queries)
+            ]
+          elif card.wtype == "real":
+            predicate = [
+              Filter.all_of([
+                Filter.by_property("real1").greater_or_equal(l_bounds[i][0]),
+                Filter.by_property("real1").less_or_equal(u_bounds[i][0]),
+                Filter.by_property("real2").greater_or_equal(l_bounds[i][1]),
+                Filter.by_property("real2").less_or_equal(u_bounds[i][1])
+              ]) for i in range(card.n_queries)
+            ]
           elif card.wtype == "onesided":
             predicate = [Filter.by_property("skewed").greater_or_equal(l_bounds[i][0]) for i in range(card.n_queries)]
           elif card.wtype == "point":

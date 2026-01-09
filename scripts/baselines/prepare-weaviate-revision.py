@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
       # Load attribute values.
       for card in REVISION_CARDS[d]:
-        if card.wtype in ["skewed", "correlated", "real"]:
+        if card.wtype in ["skewed", "correlated", "anticorrelated", "real"]:
           attrs = load_float32(card.attr_path, card.n_base, card.attr_dim)
           if (vectors.shape[0] != attrs.shape[0]):
             raise ValueError(f"Vectors and attrs have different lengths for {d}_{card.wtype}")

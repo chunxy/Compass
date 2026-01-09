@@ -44,6 +44,16 @@ if __name__ == "__main__":
           f"correlated1 >= {l_bounds[i][0]} and correlated1 <= {u_bounds[i][0]} and correlated2 >= {l_bounds[i][1]} and correlated2 <= {u_bounds[i][1]}"
           for i in range(card.n_queries)
         ]
+      elif card.wtype == "anticorrelated":
+        predicates = [
+          f"anticorrelated1 >= {l_bounds[i][0]} and anticorrelated1 <= {u_bounds[i][0]} and anticorrelated2 >= {l_bounds[i][1]} and anticorrelated2 <= {u_bounds[i][1]}"
+          for i in range(card.n_queries)
+        ]
+      elif card.wtype == "real":
+        predicates = [
+          f"real1 >= {l_bounds[i][0]} and real1 <= {u_bounds[i][0]} and real2 >= {l_bounds[i][1]} and real2 <= {u_bounds[i][1]}"
+          for i in range(card.n_queries)
+        ]
       elif card.wtype == "onesided":
         predicates = [f"skewed >= {l_bounds[i][0]}" for i in range(card.n_queries)]
       elif card.wtype == "point":
