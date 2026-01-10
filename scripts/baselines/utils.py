@@ -11,6 +11,8 @@ DATASET_NBASE = {
   "video-dedup": 1000000,
   "glove100": 1183514,
   "crawl": 1989995,
+  "flickr": 4203901,
+  "deep10m": 10000000,
 }
 
 DATASET_NQUERY = {
@@ -20,6 +22,8 @@ DATASET_NQUERY = {
   "video-dedup": 10000,
   "glove100": 10000,
   "crawl": 10000,
+  "flickr": 29999,
+  "deep10m": 10000,
 }
 
 DATASET_NDIM = {
@@ -29,6 +33,8 @@ DATASET_NDIM = {
   "video-dedup": 1024,
   "glove100": 100,
   "crawl": 300,
+  "flickr": 512,
+  "deep10m": 96,
 }
 
 DATASET_M = {
@@ -38,6 +44,8 @@ DATASET_M = {
   "video-dedup": 32,
   "glove100": 32,
   "crawl": 16,
+  "flickr": 32,
+  "deep10m": 32,
 }
 
 DA_S = [1, 2, 3, 4]
