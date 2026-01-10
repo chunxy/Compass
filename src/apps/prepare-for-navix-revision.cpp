@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   fmt::print("Finished loading data.\n");
 
   // Load query range and groundtruth for hybrid search.
-  if (c.type == "skewed" || c.type == "correlated" || c.type == "real") {
+  if (c.type == "skewed" || c.type == "correlated" || c.type == "anticorrelated" || c.type == "real") {
     args.l_bounds.resize(c.n_queries * c.attr_dim);
     args.u_bounds.resize(c.n_queries * c.attr_dim);
     std::string rg_path = fmt::format(HYBRID_RG_REVISION_PATH_TMPL, c.name, c.attr_dim, c.attr_range, c.type);
@@ -78,6 +78,14 @@ int main(int argc, char **argv) {
       predicate << "e.correlated1 >= " << args.l_bounds[i * 2] << " AND e.correlated1 <= " << args.u_bounds[i * 2];
       predicate << " AND e.correlated2 >= " << args.l_bounds[i * 2 + 1]
                 << " AND e.correlated2 <= " << args.u_bounds[i * 2 + 1];
+    } else if (c.type == "anticorrelated") {
+      predicate << "e.anticorrelated1 >= " << args.l_bounds[i * 2]
+                << " AND e.anticorrelated1 <= " << args.u_bounds[i * 2];
+      predicate << " AND e.anticorrelated2 >= " << args.l_bounds[i * 2 + 1]
+                << " AND e.anticorrelated2 <= " << args.u_bounds[i * 2 + 1];
+    } else if (c.type == "real") {
+      predicate << "e.real1 >= " << args.l_bounds[i * 2] << " AND e.real1 <= " << args.u_bounds[i * 2];
+      predicate << " AND e.real2 >= " << args.l_bounds[i * 2 + 1] << " AND e.real2 <= " << args.u_bounds[i * 2 + 1];
     } else if (c.type == "onesided") {
       predicate << "e.skewed >= " << args.l_bounds[i];
     } else if (c.type == "point") {
@@ -101,7 +109,7 @@ int main(int argc, char **argv) {
     if (name.find("-") != std::string::npos) {
       name = name.replace(name.find("-"), 1, "_");
     }
-    name += fmt::format("_{}", 4); // use the 4d database
+    name += fmt::format("_{}", 4);  // use the 4d database
     std::string query = fmt::format(
         "MATCH (e:{}) WHERE {} "
         "CALL ANN_SEARCH(e.embedding, {}, <maxK>, <efsearch>, <useQ>, "

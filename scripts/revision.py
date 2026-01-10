@@ -113,6 +113,8 @@ NAVIX_TYPE_NO = {
   "onesided": 2,
   "point": 3,
   "negation": 4,
+  "anticorrelated": 5,
+  "real": 6,
 }
 
 types = {
