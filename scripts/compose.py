@@ -194,9 +194,9 @@ def compose_revision():
               f.write(inner)
               f.write('\n')
 
-  da_s = [1, 2]
-  spans = [30, 20]
-  types = ["skewed", "correlated", "anticorrelated", "real"]
+  da_s = [1, 2, 2]
+  spans = [30, 20, 20]
+  types = ["skewed", "correlated", "anticorrelated"]
   for m in ["CompassPostKTh", "ACORN"]:
     k_s = [10]
     idx = 0

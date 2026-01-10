@@ -81,9 +81,9 @@ QUERY = "/home/chunxy/datasets/{}/{}_query.fvecs"
 ATTR = "/home/chunxy/repos/Compass/data/attr/{}_{}_{}.value.bin"
 WORKLOAD = "{}_{}_10_{}"
 
-da_s = (1, 2, 1, 1, 1)
-wtypes = ("skewed", "correlated", "onesided", "point", "negation")
-span_s = (30, 20, 30, 30, 30)
+da_s = (1, 2, 2, 1, 1, 1)
+wtypes = ("skewed", "correlated", "anticorrelated", "onesided", "point", "negation")
+span_s = (30, 20, 20, 30, 30, 30)
 
 REVISION_CARDS = {
   d: [
@@ -251,7 +251,7 @@ def draw_qps_comp_wrt_recall_by_workload(datasets, methods, anno, *, d_m_b={}, d
   df_all = df_all.fillna('')
 
   for da, wtype in zip(da_s, wtypes):
-    selector = df_all["workload"].str.contains(wtype)
+    selector = df_all["workload"].str.endswith(f"_{wtype}")
     if not selector.any():
       continue
     df = df_all[selector]
