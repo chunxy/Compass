@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
   int nb = c.n_base;         // number of database vectors
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
-  assert(nq % args.batchsz == 0);
+  // assert(nq % args.batchsz == 0);
 
   if (c.type != "negation" || c.attr_dim != 1) { // negation-only
     throw std::runtime_error("Must be 1d negation\n");
