@@ -44,33 +44,33 @@ MIN_PASS_RATIO = 0.001
 
 if __name__ == "__main__":
   np.random.seed(0)
-  # zipf_alpha, zipf_rg_ub = 2, 30
-  # for dataset, n in datasets.items():
-  #   n_queries = dataset_nquery[dataset]
-  #   data = gen_zipf_distribution_float32(n, zipf_alpha)
-  #   data.sort()
-  #   data.tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_1_{zipf_rg_ub}.skewed.value.bin")
-  #   rg = np.zeros((n_queries * 2, 1), dtype=np.int32)
-  #   rg[:n_queries, 0] = np.random.randint(0, zipf_rg_ub, n_queries, dtype=np.int32)
-  #   rg[n_queries:, 0] = np.random.randint(rg[:n_queries, 0], zipf_rg_ub, n_queries, dtype=np.int32)
-  #   if (rg[:n_queries, 0] > rg[n_queries:, 0]).any():
-  #     print("Error")
-  #     exit()
-  #   i = 0
-  #   while i < n_queries:
-  #     pass_num = np.sum((data >= rg[i]) & (data <= rg[i + n_queries]))
-  #     if pass_num < MIN_PASS_RATIO * n:
-  #       rg[i, 0] /= 2
-  #       rg[i + n_queries, 0] = (rg[i + n_queries, 0] + zipf_rg_ub) / 2
-  #       continue
-  #     else:
-  #       i += 1
-  #   rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.skewed.rg.bin")
+  zipf_alpha, zipf_rg_ub = 2, 30
+  for dataset, n in datasets.items():
+    n_queries = dataset_nquery[dataset]
+    data = gen_zipf_distribution_float32(n, zipf_alpha)
+    data.sort()
+    data.tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_1_{zipf_rg_ub}.skewed.value.bin")
+    rg = np.zeros((n_queries * 2, 1), dtype=np.int32)
+    rg[:n_queries, 0] = np.random.randint(0, zipf_rg_ub, n_queries, dtype=np.int32)
+    rg[n_queries:, 0] = np.random.randint(rg[:n_queries, 0], zipf_rg_ub, n_queries, dtype=np.int32)
+    if (rg[:n_queries, 0] > rg[n_queries:, 0]).any():
+      print("Error")
+      exit()
+    i = 0
+    while i < n_queries:
+      pass_num = np.sum((data >= rg[i]) & (data <= rg[i + n_queries]))
+      if pass_num < MIN_PASS_RATIO * n:
+        rg[i, 0] /= 2
+        rg[i + n_queries, 0] = (rg[i + n_queries, 0] + zipf_rg_ub) / 2
+        continue
+      else:
+        i += 1
+    rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.skewed.rg.bin")
 
-  #   passrate = 0
-  #   for i in range(n_queries):
-  #     passrate += np.sum((data >= rg[i]) & (data <= rg[i + n_queries])) / n
-  #   print(f"{dataset} passrate: {passrate / n_queries}")
+    passrate = 0
+    for i in range(n_queries):
+      passrate += np.sum((data >= rg[i]) & (data <= rg[i + n_queries])) / n
+    print(f"{dataset} passrate: {passrate / n_queries}")
 
   variance, corr = 10, 0.5
   corr_rg_ub = 20
