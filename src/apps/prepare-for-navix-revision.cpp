@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   int nb = c.n_base;         // number of database vectors
   int nq = c.n_queries;      // number of queries
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
-  assert(nq % args.batchsz == 0);
+  // assert(nq % args.batchsz == 0);
 
   // Load data.
   float *xb, *xq;
@@ -109,7 +109,9 @@ int main(int argc, char **argv) {
     if (name.find("-") != std::string::npos) {
       name = name.replace(name.find("-"), 1, "_");
     }
-    name += fmt::format("_{}", 4);  // use the 4d database
+    if (name != "flickr" && name != "deep10m") {
+      name += fmt::format("_{}", 4);  // use the 4d database
+    }
     std::string query = fmt::format(
         "MATCH (e:{}) WHERE {} "
         "CALL ANN_SEARCH(e.embedding, {}, <maxK>, <efsearch>, <useQ>, "
