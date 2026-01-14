@@ -501,7 +501,8 @@ nlohmann::json collate_stat(
     fmt::print(out, "Precision: {:5.2f}%, ", s.pre_at_ks[j] * 100);
     fmt::print(out, "{:3d}/{:3d}/{:3d}\n", s.tp_s[j], s.rz_s[j], k);
     fmt::print(out, "\tLatency in ns         : {:d}\n", s.latencies[j]);
-    fmt::print(out, "\tBatch overhead in ns  : {:d}\n", s.batch_overhead[j / batch_sz] / batch_sz);
+    // Commented for Prefiltering.
+    // fmt::print(out, "\tBatch overhead in ns  : {:d}\n", s.batch_overhead[j / batch_sz] / batch_sz);
     fmt::print(out, "\tCG Latency in ns      : {:d}\n", s.cg_latencies[j]);
     fmt::print(out, "\tIVF Latency in ns     : {:d}\n", s.ivf_latencies[j]);
     fmt::print(out, "\tFilter Latency in ns  : {:d}\n", s.filter_latencies[j]);
