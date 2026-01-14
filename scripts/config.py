@@ -2,7 +2,9 @@ from functools import reduce
 
 DATASETS = ["sift", "sift-dedup", "audio", "audio-dedup", "crawl", "gist", "gist-dedup", "video", "video-dedup", "glove100"]
 DATASETS = ["sift-dedup", "audio-dedup", "crawl", "gist-dedup", "video-dedup", "glove100"]
-
+LARGE_DATASETS = ["flickr", "deep10m"]
+REAL_DATASETS = ["flcikr", "video-dedup"]
+ABLATION_DATASETS = ["gist-dedup"]
 DA_S = [1, 2, 3, 4]
 
 # attribute dimension - intervals, for reading JSON files of Compass result
@@ -516,6 +518,16 @@ D_ARGS = {
   "crawl": {
     "dx": [128, 256],
     "efs": compass_args["efs"] + [310, 320, 330, 340, 350, 360, 370, 380, 390, 400] + [450, 500, 600, 700, 800, 900, 1000],
+    "M_cg": [8],
+  },
+  "flickr": {
+    "M": [32, 64],
+    "nlist": [20000],
+    "M_cg": [8],
+  },
+  "deep10m": {
+    "M": [32, 64],
+    "nlist": [50000],
     "M_cg": [8],
   }
 }

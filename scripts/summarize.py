@@ -10,7 +10,6 @@ import pandas as pd
 from config import (
   BASE_METHODS,
   COMPASS_METHODS,
-  COMPASSX_METHODS,
   SOTA_METHODS,
   SOTA_POST_METHODS,
   DA_RANGE,
@@ -54,6 +53,19 @@ dataset_comp_ylim = {
   "glove100": 20000,
 }
 
+ABLATION_WORKLOADS = [
+  "gist-dedup_10000_100_200_10",
+  "gist-dedup_10000_100_3100_10",
+  "gist-dedup_10000_100_8100_10",
+]
+
+ABLATION_ARGS = {
+  "nrel": [50, 100, 150, 200],
+  "batch_k": [20, 60, 100, -1],
+  "initial_efs": [20, 60, 100, -1],
+  "delta_efs": [20, 60, 100, -1],
+}
+
 
 def summarize():
   for da in [1, 2, 3, 4]:
@@ -94,6 +106,11 @@ def summarize():
           else:
             ba_s = [M_ARGS[m][bp] for bp in M_PARAM[m]["build"]]
             sa_s = [M_ARGS[m][sp] for sp in M_PARAM[m]["search"]]
+          if w in ABLATION_WORKLOADS and m.startswith("CompassPost"):
+            ABLATION_ARGS["batch_k"][-1] = D_ARGS[d].get("nlist", M_ARGS[m]["nlist"])[0]
+            ABLATION_ARGS["initial_efs"][-1] = D_ARGS[d].get("nlist", M_ARGS[m]["nlist"])[0]
+            ABLATION_ARGS["delta_efs"][-1] = D_ARGS[d].get("nlist", M_ARGS[m]["nlist"])[0]
+            sa_s = [ABLATION_ARGS.get(sp, D_ARGS[d].get(sp, M_ARGS[m][sp])) for sp in M_PARAM[m]["search"]]
           for ba in product(*ba_s):
             b = bt.format(*ba)
             for sa in product(*sa_s):
@@ -299,28 +316,29 @@ def draw_qps_comp_wrt_recall_by_selectivity(da, datasets, methods, anno, *, d_m_
             data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
           if m.startswith("Compass"):
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
-              data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}")]
-              recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
-              recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
-              axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
-              axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+              for batch_k in d_m_s.get(d, {}).get(m, {}).get("batch_k", compass_args["batch_k"]):
+                data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].str.contains(f"nrel_{nrel}_batch_k_{batch_k}")]
+                recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+                recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
+                axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1])
+                axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-nrel_{nrel}-batch_k_{batch_k}", **marker)
 
-              recall_ncomp = data_by_m_b_nrel[["recall", "ncomp", "initial_ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
-              recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
-              p = axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1])
-              axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
-              axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], color=p[0].get_color(), linestyle="--")
-              axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], **marker)
+                recall_ncomp = data_by_m_b_nrel[["recall", "ncomp", "initial_ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
+                recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
+                p = axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1])
+                axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}-nrel_{nrel}-batch_k_{batch_k}", **marker)
+                axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], color=p[0].get_color(), linestyle="--")
+                axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], **marker)
 
-              recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
-              recall_tqps = recall_tqps[recall_tqps["recall"].gt(xlim[0])].to_numpy()
-              axs[2][i].plot(recall_tqps[:, 0], recall_tqps[:, 1])
-              axs[2][i].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+                recall_tqps = data_by_m_b_nrel[["recall", "tqps"]].sort_values(["recall", "tqps"], ascending=[True, False])
+                recall_tqps = recall_tqps[recall_tqps["recall"].gt(xlim[0])].to_numpy()
+                axs[2][i].plot(recall_tqps[:, 0], recall_tqps[:, 1])
+                axs[2][i].scatter(recall_tqps[:, 0], recall_tqps[:, 1], label=f"{m}-{b}-nrel_{nrel}-batch_k_{batch_k}", **marker)
 
-              recall_prop = data_by_m_b_nrel[["recall", "prop"]].sort_values(["recall", "prop"], ascending=[True, True])
-              recall_prop = recall_prop[recall_prop["recall"].gt(xlim[0])].to_numpy()
-              axs[3][i].plot(recall_prop[:, 0], recall_prop[:, 1])
-              axs[3][i].scatter(recall_prop[:, 0], recall_prop[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+                recall_prop = data_by_m_b_nrel[["recall", "prop"]].sort_values(["recall", "prop"], ascending=[True, True])
+                recall_prop = recall_prop[recall_prop["recall"].gt(xlim[0])].to_numpy()
+                axs[3][i].plot(recall_prop[:, 0], recall_prop[:, 1])
+                axs[3][i].scatter(recall_prop[:, 0], recall_prop[:, 1], label=f"{m}-{b}-nrel_{nrel}-batch_k_{batch_k}", **marker)
           else:
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()

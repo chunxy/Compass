@@ -3,8 +3,11 @@ from config import (
   COMPASSX_METHODS,
   DA_S,
   DATASETS,
+  LARGE_DATASETS,
+  ABLATION_DATASETS,
   METHODS,
   D_ARGS,
+  M_ARGS,
 )
 from summarize import (
   draw_qps_comp_fixing_recall_by_dataset_selectivity,
@@ -20,6 +23,7 @@ from camera import (
   draw_qps_comp_with_disjunction_by_dimension_camera_shrinked,
   draw_qps_comp_with_disjunction_by_dimension_camera,
   draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked,
+  draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation,
   draw_qps_comp_wrt_recall_by_selectivity_camera,
   # draw_qps_comp_fixing_selectivity_by_k_camera_shrinked,
   # draw_qps_comp_fixing_recall_by_selectivity_camera,
@@ -30,6 +34,8 @@ from camera import (
 
 from revision import (
   draw_qps_comp_wrt_recall_by_workload,
+  draw_qps_comp_wrt_recall_by_workload_camera,
+  draw_qps_comp_wrt_recall_by_large_dataset_camera,
 )
 
 nrel_100 = {d: {} for d in DATASETS}
@@ -44,6 +50,8 @@ for d in DATASETS:
     nrel_50_100_200[d][m] = {"nrel": [50, 100, 200]}
 
 best_d_m_b = {d: {} for d in DATASETS}
+for d in LARGE_DATASETS:
+  best_d_m_b[d] = {}
 # for d in ("sift", "audio"):
 #   best_d_m_b[d]["CompassBikmeansIcg"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
 # best_d_m_b["gist"]["CompassPcaIcg"] = ["M_16_efc_200_nlist_20000_dx_512_M_cg_4"]
@@ -89,7 +97,18 @@ for d in DATASETS:
   # best_d_m_b[d]["Prefiltering"] = [""]
   # best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
 
+for d in LARGE_DATASETS:
+  best_d_m_b[d]["ACORN"] = ["M_32_beta_64_gamma_100"]
+  best_d_m_b[d]["Navix"] = ["M_32_efc_200"]
+  best_d_m_b[d]["Milvus"] = ["M_32_efc_200"]
+  best_d_m_b[d]["Weaviate"] = ["M_32_efc_200"]
+  best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
+best_d_m_b["flickr"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+best_d_m_b["deep10m"]["CompassPostKTh"] = ["M_32_efc_200_nlist_50000_M_cg_8"]
+
 best_d_m_s = {d: {} for d in DATASETS}
+for d in LARGE_DATASETS:
+  best_d_m_s[d] = {}
 # for m in COMPASS_METHODS:
 #   best_d_m_s["sift"][m] = {"nrel": [100]}
 #   best_d_m_s["audio"][m] = {"nrel": [100]}
@@ -110,6 +129,10 @@ best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [50, 100]}
 best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 # best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
 # best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50, 100]}
+best_d_m_s["flickr"]["CompassPostKThCh"] = {"nrel": [50, 100]}
+best_d_m_s["deep10m"]["CompassPostKTh"] = {"nrel": [50, 100]}
+best_d_m_s["deep10m"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 
 
 # Compare clustering methods.
@@ -483,6 +506,62 @@ def compare_revision():
     prefix="revision",
   )
 
+
+def compare_large():
+  draw_qps_comp_wrt_recall_by_workload(
+    datasets=LARGE_DATASETS,
+    methods=METHODS,
+    anno="MoM",
+    d_m_b=best_d_m_b,
+    d_m_s=best_d_m_s,
+    prefix="revision-large",
+  )
+
+
+def compare_more_ablation():
+  ablation_d_m_b = {d: {} for d in ABLATION_DATASETS}
+  for d in ABLATION_DATASETS:
+    ablation_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+
+  # compare nrel
+  ablation_nrel_d_m_s = {d: {} for d in ABLATION_DATASETS}
+  for d in ABLATION_DATASETS:
+    ablation_nrel_d_m_s[d]["CompassPostKTh"] = {
+      "nrel": [50, 100, 150, 200],
+      "batch_k": [20],
+    }
+  draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation(
+    da=1,
+    datasets=ABLATION_DATASETS,
+    methods=METHODS,
+    anno="ablation-nrel",
+    d_m_b=ablation_d_m_b,
+    d_m_s=ablation_nrel_d_m_s,
+    prefix="camera-ready/ablation",
+    ranges=["1", "30", "80"]
+  )
+
+  # compare progressive search paramters
+  ablation_ps_d_m_s = {d: {} for d in ABLATION_DATASETS}
+  for d in ABLATION_DATASETS:
+    ablation_ps_d_m_s[d]["CompassPostKTh"] = {
+      "nrel": [50],
+      "batch_k": [20, 60, 100] + D_ARGS[d].get("nlist", M_ARGS["CompassPostKTh"]["nlist"]),
+    }
+  draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation(
+    da=1,
+    datasets=ABLATION_DATASETS,
+    methods=METHODS,
+    anno="ablation-ps",
+    d_m_b=ablation_d_m_b,
+    d_m_s=ablation_ps_d_m_s,
+    prefix="camera-ready/ablation",
+    ranges=["1", "30", "80"]
+  )
+
+  # ablate the cluster graph
+
+
 def camera_ready():
   best_d_m_b = {d: {} for d in DATASETS}
   for d in ("sift-dedup", "audio-dedup"):
@@ -536,6 +615,42 @@ def camera_ready():
   # # Figure 6: time breakdown
   # draw_time_breakdown()
 
+  # Revision 1: original datasets on new workloads
+  draw_qps_comp_wrt_recall_by_workload_camera(
+    datasets=datasets,
+    methods=METHODS,
+    anno="MoM",
+    d_m_b=best_d_m_b,
+    d_m_s=best_d_m_s,
+    prefix="camera-ready/revision",
+  )
+
+  # Revision 2: new workloads on new large datasets
+  for d in LARGE_DATASETS:
+    best_d_m_b[d] = {}
+    best_d_m_b[d]["ACORN"] = ["M_32_beta_64_gamma_100"]
+    best_d_m_b[d]["Navix"] = ["M_32_efc_200"]
+    best_d_m_b[d]["Milvus"] = ["M_32_efc_200"]
+    best_d_m_b[d]["Weaviate"] = ["M_32_efc_200"]
+    best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
+  best_d_m_b["flickr"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  best_d_m_b["deep10m"]["CompassPostKTh"] = ["M_32_efc_200_nlist_50000_M_cg_8"]
+
+  best_d_m_s = {d: {} for d in DATASETS}
+  for d in LARGE_DATASETS:
+    best_d_m_s[d] = {}
+  best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50, 100]}
+  best_d_m_s["deep10m"]["CompassPostKTh"] = {"nrel": [50, 100]}
+
+  draw_qps_comp_wrt_recall_by_large_dataset_camera(
+    datasets=LARGE_DATASETS,
+    methods=METHODS,
+    anno="MoM",
+    d_m_b=best_d_m_b,
+    d_m_s=best_d_m_s,
+    prefix="camera-ready/large",
+  )
+
   # Figure 4: ablation study
   for d in ("sift-dedup", "audio-dedup"):
     best_d_m_b[d]["CompassRelational"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
@@ -570,7 +685,7 @@ def camera_ready():
     d_m_b=best_d_m_b,
     d_m_s=best_d_m_s,
     prefix="camera-ready",
-    ranges=["20", "30"]
+    ranges=["20", "30"],
   )
 
   # Figure 2 (deprecated): disjunction on single attribute
@@ -599,6 +714,8 @@ if __name__ == "__main__":
   # compare_best_with_sotas()
   # compare_conjunction()
   # compare_disjunction()
-  compare_revision()
+  # compare_revision()
+  # compare_large()
+  compare_more_ablation() # Revision 3
   # summarize_multik(["crawl", "video-dedup", "gist-dedup", "glove100"])
-  # camera_ready()
+  camera_ready()

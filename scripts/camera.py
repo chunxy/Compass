@@ -975,8 +975,8 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
 
               recall_above = rec_qps_comp[rec_qps_comp["recall"].gt(xlim[0])]
               # Need comment out following two lines when plotting for ablation due to the index-out-of-range.
-              rg_d_b[rg][d][b]["recall"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["recall"].to_list()[0]
-              rg_d_b[rg][d][b]["search"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["search"].to_list()[0]
+              # rg_d_b[rg][d][b]["recall"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["recall"].to_list()[0]
+              # rg_d_b[rg][d][b]["search"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["search"].to_list()[0]
               axs[0][i].plot(recall_above["recall"], recall_above["qps"], **marker)
               axs[0][i].scatter(recall_above["recall"], recall_above["qps"], label=f"{m}-{b}-nrel_{nrel}", **marker)
               axs[1][i].plot(recall_above["recall"], recall_above["total_ncomp"], **marker)
@@ -1055,6 +1055,139 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
 
   with open(f"{prefix}/All-{anno}-QPS-Comp-Recall-Search.json", "w") as f:
     json.dump(rg_d_b, f, indent=4)
+
+
+def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation(da, datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="figures", ranges=[]):
+  xlim, xticks = [0.8, 1], [0.8, 0.9, 1]
+  if ranges:  # ablations study
+    xlim, xticks = [0.4, 1], [0.4, 0.6, 0.8, 1]
+  ranges = ranges if ranges else DA_RANGE[da]
+  df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
+  df = df.fillna('')
+  dataset_comp_ylim = {
+    "crawl": 10000,
+    "gist-dedup": 10000,
+    "video-dedup": 30000,
+    "glove100": 30000,
+  }
+
+  selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
+  selected_efs = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
+
+  for d in datasets:
+    fig, axs = plt.subplots(2, len(ranges), layout='tight')
+    fig.set_size_inches(8, 4)
+    for ax in axs.flat:
+      ax.set_box_aspect(1)
+      ax.tick_params(axis='y', rotation=45)
+    for i, rg in enumerate(ranges):
+      selector = ((df["dataset"] == d) & (df["range"] == rg))
+      if not selector.any():
+        continue
+
+      data = df[selector]
+      sel = float(data["selectivity"].unique()[0])
+      for m in d_m_b[d].keys() if d in d_m_b else methods:
+        marker = M_STYLE[m]
+        for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
+          if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+            data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
+          else:
+            data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+          if m.startswith("Compass"):
+            for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
+              for batch_k in d_m_s.get(d, {}).get(m, {}).get("batch_k", compass_args["batch_k"]):
+                _selected_efs = D_ARGS[d]["efs"]
+                selected_search = [f"efs_{efs}_nrel_{nrel}_batch_k_{batch_k}_initial_efs_{batch_k}_delta_efs_{batch_k}" for efs in _selected_efs]
+                data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+                rec_qps_comp = data_by_m_b_nrel[["recall", "qps", "ncomp", "initial_ncomp", "search"]].sort_values(["recall"], ascending=[True])
+                rec_qps_comp["total_ncomp"] = rec_qps_comp["initial_ncomp"] + rec_qps_comp["ncomp"]
+
+                recall_above = rec_qps_comp[rec_qps_comp["recall"].gt(xlim[0])]
+                # Need comment out following two lines when plotting for ablation due to the index-out-of-range.
+                # rg_d_b[rg][d][b]["recall"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["recall"].to_list()[0]
+                # rg_d_b[rg][d][b]["search"] = rec_qps_comp[rec_qps_comp["recall"].gt(0.9)]["search"].to_list()[0]
+                p = axs[0][i].plot(recall_above["recall"], recall_above["qps"])
+                axs[0][i].scatter(recall_above["recall"], recall_above["qps"], label=f"{m}-{b}-nrel_{nrel}_batch_k_{batch_k}", color=p[0].get_color())
+                axs[1][i].plot(recall_above["recall"], recall_above["total_ncomp"], color=p[0].get_color())
+                axs[1][i].scatter(recall_above["recall"], recall_above["total_ncomp"], label=f"{m}-{b}-nrel_{nrel}_batch_k_{batch_k}", color=p[0].get_color())
+          else:
+            selected_search = [f"efs_{efs}" for efs in selected_efs]
+            data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+            recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+            recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
+            axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
+            axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
+            if m in {"Milvus", "Weaviate"}: continue #  # noqa: E701
+            recall_ncomp = data_by_m_b[["recall", "ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
+            recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
+            axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
+            axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
+
+          dt = d.split("-")[0].upper()
+          # axs[0][i].set_xlabel('Recall')
+          axs[0][i].set_xticks(xticks)
+          axs[0][i].set_xticklabels([])
+          if i == 0:
+            axs[0][i].set_ylabel('QPS')
+          axs[0][i].set_title("{}, {:.1%}".format(dt, sel))
+          axs[1][i].set_xlabel('Recall')
+          axs[1][i].set_xticks(xticks)
+          if i == 0:
+            axs[1][i].set_ylabel('# Comp')
+          auto_bottom, auto_top = axs[1][i].get_ylim()
+          axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+          # axs[1][i].set_title("{}, Passrate-{:.1%}".format(dt, sel))
+
+    bottom = 0.05
+    plt.tight_layout(rect=[0, bottom, 1, 1], w_pad=0.05, h_pad=0.05)
+    unique_labels = {}
+    for ax in axs[0]:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label.startswith("Compass"):
+          # label = label if label != "CompassPostKTh" else "Compass"
+          splited = label.split("-")
+          label = f"Compass-{splited[2]}"
+        else:
+          label = label.split("-")[0]
+          if label.startswith("SeRF"):
+            label = "SeRF"
+          if label.startswith("Navix"):
+            label = "NaviX"
+        if label not in unique_labels:
+          unique_labels[label] = handle
+      # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
+    for ax in axs[1]:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label.startswith("Compass"):
+          # label = label if label != "CompassPostKTh" else "Compass"
+          splited = label.split("-")
+          label = f"Compass-{splited[2]}"
+        else:
+          label = label.split("-")[0]
+          if label.startswith("SeRF"):
+            label = "SeRF"
+          if label.startswith("Navix"):
+            label = "NaviX"
+        if label not in unique_labels:
+          unique_labels[label] = handle
+      # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper left")
+    # Put a legend below current axis
+    fig.legend(
+      unique_labels.values(),
+      unique_labels.keys(),
+      loc='outside lower center',
+      bbox_to_anchor=(0.5, 0),
+      fancybox=True,
+      ncol=2,
+    )
+    # plt.grid(True)
+    path = Path(f"{prefix}/Shrinked-{d}-{anno}-QPS-Comp-Recall.jpg")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=200)
+    plt.close("all")
 
 
 def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(datasets, d_m_b, d_m_s, anno, prefix):
