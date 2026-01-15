@@ -33,7 +33,7 @@ if __name__ == "__main__":
     if args.wtypes is not None and card.wtype not in args.wtypes:
       continue
     query_vectors_np = load_fvecs(card.query_path, card.n_queries, card.dim)[:N_QUERIES]
-    if card.wtype == "skewed" or card.wtype == "correlated" or card.wtype == "anticorrelated":
+    if card.wtype == "skewed" or card.wtype == "correlated" or card.wtype == "anticorrelated" or card.wtype == "real":
       rg = load_float32(card.rg_path, card.n_queries * 2, card.attr_dim)
       l_bounds = rg[:card.n_queries]
       u_bounds = rg[card.n_queries:]
