@@ -55,7 +55,19 @@ postfiltering_da_interval = {
   ]
 }
 prefiltering_da_interval = {
-  1: [*[((100, ), (r, )) for r in (200, 300, 600)]]
+  1: [*[((100, ), (r, )) for r in (200, 3100, 6100, 8100, 9100)], ((0, ), (10000, ))],
+  2: [
+    *[((100, 200), (r1, r2)) for r1, r2 in \
+      zip([3100, ], [3200, ])],
+  ],
+  3: [
+    *[((100, 200, 300), (r1, r2, r3)) for r1, r2, r3 in \
+      zip([3100], [3200], [3300])],
+  ],
+  4: [
+    *[((100, 200, 300, 400), (r1, r2, r3, r4)) for r1, r2, r3, r4 in \
+      zip([3100], [3200], [3300], [3400])],
+  ],
 }
 navix_da_interval = {
   1: [
@@ -82,9 +94,7 @@ navix_da_interval = {
           [3400, 3900, 4400, 4900, 5400, 5900, 6400, 6900, 7400, 7900, 8400, 8900, 9400, 9900])],
   ],
 }
-acorn_da_nlabel = {
-  1: [nlabel for nlabel in [100, 50, 20, 10, 5, 2]]
-}
+acorn_da_nlabel = {1: [nlabel for nlabel in [100, 50, 20, 10, 5, 2]]}
 compass_post_da_interval = {
   1: [
     *[((100,), (r,)) for r in (200, 300, 600)],
@@ -168,7 +178,7 @@ COMPASSX_METHODS = [
 ]
 SOTA_METHODS = ["iRangeGraph", "SeRF", "SeRF+OR", "SeRF+OR3", "SeRF+OR4"]
 BASE_METHODS = [
-  # "Prefiltering",
+  "Prefiltering",
   # "Postfiltering",
   # "CompassPostK",
   "CompassPostKTh",
@@ -227,9 +237,9 @@ M_DA_RUN = {
   "Ivf": ivf_da_interval,
   "Navix": navix_da_interval,
   # "ACORN": acorn_da_nlabel,
-  "ACORN": compass_post_da_interval, # for revision
-  "Milvus": compass_post_da_interval, # for revision
-  "Weaviate": compass_post_da_interval, # for revision
+  "ACORN": compass_post_da_interval,  # for revision
+  "Milvus": compass_post_da_interval,  # for revision
+  "Weaviate": compass_post_da_interval,  # for revision
 }
 
 compass_group_dataset = {
@@ -503,7 +513,7 @@ D_ARGS = {
   "audio": {
     "dx": [64],
     "nlist": [5000, 10000],
-    "efs": compass_args["efs"] + [350, 400, 450, 500, 600, 700, 800, 900, 1000]
+    "efs": compass_args["efs"] + [350, 400, 450, 500, 600, 700, 800, 900, 1000],
   },
   "video": {
     "dx": [256, 512],
@@ -595,7 +605,7 @@ M_STYLE = {
     "marker": "p", "color": "gray"
   },
   "Prefiltering": {
-    "marker": "^", "color": "red"
+    "marker": "*", "color": "black"
   },
   "Postfiltering": {
     "marker": "p", "color": "green"

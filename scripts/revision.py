@@ -112,6 +112,21 @@ REVISION_CARDS = {
   ]
   for d in DATASET_NBASE.keys()
 }
+REVISION_CARDS["video-dedup"].append(
+  Datacard(
+    name="video-dedup",
+    base_path=BASE.format("video-dedup", "video-dedup"),
+    query_path=QUERY.format("video-dedup", "video-dedup"),
+    attr_path=ATTR.format("video-dedup", 2, 10000, "real"),
+    wtype="real",
+    workload=WORKLOAD.format("video-dedup", 10000, "real"),
+    dim=DATASET_NDIM["video-dedup"],
+    n_base=DATASET_NBASE["video-dedup"],
+    n_queries=DATASET_NQUERY["video-dedup"],
+    n_groundtruth=100,
+    attr_dim=2,
+  )
+)
 
 LOG_ROOT = Path("/home/chunxy/repos/Compass/logs_10")
 
@@ -146,7 +161,7 @@ def summarize_revision():
   entries = []
   for d in DATASET_NBASE.keys():
     for card in REVISION_CARDS[d]:
-      for m in ["SeRF", "SeRF+Post", "CompassPostKTh", "ACORN", "Navix", "Milvus", "Weaviate"]:
+      for m in ["SeRF", "SeRF+Post", "CompassPostKTh", "ACORN", "Navix", "Milvus", "Weaviate", "Prefiltering"]:
         w = card.workload if not m.startswith("SeRF") else f"{d}_{10}_{card.wtype}"
         bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
         st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])

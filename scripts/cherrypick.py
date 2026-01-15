@@ -578,6 +578,7 @@ def camera_ready():
     best_d_m_b[d]["Navix"] = ["M_16_efc_200"]
     best_d_m_b[d]["Milvus"] = ["M_16_efc_200"]
     best_d_m_b[d]["Weaviate"] = ["M_16_efc_200"]
+    best_d_m_b[d]["Prefiltering"] = [""]
   for d in ["video-dedup", "glove100"]:
     best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
     best_d_m_b[d]["ACORN"] = ["M_32_beta_64_gamma_100"]
