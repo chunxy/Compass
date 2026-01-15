@@ -90,6 +90,7 @@ if __name__ == "__main__":
     indices = np.argsort(data[:, 0])
     data = data[indices]
     # data.tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_2_{corr_rg_ub}.correlated.value.bin")
+    passrates = np.zeros(n_queries)
 
     rg = np.zeros((n_queries * 2, 2), dtype=np.float32)
     rg[:n_queries, 0] = np.random.uniform(-corr_rg_ub, corr_rg_ub, n_queries)
