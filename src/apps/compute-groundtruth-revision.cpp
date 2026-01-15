@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < nq; i++) {
     uint32_t size = hybrid_topks[i].size();
     if (size != k) {
-      fmt::print("Error: size ({}) != k ({})\n", size, k);
+      throw fmt::format("Error: size ({}) != k ({})\n", size, k);
       return 1;
     }
     ofs.write((char *)&size, sizeof(size));
