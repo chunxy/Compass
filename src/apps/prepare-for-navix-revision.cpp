@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
       predicate << " AND e.anticorrelated2 >= " << args.l_bounds[i * 2 + 1]
                 << " AND e.anticorrelated2 <= " << args.u_bounds[i * 2 + 1];
     } else if (c.type == "real") {
-      predicate << "e.real1 >= " << args.l_bounds[i * 2] << " AND e.real1 <= " << args.u_bounds[i * 2];
+      predicate << std::fixed << "e.real1 >= " << args.l_bounds[i * 2] << " AND e.real1 <= " << args.u_bounds[i * 2];
       predicate << " AND e.real2 >= " << args.l_bounds[i * 2 + 1] << " AND e.real2 <= " << args.u_bounds[i * 2 + 1];
     } else if (c.type == "onesided") {
       predicate << "e.skewed >= " << args.l_bounds[i];
