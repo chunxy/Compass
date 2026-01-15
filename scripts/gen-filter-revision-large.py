@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 datasets = {
   "flickr": 4203901,
@@ -10,9 +11,11 @@ dataset_nquery = {
   "deep10m": 10000,
 }
 
+
 # generate zipf distribution data for float32
 def gen_zipf_distribution_int32(n, alpha=2):
   return np.random.zipf(alpha, n).astype(np.int32)
+
 
 MIN_PASS_RATIO = 0.001
 
@@ -32,6 +35,7 @@ if __name__ == "__main__":
     if (data.size != n):
       print(f"Error: {dataset} data size mismatch: {data.size} != {n}")
       exit()
+    passrates = np.zeros(n_queries)
 
     rg = np.random.randint(1, zipf_rg_ub, n_queries, dtype=np.int32)
     i = 0
@@ -41,13 +45,12 @@ if __name__ == "__main__":
         rg[i] //= 2
         continue
       else:
+        passrates[i] = pass_num / n
         i += 1
-    rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.onesided.rg.bin")
-    passrate = 0
-    for i in range(n_queries):
-      passrate += np.sum(data >= rg[i]) / n
-    print(f"Onesided: {dataset} passrate: {passrate / n_queries}")
-
+    # rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.onesided.rg.bin")
+    print(f"Onesided: {dataset} passrate: {passrates.mean():.4f}")
+    plt.hist(passrates, bins=20)
+    plt.savefig(f"/home/chunxy/repos/Compass/data/distrib/{dataset}_1_{zipf_rg_ub}.onesided.passrate.png")
 
     point_ub = 10
     rg = np.random.randint(1, point_ub, n_queries, dtype=np.int32)
@@ -58,14 +61,13 @@ if __name__ == "__main__":
         rg[i] //= 2
         continue
       else:
+        passrates[i] = pass_num / n
         i += 1
-    rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.point.rg.bin")
 
-    passrate = 0
-    for i in range(n_queries):
-      passrate += np.sum((data == rg[i])) / n
-    print(f"Point: {dataset} passrate: {passrate / n_queries}")
-
+    # rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.point.rg.bin")
+    print(f"Point: {dataset} passrate: {passrates.mean():.4f}")
+    plt.hist(passrates, bins=20)
+    plt.savefig(f"/home/chunxy/repos/Compass/data/distrib/{dataset}_1_{zipf_rg_ub}.point.passrate.png")
 
     rg = np.random.randint(1, point_ub, n_queries, dtype=np.int32)
     i = 0
@@ -75,10 +77,10 @@ if __name__ == "__main__":
         rg[i] *= 2
         continue
       else:
+        passrates[i] = pass_num / n
         i += 1
-    rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.negation.rg.bin")
 
-    passrate = 0
-    for i in range(n_queries):
-      passrate += np.sum((data != rg[i])) / n
-    print(f"Negation: {dataset} passrate: {passrate / n_queries}")
+    # rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.negation.rg.bin")
+    print(f"Negation: {dataset} passrate: {passrates.mean():.4f}")
+    plt.hist(passrates, bins=20)
+    plt.savefig(f"/home/chunxy/repos/Compass/data/distrib/{dataset}_1_{zipf_rg_ub}.negation.passrate.png")

@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 datasets = {
   "sift-dedup": 1000000 - 14538,
@@ -27,7 +28,9 @@ dataset_nquery = {
 def gen_zipf_distribution_float32(n, alpha=2):
   return np.random.zipf(alpha, n).astype(np.float32)
 
+
 MIN_PASS_RATIO = 0.001
+
 
 def generate_correlated_2d(n, correlation=0.5, mean=[0, 0], std=[1, 1], min_val=None, max_val=None):
   """
@@ -69,7 +72,8 @@ if __name__ == "__main__":
     )
     indices = np.argsort(data[:, 0])
     data = data[indices]
-    data.tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_2_{corr_rg_ub}.anticorrelated.value.bin")
+    # data.tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_2_{corr_rg_ub}.anticorrelated.value.bin")
+    passrates = np.zeros(n_queries)
 
     rg = np.zeros((n_queries * 2, 2), dtype=np.float32)
     rg[:n_queries, 0] = np.random.uniform(-corr_rg_ub, corr_rg_ub, n_queries)
@@ -90,14 +94,13 @@ if __name__ == "__main__":
         rg[i + n_queries, 1] = (rg[i + n_queries, 1] + corr_rg_ub) / 2
         continue
       else:
+        passrates[i] = pass_num / n
         i += 1
-    rg.tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_2_{corr_rg_ub}.anticorrelated.rg.bin")
+    # rg.tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_2_{corr_rg_ub}.anticorrelated.rg.bin")
 
     # Check actual correlation
     correlation_matrix = np.corrcoef(data[:, 0], data[:, 1])
-    passrate = 0
-    for i in range(n_queries):
-      passrate += np.sum((data[:, 0] >= rg[i, 0]) & (data[:, 0] <= rg[i + n_queries, 0]) & (data[:, 1] >= rg[i, 1])
-                          & (data[:, 1] <= rg[i + n_queries, 1])) / n
-    print(f"{dataset} passrate: {passrate / n_queries}, correlation: {correlation_matrix[0, 1]:.4f}")
+    print(f"{dataset} passrate: {passrates.mean():.4f}, correlation: {correlation_matrix[0, 1]:.4f}")
+    plt.hist(passrates, bins=20)
+    plt.savefig(f"/home/chunxy/repos/Compass/data/distrib/{dataset}_2_{corr_rg_ub}.anticorrelated.passrate.png")
     print(f"{data[:, 1].min()}-{data[:, 1].max()} assigned to {n_queries} queries")
