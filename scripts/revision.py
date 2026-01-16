@@ -388,8 +388,9 @@ def draw_qps_comp_wrt_recall_by_workload_camera(datasets, methods, anno, *, d_m_
               axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
           else:
-            selected_search = [f"efs_{efs}" for efs in selected_efs]
-            data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+            if m != "Prefiltering":
+              selected_search = [f"efs_{efs}" for efs in selected_efs]
+              data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
             axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
@@ -481,7 +482,7 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
   rg_d_b = {}
   for d in datasets:
     fig, axs = plt.subplots(2, len(wtypes), layout='tight')
-    fig.set_size_inches(8, 6)
+    fig.set_size_inches(12, 5)
     for ax in axs.flat:
       ax.set_box_aspect(1)
       ax.tick_params(axis='y', rotation=45)
@@ -514,8 +515,9 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
               axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], label=f"{m}-{b}-nrel_{nrel}", **marker)
 
           else:
-            selected_search = [f"efs_{efs}" for efs in selected_efs]
-            data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+            if m != "Prefiltering":
+              selected_search = [f"efs_{efs}" for efs in selected_efs]
+              data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
             axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
@@ -532,7 +534,8 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
           axs[0][i].set_xticklabels([])
           if i == 0:
             axs[0][i].set_ylabel('QPS')
-          axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize()))
+          # axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize()))
+          axs[0][i].set_title("{}".format(wtype.capitalize()))
           axs[1][i].set_xlabel('Recall')
           axs[1][i].set_xticks(xticks)
           if i == 0:
@@ -588,6 +591,112 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
 
   with open(f"{prefix}/All-Large-{anno}-QPS-Comp-Recall-Search.json", "w") as f:
     json.dump(rg_d_b, f, indent=4)
+
+def draw_qps_comp_wrt_recall_by_real_dataset_camera(datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="camera-ready/revision"):
+  df_all = pd.read_csv("stats-revision.csv", dtype=types)
+  df_all = df_all.fillna('')
+
+  xlim, xticks = [0.8, 1], [0.8, 0.9, 1]
+  dataset_comp_ylim = {
+    "video-dedup": 30000,
+  }
+
+  selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
+  selected_efs = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
+
+  for da, wtype in zip([2], ["real"]):
+    selector = df_all["workload"].str.endswith(f"_{wtype}")
+    if not selector.any():
+      continue
+    df = df_all[selector]
+
+    fig, axs = plt.subplots(1, len(datasets) * 2, layout='tight')
+    fig.set_size_inches(6, 3.5)
+    for ax in axs.flat:
+      ax.set_box_aspect(1)
+      ax.tick_params(axis='y', rotation=45)
+
+    for i, d in enumerate(datasets):
+      data = df[df["dataset"] == d]
+      for m in d_m_b[d].keys() if d in d_m_b else methods:
+        marker = M_STYLE[m]
+        for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
+          if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+            data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
+          else:
+            data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+          if m.startswith("Compass"):
+            for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", []):
+              selected_search = [f"efs_{efs}_nrel_{nrel}_batch_k_20_initial_efs_20_delta_efs_20" for efs in selected_efs]
+              data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+              recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+              recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
+              axs[i * 2].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
+              axs[i * 2].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+
+              recall_ncomp = data_by_m_b_nrel[["recall", "ncomp", "initial_ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
+              recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
+              axs[i * 2 + 1].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], **marker)
+              axs[i * 2 + 1].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], label=f"{m}-{b}-nrel_{nrel}", **marker)
+
+          else:
+            if m != "Prefiltering":
+              selected_search = [f"efs_{efs}" for efs in selected_efs]
+              data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+            recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+            recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
+            axs[i * 2].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
+            axs[i * 2].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
+            if m in {"Milvus", "Weaviate"}: continue # noqa: E701
+            recall_ncomp = data_by_m_b[["recall", "ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
+            recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
+            axs[i * 2 + 1].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
+            axs[i * 2 + 1].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
+
+          dt = d.split("-")[0].upper()
+          axs[i * 2].set_xlabel('Recall')
+          axs[i * 2].set_xticks(xticks)
+          axs[i * 2].set_ylabel('QPS')
+          axs[i * 2].set_title("{}, {}".format(dt, wtype.capitalize()))
+          axs[i * 2 + 1].set_xlabel('Recall')
+          axs[i * 2 + 1].set_xticks(xticks)
+          axs[i * 2 + 1].set_ylabel('# Comp')
+          auto_bottom, auto_top = axs[i * 2 + 1].get_ylim()
+          axs[i * 2 + 1].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+          axs[i * 2 + 1].set_title("{}, {}".format(dt, wtype.capitalize()))
+
+      bottom = 0.05
+      plt.tight_layout(rect=[0, bottom, 1, 1], w_pad=0.05, h_pad=0.05)
+      unique_labels = {}
+      for ax in axs.flat:
+        handles, labels = ax.get_legend_handles_labels()
+        for handle, label in zip(handles, labels):
+          label = label.split("-")[0]
+          if label.startswith("Compass"):
+            label = label if label != "CompassPostKTh" else "Compass"
+          if label.startswith("SeRF"):
+            label = "SeRF"
+          if label.startswith("Navix"):
+            label = "NaviX"
+          if label not in unique_labels:
+            unique_labels[label] = handle
+        # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
+
+      # Put a legend below current axis
+      fig.legend(
+        unique_labels.values(),
+        unique_labels.keys(),
+        loc='outside lower center',
+        bbox_to_anchor=(0.5, 0),
+        fancybox=True,
+        ncol=len(unique_labels),
+      )
+      # plt.grid(True)
+      path = Path(f"{prefix}/All-{anno}-{wtype}-QPS-Comp-Recall.jpg")
+      path.parent.mkdir(parents=True, exist_ok=True)
+      fig.savefig(path, dpi=200)
+      plt.close("all")
+
 
 if __name__ == "__main__":
   summarize_revision()

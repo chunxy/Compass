@@ -85,8 +85,9 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera(da, datasets, methods, anno, 
               axs[1][i].plot(recall_above["recall"], recall_above["total_ncomp"], **marker)
               axs[1][i].scatter(recall_above["recall"], recall_above["total_ncomp"], label=f"{m}-{b}-nrel_{nrel}", **marker)
           else:
-            selected_search = [f"efs_{efs}" for efs in selected_efs]
-            data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+            if m != "Prefiltering":
+              selected_search = [f"efs_{efs}" for efs in selected_efs]
+              data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
             axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
@@ -982,8 +983,9 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
               axs[1][i].plot(recall_above["recall"], recall_above["total_ncomp"], **marker)
               axs[1][i].scatter(recall_above["recall"], recall_above["total_ncomp"], label=f"{m}-{b}-nrel_{nrel}", **marker)
           else:
-            selected_search = [f"efs_{efs}" for efs in selected_efs]
-            data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+            if m != "Prefiltering":
+              selected_search = [f"efs_{efs}" for efs in selected_efs]
+              data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
             axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
@@ -1112,8 +1114,9 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation(da, dat
                 axs[1][i].plot(recall_above["recall"], recall_above["total_ncomp"], color=p[0].get_color())
                 axs[1][i].scatter(recall_above["recall"], recall_above["total_ncomp"], label=f"{m}-{b}-nrel_{nrel}_batch_k_{batch_k}", color=p[0].get_color())
           else:
-            selected_search = [f"efs_{efs}" for efs in selected_efs]
-            data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+            if m != "Prefiltering":
+              selected_search = [f"efs_{efs}" for efs in selected_efs]
+              data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
             recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
             recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
             axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
@@ -1220,6 +1223,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
 
     for da in DA_S:
       df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
+      df.fillna('', inplace=True)
       for i, d in enumerate(datasets):
         data = df[df["dataset"] == d]
         for sel in sel_s:
@@ -1475,6 +1479,8 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
       }
       if ndis == 4: dataset_comp_ylim = dataset_comp_ylim_4d  # noqa: E701
       df = pd.read_csv("stats-1d.csv", dtype=types)
+      df = df.fillna('')
+
       for i, d in enumerate(datasets):
         data = df[df["dataset"] == d]
         for sel in sel_s:

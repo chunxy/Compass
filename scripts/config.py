@@ -3,7 +3,7 @@ from functools import reduce
 DATASETS = ["sift", "sift-dedup", "audio", "audio-dedup", "crawl", "gist", "gist-dedup", "video", "video-dedup", "glove100"]
 DATASETS = ["sift-dedup", "audio-dedup", "crawl", "gist-dedup", "video-dedup", "glove100"]
 LARGE_DATASETS = ["flickr", "deep10m"]
-REAL_DATASETS = ["flcikr", "video-dedup"]
+REAL_DATASETS = ["video-dedup"]
 ABLATION_DATASETS = ["gist-dedup"]
 DA_S = [1, 2, 3, 4]
 

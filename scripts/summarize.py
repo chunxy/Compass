@@ -54,9 +54,18 @@ dataset_comp_ylim = {
 }
 
 ABLATION_WORKLOADS = [
+  "crawl_10000_100_200_10",
+  "crawl_10000_100_3100_10",
+  "crawl_10000_100_8100_10",
+  "glove100_10000_100_200_10",
+  "glove100_10000_100_3100_10",
+  "glove100_10000_100_8100_10",
   "gist-dedup_10000_100_200_10",
   "gist-dedup_10000_100_3100_10",
   "gist-dedup_10000_100_8100_10",
+  "video-dedup_10000_100_200_10",
+  "video-dedup_10000_100_3100_10",
+  "video-dedup_10000_100_8100_10",
 ]
 
 ABLATION_ARGS = {

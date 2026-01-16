@@ -5,6 +5,7 @@ from config import (
   DATASETS,
   LARGE_DATASETS,
   ABLATION_DATASETS,
+  REAL_DATASETS,
   METHODS,
   D_ARGS,
   M_ARGS,
@@ -36,6 +37,7 @@ from revision import (
   draw_qps_comp_wrt_recall_by_workload,
   draw_qps_comp_wrt_recall_by_workload_camera,
   draw_qps_comp_wrt_recall_by_large_dataset_camera,
+  draw_qps_comp_wrt_recall_by_real_dataset_camera,
 )
 
 nrel_100 = {d: {} for d in DATASETS}
@@ -496,6 +498,7 @@ def compare_disjunction():
     prefix="disjunction",
   )
 
+
 def compare_revision():
   draw_qps_comp_wrt_recall_by_workload(
     datasets=DATASETS,
@@ -594,7 +597,13 @@ def camera_ready():
 
   datasets = ["crawl", "video-dedup", "gist-dedup", "glove100"]
   # Figure 1: multi-attribute conjunction, fix dimension passrate
-  draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(datasets, best_d_m_b, best_d_m_s, "fix-dim", "camera-ready")
+  draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(
+    datasets,
+    best_d_m_b,
+    best_d_m_s,
+    "fix-dim",
+    "camera-ready",
+  )
 
   # Figure 3: QPS-Recall, #Comp-Recall
   draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(
@@ -608,7 +617,13 @@ def camera_ready():
   )
 
   # Figure 2: multi-attribute disjunction
-  draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, best_d_m_b, best_d_m_s, "or-dim", "camera-ready")
+  draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(
+    datasets,
+    best_d_m_b,
+    best_d_m_s,
+    "or-dim",
+    "camera-ready",
+  )
 
   # # Figure 5: muiti-k
   # draw_qps_comp_fixing_selectivity_by_k_camera(datasets, best_d_m_b, best_d_m_s, "multi-k", "camera-ready")
@@ -640,8 +655,8 @@ def camera_ready():
   best_d_m_s = {d: {} for d in DATASETS}
   for d in LARGE_DATASETS:
     best_d_m_s[d] = {}
-  best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50, 100]}
-  best_d_m_s["deep10m"]["CompassPostKTh"] = {"nrel": [50, 100]}
+  best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50]}
+  best_d_m_s["deep10m"]["CompassPostKTh"] = {"nrel": [50]}
 
   draw_qps_comp_wrt_recall_by_large_dataset_camera(
     datasets=LARGE_DATASETS,
@@ -650,6 +665,16 @@ def camera_ready():
     d_m_b=best_d_m_b,
     d_m_s=best_d_m_s,
     prefix="camera-ready/large",
+  )
+
+  # Revision 4: real attributes
+  draw_qps_comp_wrt_recall_by_real_dataset_camera(
+    datasets=REAL_DATASETS,
+    methods=METHODS,
+    anno="MoM",
+    d_m_b=best_d_m_b,
+    d_m_s=best_d_m_s,
+    prefix="camera-ready/revision",
   )
 
   # Figure 4: ablation study
@@ -703,6 +728,7 @@ def camera_ready():
   #   d_m_s=best_d_m_s,
   #   prefix="camera-ready",
   # )
+
 
 if __name__ == "__main__":
   # pick_clustering_methods()
