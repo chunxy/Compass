@@ -241,22 +241,22 @@ def summarize_revision():
         initial_ncomp.append(0)
       else:
         initial_ncomp.append(0)
-    # Not to use average for now.
-    # if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS or e[1].startswith("CompassPost"):
-    #   nsample, averaged_qps = min(len(jsons), 3), qps[-1]
-    #   for i in range(2, nsample + 1):
-    #     with open(jsons[-i]) as f:
-    #       stat = json.load(f)
-    #       averaged_qps += stat["aggregated"]["qps"]
-    #   averaged_qps /= nsample
-    #   qps[-1] = averaged_qps
-    # elif e[1].startswith("CompassPost"):
-    #   nsample, max_qps = min(len(jsons), 3), qps[-1]
-    #   for i in range(2, nsample + 1):
-    #     with open(jsons[-i]) as f:
-    #       stat = json.load(f)
-    #       max_qps = max(max_qps, stat["aggregated"]["qps"])
-    #   qps[-1] = max_qps
+      # Not to use average for now.
+      if e[1].startswith("SeRF"):
+        nsample, averaged_qps = min(len(jsons), 3), qps[-1]
+        for i in range(2, nsample + 1):
+          with open(jsons[-i]) as f:
+            stat = json.load(f)
+            averaged_qps += stat["aggregated"]["qps"]
+        averaged_qps /= nsample
+        qps[-1] = averaged_qps
+      elif e[1].startswith("CompassPost"):
+        nsample, max_qps = min(len(jsons), 3), qps[-1]
+        for i in range(2, nsample + 1):
+          with open(jsons[-i]) as f:
+            stat = json.load(f)
+            max_qps = max(max_qps, stat["aggregated"]["qps"])
+        qps[-1] = max_qps
 
   df["recall"] = rec
   df["qps"] = qps
@@ -342,8 +342,8 @@ def draw_qps_comp_wrt_recall_by_workload_camera(datasets, methods, anno, *, d_m_
 
   xlim, xticks = [0.8, 1], [0.8, 0.9, 1]
   dataset_comp_ylim = {
-    "crawl": 10000,
-    "gist-dedup": 10000,
+    "crawl": 15000,
+    "gist-dedup": 15000,
     "video-dedup": 30000,
     "glove100": 30000,
   }
@@ -359,7 +359,7 @@ def draw_qps_comp_wrt_recall_by_workload_camera(datasets, methods, anno, *, d_m_
     df = df_all[selector]
 
     fig, axs = plt.subplots(2, len(datasets), layout='tight')
-    fig.set_size_inches(8, 4)
+    fig.set_size_inches(8.5, 4)
     for ax in axs.flat:
       ax.set_box_aspect(1)
       ax.tick_params(axis='y', rotation=45)
@@ -401,20 +401,20 @@ def draw_qps_comp_wrt_recall_by_workload_camera(datasets, methods, anno, *, d_m_
             axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
             axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
 
-          dt = d.split("-")[0].upper()
-          # axs[0][i].set_xlabel('Recall')
-          axs[0][i].set_xticks(xticks)
-          axs[0][i].set_xticklabels([])
-          if i == 0:
-            axs[0][i].set_ylabel('QPS')
-          axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize()))
-          axs[1][i].set_xlabel('Recall')
-          axs[1][i].set_xticks(xticks)
-          if i == 0:
-            axs[1][i].set_ylabel('# Comp')
-          auto_bottom, auto_top = axs[1][i].get_ylim()
-          axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
-          # axs[1][i].set_title("{}, {}".format(dt, wtype.capitalize()))
+      dt = d.split("-")[0].upper()
+      # axs[0][i].set_xlabel('Recall')
+      axs[0][i].set_xticks(xticks)
+      axs[0][i].set_xticklabels([])
+      if i == 0:
+        axs[0][i].set_ylabel('QPS')
+      axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize()))
+      axs[1][i].set_xlabel('Recall')
+      axs[1][i].set_xticks(xticks)
+      if i == 0:
+        axs[1][i].set_ylabel('# Comp')
+      auto_bottom, auto_top = axs[1][i].get_ylim()
+      axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+      # axs[1][i].set_title("{}, {}".format(dt, wtype.capitalize()))
 
       bottom = 0.05
       plt.tight_layout(rect=[0, bottom, 1, 1], w_pad=0.05, h_pad=0.05)
@@ -464,17 +464,11 @@ def draw_qps_comp_wrt_recall_by_workload_camera(datasets, methods, anno, *, d_m_
   with open(f"{prefix}/All-Workloads-{anno}-QPS-Comp-Recall-Search.json", "w") as f:
     json.dump(rg_d_b, f, indent=4)
 
-def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="camera-ready/revision"):
+def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *, d_m_b={}, d_m_s={}, prefix="camera-ready/large"):
   df_all = pd.read_csv("stats-revision.csv", dtype=types)
   df_all = df_all.fillna('')
 
   xlim, xticks = [0.8, 1], [0.8, 0.9, 1]
-  dataset_comp_ylim = {
-    "crawl": 10000,
-    "gist-dedup": 10000,
-    "video-dedup": 30000,
-    "glove100": 30000,
-  }
 
   selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
   selected_efs = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
@@ -482,7 +476,7 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
   rg_d_b = {}
   for d in datasets:
     fig, axs = plt.subplots(2, len(wtypes), layout='tight')
-    fig.set_size_inches(12, 5)
+    fig.set_size_inches(12, 4)
     for ax in axs.flat:
       ax.set_box_aspect(1)
       ax.tick_params(axis='y', rotation=45)
@@ -528,21 +522,21 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
             axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
             axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
 
-          dt = d.split("-")[0].upper()
-          # axs[0][i].set_xlabel('Recall')
-          axs[0][i].set_xticks(xticks)
-          axs[0][i].set_xticklabels([])
-          if i == 0:
-            axs[0][i].set_ylabel('QPS')
-          # axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize()))
-          axs[0][i].set_title("{}".format(wtype.capitalize()))
-          axs[1][i].set_xlabel('Recall')
-          axs[1][i].set_xticks(xticks)
-          if i == 0:
-            axs[1][i].set_ylabel('# Comp')
-          auto_bottom, auto_top = axs[1][i].get_ylim()
-          axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim.get(d, auto_top)))
-          # axs[1][i].set_title("{}, {}".format(dt, wtype.capitalize()))
+      dt = d.split("-")[0].upper()
+      # axs[0][i].set_xlabel('Recall')
+      axs[0][i].set_xticks(xticks)
+      axs[0][i].set_xticklabels([])
+      if i == 0:
+        axs[0][i].set_ylabel('QPS')
+      # axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize()))
+      axs[0][i].set_title("{}".format(wtype.capitalize()))
+      axs[1][i].set_xlabel('Recall')
+      axs[1][i].set_xticks(xticks)
+      if i == 0:
+        axs[1][i].set_ylabel('# Comp')
+      auto_bottom, auto_top = axs[1][i].get_ylim()
+      axs[1][i].set_ylim(bottom=-200)
+      # axs[1][i].set_title("{}, {}".format(dt, wtype.capitalize()))
 
     bottom = 0.05
     plt.tight_layout(rect=[0, bottom, 1, 1], w_pad=0.05, h_pad=0.05)
@@ -560,19 +554,6 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
         if label not in unique_labels:
           unique_labels[label] = handle
       # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
-    for ax in axs[1]:
-      handles, labels = ax.get_legend_handles_labels()
-      for handle, label in zip(handles, labels):
-        label = label.split("-")[0]
-        if label.startswith("Compass"):
-          label = label if label != "CompassPostKTh" else "Compass"
-        if label.startswith("SeRF"):
-          label = "SeRF"
-        if label.startswith("Navix"):
-          label = "NaviX"
-        if label not in unique_labels:
-          unique_labels[label] = handle
-      # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper left")
 
     # Put a legend below current axis
     fig.legend(
@@ -596,7 +577,7 @@ def draw_qps_comp_wrt_recall_by_real_dataset_camera(datasets, methods, anno, *, 
   df_all = pd.read_csv("stats-revision.csv", dtype=types)
   df_all = df_all.fillna('')
 
-  xlim, xticks = [0.8, 1], [0.8, 0.9, 1]
+  xlim, xticks = [0.4, 1], [0.4, 0.6, 0.8, 1]
   dataset_comp_ylim = {
     "video-dedup": 30000,
   }
@@ -611,7 +592,7 @@ def draw_qps_comp_wrt_recall_by_real_dataset_camera(datasets, methods, anno, *, 
     df = df_all[selector]
 
     fig, axs = plt.subplots(1, len(datasets) * 2, layout='tight')
-    fig.set_size_inches(6, 3.5)
+    fig.set_size_inches(5.5, 3.5)
     for ax in axs.flat:
       ax.set_box_aspect(1)
       ax.tick_params(axis='y', rotation=45)
@@ -638,7 +619,6 @@ def draw_qps_comp_wrt_recall_by_real_dataset_camera(datasets, methods, anno, *, 
               recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
               axs[i * 2 + 1].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], **marker)
               axs[i * 2 + 1].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], label=f"{m}-{b}-nrel_{nrel}", **marker)
-
           else:
             if m != "Prefiltering":
               selected_search = [f"efs_{efs}" for efs in selected_efs]
@@ -653,49 +633,49 @@ def draw_qps_comp_wrt_recall_by_real_dataset_camera(datasets, methods, anno, *, 
             axs[i * 2 + 1].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
             axs[i * 2 + 1].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
 
-          dt = d.split("-")[0].upper()
-          axs[i * 2].set_xlabel('Recall')
-          axs[i * 2].set_xticks(xticks)
-          axs[i * 2].set_ylabel('QPS')
-          axs[i * 2].set_title("{}, {}".format(dt, wtype.capitalize()))
-          axs[i * 2 + 1].set_xlabel('Recall')
-          axs[i * 2 + 1].set_xticks(xticks)
-          axs[i * 2 + 1].set_ylabel('# Comp')
-          auto_bottom, auto_top = axs[i * 2 + 1].get_ylim()
-          axs[i * 2 + 1].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
-          axs[i * 2 + 1].set_title("{}, {}".format(dt, wtype.capitalize()))
+      dt = d.split("-")[0].upper()
+      axs[i * 2].set_xlabel('Recall')
+      axs[i * 2].set_xticks(xticks)
+      axs[i * 2].set_ylabel('QPS')
+      axs[i * 2].set_title("{}, {}".format(dt, wtype.capitalize()))
+      axs[i * 2 + 1].set_xlabel('Recall')
+      axs[i * 2 + 1].set_xticks(xticks)
+      axs[i * 2 + 1].set_ylabel('# Comp')
+      auto_bottom, auto_top = axs[i * 2 + 1].get_ylim()
+      axs[i * 2 + 1].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+      axs[i * 2 + 1].set_title("{}, {}".format(dt, wtype.capitalize()))
 
-      bottom = 0.05
-      plt.tight_layout(rect=[0, bottom, 1, 1], w_pad=0.05, h_pad=0.05)
-      unique_labels = {}
-      for ax in axs.flat:
-        handles, labels = ax.get_legend_handles_labels()
-        for handle, label in zip(handles, labels):
-          label = label.split("-")[0]
-          if label.startswith("Compass"):
-            label = label if label != "CompassPostKTh" else "Compass"
-          if label.startswith("SeRF"):
-            label = "SeRF"
-          if label.startswith("Navix"):
-            label = "NaviX"
-          if label not in unique_labels:
-            unique_labels[label] = handle
-        # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
+    bottom = 0.15
+    plt.tight_layout(rect=[0, bottom, 1, 1], w_pad=0.05, h_pad=0.05)
+    unique_labels = {}
+    for ax in axs.flat:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        label = label.split("-")[0]
+        if label.startswith("Compass"):
+          label = label if label != "CompassPostKTh" else "Compass"
+        if label.startswith("SeRF"):
+          label = "SeRF"
+        if label.startswith("Navix"):
+          label = "NaviX"
+        if label not in unique_labels:
+          unique_labels[label] = handle
+      # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
 
-      # Put a legend below current axis
-      fig.legend(
-        unique_labels.values(),
-        unique_labels.keys(),
-        loc='outside lower center',
-        bbox_to_anchor=(0.5, 0),
-        fancybox=True,
-        ncol=len(unique_labels),
-      )
-      # plt.grid(True)
-      path = Path(f"{prefix}/All-{anno}-{wtype}-QPS-Comp-Recall.jpg")
-      path.parent.mkdir(parents=True, exist_ok=True)
-      fig.savefig(path, dpi=200)
-      plt.close("all")
+    # Put a legend below current axis
+    fig.legend(
+      unique_labels.values(),
+      unique_labels.keys(),
+      loc='outside lower center',
+      bbox_to_anchor=(0.5, 0),
+      fancybox=True,
+      ncol=(len(unique_labels) + 1) // 2,
+    )
+    # plt.grid(True)
+    path = Path(f"{prefix}/{d}-{anno}-{wtype}-QPS-Comp-Recall.jpg")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=200)
+    plt.close("all")
 
 
 if __name__ == "__main__":

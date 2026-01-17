@@ -70,9 +70,9 @@ ABLATION_WORKLOADS = [
 
 ABLATION_ARGS = {
   "nrel": [50, 100, 150, 200],
-  "batch_k": [20, 60, 100, -1],
-  "initial_efs": [20, 60, 100, -1],
-  "delta_efs": [20, 60, 100, -1],
+  "batch_k": [20, 60, 100, -1, "inf"],
+  "initial_efs": [20, 60, 100, -1, "inf"],
+  "delta_efs": [20, 60, 100, -1, "inf"],
 }
 
 
@@ -116,9 +116,9 @@ def summarize():
             ba_s = [M_ARGS[m][bp] for bp in M_PARAM[m]["build"]]
             sa_s = [M_ARGS[m][sp] for sp in M_PARAM[m]["search"]]
           if w in ABLATION_WORKLOADS and m.startswith("CompassPost"):
-            ABLATION_ARGS["batch_k"][-1] = D_ARGS[d].get("nlist", M_ARGS[m]["nlist"])[0]
-            ABLATION_ARGS["initial_efs"][-1] = D_ARGS[d].get("nlist", M_ARGS[m]["nlist"])[0]
-            ABLATION_ARGS["delta_efs"][-1] = D_ARGS[d].get("nlist", M_ARGS[m]["nlist"])[0]
+            ABLATION_ARGS["batch_k"][-2] = D_ARGS[d].get("nlist", M_ARGS[m]["nlist"])[0] // 5
+            ABLATION_ARGS["initial_efs"][-2] = D_ARGS[d].get("nlist", M_ARGS[m]["nlist"])[0] // 5
+            ABLATION_ARGS["delta_efs"][-2] = D_ARGS[d].get("nlist", M_ARGS[m]["nlist"])[0] // 5
             sa_s = [ABLATION_ARGS.get(sp, D_ARGS[d].get(sp, M_ARGS[m][sp])) for sp in M_PARAM[m]["search"]]
           for ba in product(*ba_s):
             b = bt.format(*ba)
@@ -191,7 +191,7 @@ def summarize():
           initial_ncomp.append(0)
         else:
           initial_ncomp.append(0)
-      if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS or e[1].startswith("CompassPost"):
+      if e[1] in SOTA_METHODS or e[1] in SOTA_POST_METHODS:
         nsample, averaged_qps = min(len(jsons), 3), qps[-1]
         for i in range(2, nsample + 1):
           with open(jsons[-i]) as f:

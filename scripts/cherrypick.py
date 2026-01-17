@@ -26,6 +26,7 @@ from camera import (
   draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked,
   draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation,
   draw_qps_comp_wrt_recall_by_selectivity_camera,
+  draw_qps_comp_wrt_ablation_param_by_selectivity_camera_shrinked,
   # draw_qps_comp_fixing_selectivity_by_k_camera_shrinked,
   # draw_qps_comp_fixing_recall_by_selectivity_camera,
   # draw_qps_comp_fixing_selectivity_by_k_camera,
@@ -523,8 +524,17 @@ def compare_large():
 
 def compare_more_ablation():
   ablation_d_m_b = {d: {} for d in ABLATION_DATASETS}
-  for d in ABLATION_DATASETS:
-    ablation_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  ablation_d_m_b["crawl"]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
+  ablation_d_m_b["gist-dedup"]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+  ablation_d_m_b["video-dedup"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  ablation_d_m_b["glove100"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+
+  d_nlist = {
+    "crawl": 10000,
+    "gist-dedup": 10000,
+    "video-dedup": 20000,
+    "glove100": 20000,
+  }
 
   # compare nrel
   ablation_nrel_d_m_s = {d: {} for d in ABLATION_DATASETS}
@@ -533,36 +543,61 @@ def compare_more_ablation():
       "nrel": [50, 100, 150, 200],
       "batch_k": [20],
     }
-  draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation(
+  # draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation(
+  #   da=1,
+  #   datasets=ABLATION_DATASETS,
+  #   methods=METHODS,
+  #   anno="ablation-nrel",
+  #   d_m_b=ablation_d_m_b,
+  #   d_m_s=ablation_nrel_d_m_s,
+  #   prefix="camera-ready/ablation",
+  #   ranges=["1", "30", "80"]
+  # )
+  draw_qps_comp_wrt_ablation_param_by_selectivity_camera_shrinked(
     da=1,
     datasets=ABLATION_DATASETS,
     methods=METHODS,
     anno="ablation-nrel",
+    which="nrel",
     d_m_b=ablation_d_m_b,
     d_m_s=ablation_nrel_d_m_s,
     prefix="camera-ready/ablation",
     ranges=["1", "30", "80"]
   )
 
-  # compare progressive search paramters
+  # compare progressive search paramters and cluster graph
   ablation_ps_d_m_s = {d: {} for d in ABLATION_DATASETS}
+  # Use fixed number of pre-computed clusters.
   for d in ABLATION_DATASETS:
     ablation_ps_d_m_s[d]["CompassPostKTh"] = {
       "nrel": [50],
-      "batch_k": [20, 60, 100] + D_ARGS[d].get("nlist", M_ARGS["CompassPostKTh"]["nlist"]),
+      "batch_k": [20, 60, 100, d_nlist[d] // 5, "inf"],
     }
-  draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation(
+  ablation_ps_d_m_s["glove100"]["CompassPostKTh"] = {
+    "nrel": [50],
+    "batch_k": [20, 60, 100, d_nlist[d] // 5, "inf"],
+  }
+  # draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation(
+  #   da=1,
+  #   datasets=ABLATION_DATASETS,
+  #   methods=METHODS,
+  #   anno="ablation-ps",
+  #   d_m_b=ablation_d_m_b,
+  #   d_m_s=ablation_ps_d_m_s,
+  #   prefix="camera-ready/ablation",
+  #   ranges=["1", "30", "80"]
+  # )
+  draw_qps_comp_wrt_ablation_param_by_selectivity_camera_shrinked(
     da=1,
     datasets=ABLATION_DATASETS,
     methods=METHODS,
     anno="ablation-ps",
+    which="batch_k",
     d_m_b=ablation_d_m_b,
     d_m_s=ablation_ps_d_m_s,
     prefix="camera-ready/ablation",
     ranges=["1", "30", "80"]
   )
-
-  # ablate the cluster graph
 
 
 def camera_ready():
@@ -644,15 +679,15 @@ def camera_ready():
   # Revision 2: new workloads on new large datasets
   for d in LARGE_DATASETS:
     best_d_m_b[d] = {}
+  best_d_m_b["flickr"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  best_d_m_b["deep10m"]["CompassPostKTh"] = ["M_32_efc_200_nlist_50000_M_cg_8"]
+  for d in LARGE_DATASETS:
+    best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
     best_d_m_b[d]["ACORN"] = ["M_32_beta_64_gamma_100"]
     best_d_m_b[d]["Navix"] = ["M_32_efc_200"]
     best_d_m_b[d]["Milvus"] = ["M_32_efc_200"]
     best_d_m_b[d]["Weaviate"] = ["M_32_efc_200"]
-    best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
-  best_d_m_b["flickr"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
-  best_d_m_b["deep10m"]["CompassPostKTh"] = ["M_32_efc_200_nlist_50000_M_cg_8"]
 
-  best_d_m_s = {d: {} for d in DATASETS}
   for d in LARGE_DATASETS:
     best_d_m_s[d] = {}
   best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50]}
@@ -674,32 +709,32 @@ def camera_ready():
     anno="MoM",
     d_m_b=best_d_m_b,
     d_m_s=best_d_m_s,
-    prefix="camera-ready/revision",
+    prefix="camera-ready/large",
   )
 
   # Figure 4: ablation study
   for d in ("sift-dedup", "audio-dedup"):
     best_d_m_b[d]["CompassRelational"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
     best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200_nlist_1_M_cg_4"]
-    del best_d_m_b[d]["Navix"]
-    del best_d_m_b[d]["SeRF"]
   for d in ("gist-dedup", ):
     best_d_m_b[d]["CompassRelational"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
     best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200_nlist_1_M_cg_4"]
-    del best_d_m_b[d]["Navix"]
-    del best_d_m_b[d]["SeRF"]
   for d in ("crawl", ):
     best_d_m_b[d]["CompassRelational"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
     best_d_m_b[d]["CompassGraph"] = ["M_16_efc_200_nlist_1_M_cg_8"]
-    del best_d_m_b[d]["Navix"]
-    del best_d_m_b[d]["SeRF"]
   for d in ("video-dedup", "glove100"):
     best_d_m_b[d]["CompassRelational"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
     best_d_m_b[d]["CompassGraph"] = ["M_32_efc_200_nlist_1_M_cg_8"]
-    del best_d_m_b[d]["Navix"]
-    del best_d_m_b[d]["SeRF"]
   for d in DATASETS:
     best_d_m_s[d]["CompassGraph"] = {"nrel": [50]}
+    del best_d_m_b[d]["Navix"]
+    del best_d_m_b[d]["SeRF"]
+    if "Milvus" in best_d_m_s[d]:
+      del best_d_m_s[d]["Milvus"]
+    if "Weaviate" in best_d_m_s[d]:
+      del best_d_m_s[d]["Weaviate"]
+    if "Prefiltering" in best_d_m_s[d]:
+      del best_d_m_s[d]["Prefiltering"]
   best_d_m_s["crawl"]["CompassGraph"] = {"nrel": [50]}
   best_d_m_s["glove100"]["CompassGraph"] = {"nrel": [100]}
   best_d_m_s["video-dedup"]["CompassGraph"] = {"nrel": [50]}

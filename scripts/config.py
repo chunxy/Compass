@@ -4,7 +4,7 @@ DATASETS = ["sift", "sift-dedup", "audio", "audio-dedup", "crawl", "gist", "gist
 DATASETS = ["sift-dedup", "audio-dedup", "crawl", "gist-dedup", "video-dedup", "glove100"]
 LARGE_DATASETS = ["flickr", "deep10m"]
 REAL_DATASETS = ["video-dedup"]
-ABLATION_DATASETS = ["gist-dedup"]
+ABLATION_DATASETS = ["crawl", "video-dedup", "gist-dedup", "glove100"]
 DA_S = [1, 2, 3, 4]
 
 # attribute dimension - intervals, for reading JSON files of Compass result

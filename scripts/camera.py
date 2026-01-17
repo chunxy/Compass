@@ -933,10 +933,10 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
   df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
   df = df.fillna('')
   dataset_comp_ylim = {
-    "crawl": 10000,
-    "gist-dedup": 10000,
-    "video-dedup": 30000,
-    "glove100": 30000,
+    "crawl": 20000,
+    "gist-dedup": 20000,
+    "video-dedup": 20000,
+    "glove100": 20000,
   }
 
   selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
@@ -946,7 +946,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
   for rg in ranges if ranges else DA_RANGE[da]:
     rg_d_b[rg] = {}
     fig, axs = plt.subplots(2, len(datasets), layout='tight')
-    fig.set_size_inches(8, 4)
+    fig.set_size_inches(8.5, 4)
     for ax in axs.flat:
       ax.set_box_aspect(1)
       ax.tick_params(axis='y', rotation=45)
@@ -968,8 +968,7 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
           if m.startswith("Compass"):
             rg_d_b[rg][d][b] = {}
             for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
-              _selected_efs = D_ARGS[d]["efs"]
-              selected_search = [f"efs_{efs}_nrel_{nrel}_batch_k_20_initial_efs_20_delta_efs_20" for efs in _selected_efs]
+              selected_search = [f"efs_{efs}_nrel_{nrel}_batch_k_20_initial_efs_20_delta_efs_20" for efs in selected_efs]
               data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
               rec_qps_comp = data_by_m_b_nrel[["recall", "qps", "ncomp", "initial_ncomp", "search"]].sort_values(["recall"], ascending=[True])
               rec_qps_comp["total_ncomp"] = rec_qps_comp["initial_ncomp"] + rec_qps_comp["ncomp"]
@@ -996,20 +995,20 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
             axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
             axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
 
-          dt = d.split("-")[0].upper()
-          # axs[0][i].set_xlabel('Recall')
-          axs[0][i].set_xticks(xticks)
-          axs[0][i].set_xticklabels([])
-          if i == 0:
-            axs[0][i].set_ylabel('QPS')
-          axs[0][i].set_title("{}, {:.1%}".format(dt, sel))
-          axs[1][i].set_xlabel('Recall')
-          axs[1][i].set_xticks(xticks)
-          if i == 0:
-            axs[1][i].set_ylabel('# Comp')
-          auto_bottom, auto_top = axs[1][i].get_ylim()
-          axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
-          # axs[1][i].set_title("{}, Passrate-{:.1%}".format(dt, sel))
+      dt = d.split("-")[0].upper()
+      # axs[0][i].set_xlabel('Recall')
+      axs[0][i].set_xticks(xticks)
+      axs[0][i].set_xticklabels([])
+      if i == 0:
+        axs[0][i].set_ylabel('QPS')
+      axs[0][i].set_title("{}, {:.1%}".format(dt, sel))
+      axs[1][i].set_xlabel('Recall')
+      axs[1][i].set_xticks(xticks)
+      if i == 0:
+        axs[1][i].set_ylabel('# Comp')
+      auto_bottom, auto_top = axs[1][i].get_ylim()
+      axs[1][i].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
+      # axs[1][i].set_title("{}, Passrate-{:.1%}".format(dt, sel))
 
       bottom = 0.05
       plt.tight_layout(rect=[0, bottom, 1, 1], w_pad=0.05, h_pad=0.05)
@@ -1192,6 +1191,120 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked_for_ablation(da, dat
     fig.savefig(path, dpi=200)
     plt.close("all")
 
+def draw_qps_comp_wrt_ablation_param_by_selectivity_camera_shrinked(da, datasets, methods, anno, which, *, d_m_b={}, d_m_s={}, prefix="figures", ranges=[]):
+  ranges = ranges if ranges else DA_RANGE[da]
+  df = pd.read_csv(f"stats-{da}d.csv", dtype=types)
+  df = df.fillna('')
+
+  rec_rg_d_m = {}
+  for rec in [0.9, 0.95]:
+    rec_rg_d_m[rec] = {}
+    for rg in ranges:
+      rec_rg_d_m[rec][rg] = {}
+      for d in datasets:
+        rec_rg_d_m[rec][rg][d] = {}
+        for m in d_m_b[d].keys():
+          rec_rg_d_m[rec][rg][d][m] = {"qps": [], "ncomp": [], "total_ncomp": []}
+
+      for d in datasets:
+        selector = ((df["dataset"] == d) & (df["range"] == rg))
+        if not selector.any():
+          continue
+        data = df[selector]
+        for m in d_m_b[d].keys() if d in d_m_b else methods:
+          for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
+            if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+              data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
+            else:
+              data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+            if m.startswith("Compass"):
+              for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", compass_args["nrel"]):
+                for batch_k in d_m_s.get(d, {}).get(m, {}).get("batch_k", compass_args["batch_k"]):
+                  selected_search = [f"efs_{efs}_nrel_{nrel}_batch_k_{batch_k}_initial_efs_{batch_k}_delta_efs_{batch_k}" for efs in D_ARGS[d]["efs"]]
+                  data_by_m_b_s = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+                  rec_qps_comp = data_by_m_b_s[["recall", "qps", "ncomp", "initial_ncomp", "search"]].sort_values(["recall"], ascending=[True])
+                  rec_qps_comp["total_ncomp"] = rec_qps_comp["initial_ncomp"] + rec_qps_comp["ncomp"]
+                  recall_above = rec_qps_comp[rec_qps_comp["recall"].gt(rec)]
+
+                  rec_rg_d_m[rec][rg][d][m]["qps"].append(recall_above.iloc[0]["qps"] if len(recall_above) > 0 else 0)
+                  rec_rg_d_m[rec][rg][d][m]["ncomp"].append(recall_above.iloc[0]["ncomp"] if len(recall_above) > 0 else 0)
+                  rec_rg_d_m[rec][rg][d][m]["total_ncomp"].append(recall_above.iloc[0]["total_ncomp"] if len(recall_above) > 0 else 0)
+
+    fig, axs = plt.subplots(2, len(ranges), layout='tight')
+    for ax in axs.flat:
+      ax.set_box_aspect(1)
+      ax.tick_params(axis='y', rotation=45)
+    for i, rg in enumerate(ranges):
+      for d in datasets:
+        for m in rec_rg_d_m[rec][rg][d].keys():
+          marker = dict(M_STYLE[m])
+          if "color" in marker:
+            del marker["color"]
+          dlabel = d.upper().split("-")[0]
+
+          num_args = len(d_m_s[d][m][which])
+          num_conn_args = num_args if which == "nrel" else num_args - 2
+          p = axs[0][i].plot(range(num_conn_args), rec_rg_d_m[rec][rg][d][m]["qps"][:num_conn_args], **marker)
+          axs[0][i].plot(range(num_conn_args - 1, num_args), rec_rg_d_m[rec][rg][d][m]["qps"][num_conn_args - 1:], **marker, color=p[0].get_color(), linestyle="--")
+          axs[0][i].scatter(range(num_args), rec_rg_d_m[rec][rg][d][m]["qps"], label=dlabel, **marker, color=p[0].get_color())
+          axs[1][i].plot(range(num_conn_args), rec_rg_d_m[rec][rg][d][m]["total_ncomp"][:num_conn_args], **marker, color=p[0].get_color())
+          axs[1][i].plot(range(num_conn_args - 1, num_args), rec_rg_d_m[rec][rg][d][m]["total_ncomp"][num_conn_args - 1:], **marker, color=p[0].get_color(), linestyle="--")
+          axs[1][i].scatter(range(num_args), rec_rg_d_m[rec][rg][d][m]["total_ncomp"], label=dlabel, **marker, color=p[0].get_color())
+
+    fig.set_size_inches(7, 5)
+    bottom = 0.1
+    plt.tight_layout(rect=[0.02, bottom, 1, 1], w_pad=0.03, h_pad=0.03)
+    unique_labels = {}
+    for i, ax in enumerate(axs[0]):
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        if label not in unique_labels:
+          unique_labels[label] = handle
+      # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
+    # Put a legend below current axis
+    fig.legend(
+      unique_labels.values(),
+      unique_labels.keys(),
+      loc='outside lower center',
+      bbox_to_anchor=(0.5, 0),
+      fancybox=True,
+      ncol=4,
+    )
+
+    which_to_xlabel = {
+      "nrel": "$efi$",
+      "batch_k": "$batchk$",
+    }
+    batchk_xticklabels = list(map(lambda x: f"{x}", d_m_s[d][m]["batch_k"]))
+    if which == "batch_k":
+      batchk_xticklabels[-2] = "$w/o$\n$p.s.$"
+      batchk_xticklabels[-1] = "$w/o$\n$c.g.$"
+    which_to_xticklabels = {
+      "nrel": d_m_s[d][m]["nrel"],
+      "batch_k": batchk_xticklabels,
+    }
+
+    for i in range(len(ranges)):
+      axs[0][i].set_xticklabels([])
+      axs[0][i].set_title("Rec.-{}, Passrate {}%".format(rec, ranges[i]))
+      if i == 0:
+        axs[0][i].set_ylabel('QPS')
+      axs[0][i].set_ylim(bottom=-10)
+
+      axs[1][i].set_xlabel(which_to_xlabel[which])
+      axs[1][i].set_xticks(range(len(which_to_xticklabels[which])))
+      axs[1][i].set_xticklabels(which_to_xticklabels[which])
+      if i == 0:
+        axs[1][i].set_ylabel('# Comp')
+      auto_bottom, auto_top = axs[1][i].get_ylim()
+      axs[1][i].set_ylim(bottom=-200)
+
+    # plt.grid(True)
+    path = Path(f"{prefix}/Shrinked-All-{anno}-QPS-Comp-Recall-{rec}.jpg")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=200)
+    plt.close("all")
+
 
 def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(datasets, d_m_b, d_m_s, anno, prefix):
   sel_s = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -1205,8 +1318,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
     0.9: ["0.9", "0.81", "0.729", "0.8561"],
   }
   dataset_comp_ylim = {
-    "crawl": 15000,
-    "gist-dedup": 15000,
+    "crawl": 20000,
+    "gist-dedup": 20000,
     "video-dedup": 35000,
     "glove100": 30000,
   }
@@ -1275,7 +1388,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
   for rec in [0.8, 0.85, 0.9, 0.95]:
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='tight')
-      fig.set_size_inches(8, 4)
+      fig.set_size_inches(8.5, 4)
       for ax in axs.flat:
         ax.set_box_aspect(1)
         ax.tick_params(axis='y', rotation=45)
@@ -1360,7 +1473,7 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
   for rec_s, dataset_s in zip([(0.85, 0.95)], [("video-dedup", "gist-dedup")]):
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='tight')
-      fig.set_size_inches(8, 4)
+      fig.set_size_inches(8.5, 4)
       for ax in axs.flat:
         ax.set_box_aspect(1)
         ax.tick_params(axis='y', rotation=45)
@@ -1452,8 +1565,8 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
     0.3: ["0.3", "0.6", "0.9", "1"],
   }
   dataset_comp_ylim = {
-    "crawl": 10000,
-    "gist-dedup": 10000,
+    "crawl": 20000,
+    "gist-dedup": 20000,
     "video-dedup": 30000,
     "glove100": 30000,
   }
@@ -1471,13 +1584,13 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
           rec_d_m[rec][d][m][sel] = {}
 
     for ndis in ndisjunctions:
-      dataset_comp_ylim_4d = {
-        "crawl": 10000,
-        "gist-dedup": 10000,
-        "video-dedup": 80000,
-        "glove100": 80000,
-      }
-      if ndis == 4: dataset_comp_ylim = dataset_comp_ylim_4d  # noqa: E701
+      # dataset_comp_ylim_4d = {
+      #   "crawl": 10000,
+      #   "gist-dedup": 10000,
+      #   "video-dedup": 80000,
+      #   "glove100": 80000,
+      # }
+      # if ndis == 4: dataset_comp_ylim = dataset_comp_ylim_4d  # noqa: E701
       df = pd.read_csv("stats-1d.csv", dtype=types)
       df = df.fillna('')
 
@@ -1539,7 +1652,7 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
   for rec in [0.8, 0.85, 0.9, 0.95]:
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='tight')
-      fig.set_size_inches(8, 4)
+      fig.set_size_inches(8.5, 4)
       for ax in axs.flat:
         ax.set_box_aspect(1)
         ax.tick_params(axis='y', rotation=45)
@@ -1624,7 +1737,7 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
   for rec_s, dataset_s in zip([(0.85, 0.95)], [("video-dedup", "gist-dedup")]):
     for sel in sel_s:
       fig, axs = plt.subplots(2, len(datasets), layout='tight')
-      fig.set_size_inches(8, 4)
+      fig.set_size_inches(8.5, 4)
       for ax in axs.flat:
         ax.set_box_aspect(1)
         ax.tick_params(axis='y', rotation=45)
