@@ -48,6 +48,10 @@ int main(int argc, char **argv) {
   std::vector<labeltype> labels(nb);
   std::iota(labels.begin(), labels.end(), 0);
 
+  bool single_thread = true;
+  if (single_thread) {
+    omp_set_num_threads(1);
+  }
   auto train_ivf_start = high_resolution_clock::now();
   comp.TrainIvf(nb, xb);
   auto train_ivf_stop = high_resolution_clock::now();
@@ -86,7 +90,8 @@ int main(int argc, char **argv) {
   json["build_index_time_in_s"] = duration_cast<milliseconds>(build_index_stop - build_index_start).count() / 1000.0;
   json["build_cgraph_time_in_s"] = duration_cast<milliseconds>(build_cgraph_stop - build_cgraph_start).count() / 1000.0;
   fs::path build_time_path =
-      fs::path("/opt/nfs_dcc/chunxy/logs_10") / fmt::format("compass_{}_build_time_in_seconds.json", c.name);
+      fs::path("/opt/nfs_dcc/chunxy/logs_10") /
+      fmt::format("compass_{}_build_time_in_seconds_{}.json", c.name, single_thread ? "single" : "multi");
   std::ofstream ofs(build_time_path.string());
   ofs.write(json.dump(4).c_str(), json.dump(4).length());
   ofs.close();
