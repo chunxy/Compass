@@ -958,7 +958,6 @@ class CompassPost {
               auto btree_time = std::chrono::duration_cast<std::chrono::nanoseconds>(btree_end - btree_start).count();
               bm.qmetrics[q].filter_latency += btree_time;
 #endif
-              clus_cnt++;
               continue;
             }
             tableint tableid = itr_beg->second.first;
