@@ -20,7 +20,6 @@ namespace fs = boost::filesystem;
 template <typename dist_t, typename attr_t>
 class CompassPost {
  protected:
-  IterativeSearch<dist_t> graph_;
   IterativeSearch<dist_t> cg_;
   faiss::Index *ivf_;
   // vector<btree::btree_map<attr_t, labeltype>> btrees_;
@@ -33,6 +32,7 @@ class CompassPost {
   int da_;
 
  public:
+  IterativeSearch<dist_t> graph_;
   CompassPost(
       size_t n,
       size_t d,
@@ -873,7 +873,8 @@ class CompassPost {
 #ifndef BENCH
             auto cg_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
-            ((faiss::IndexIVFFlat *)this->ivf_)->quantizer->assign(1, (float *)query_q, this->query_cluster_rank_, this->nlist_);
+            ((faiss::IndexIVFFlat *)this->ivf_)
+                ->quantizer->assign(1, (float *)query_q, this->query_cluster_rank_, this->nlist_);
             int clus = query_cluster_rank_[clus_cnt];
             clus_cnt++;
 #ifndef BENCH

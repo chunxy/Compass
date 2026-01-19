@@ -11,6 +11,7 @@
 #include <map>
 #include <numeric>
 #include <string>
+#include <thread>
 #include <vector>
 #include "json.hpp"
 #include "methods/CompassPostK.h"
@@ -22,6 +23,60 @@ namespace fs = boost::filesystem;
 using namespace std::chrono;
 
 auto dist_func = hnswlib::L2Sqr;
+
+template <class Function>
+inline void ParallelFor(size_t start, size_t end, size_t numThreads, Function fn) {
+  if (numThreads <= 0) {
+    numThreads = std::thread::hardware_concurrency();
+  }
+
+  if (numThreads == 1) {
+    for (size_t id = start; id < end; id++) {
+      fn(id, 0);
+    }
+  } else {
+    std::vector<std::thread> threads;
+    std::atomic<size_t> current(start);
+
+    // keep track of exceptions in threads
+    // https://stackoverflow.com/a/32428427/1713196
+    std::exception_ptr lastException = nullptr;
+    std::mutex lastExceptMutex;
+
+    for (size_t threadId = 0; threadId < numThreads; ++threadId) {
+      threads.push_back(std::thread([&, threadId] {
+        while (true) {
+          size_t id = current.fetch_add(1);
+
+          if (id >= end) {
+            break;
+          }
+
+          try {
+            fn(id, threadId);
+          } catch (...) {
+            std::unique_lock<std::mutex> lastExcepLock(lastExceptMutex);
+            lastException = std::current_exception();
+            /*
+             * This will work even when current is the largest value that
+             * size_t can fit, because fetch_add returns the previous value
+             * before the increment (what will result in overflow
+             * and produce 0 instead of current + 1).
+             */
+            current = end;
+            break;
+          }
+        }
+      }));
+    }
+    for (auto &thread : threads) {
+      thread.join();
+    }
+    if (lastException) {
+      std::rethrow_exception(lastException);
+    }
+  }
+}
 
 int main(int argc, char **argv) {
   IvfGraph2dArgs args(argc, argv);
@@ -48,9 +103,11 @@ int main(int argc, char **argv) {
   std::vector<labeltype> labels(nb);
   std::iota(labels.begin(), labels.end(), 0);
 
-  bool single_thread = true;
+  bool single_thread = false;
   if (single_thread) {
     omp_set_num_threads(1);
+  } else {
+    omp_set_num_threads(30);
   }
   auto train_ivf_start = high_resolution_clock::now();
   comp.TrainIvf(nb, xb);
@@ -69,7 +126,13 @@ int main(int argc, char **argv) {
   );
 
   auto build_index_start = high_resolution_clock::now();
-  comp.AddPointsToGraph(nb, xb, labels.data());
+  if (single_thread) {
+    comp.AddPointsToGraph(nb, xb, labels.data());
+  } else {
+    ParallelFor(0, nb, 30, [&](size_t row, size_t threadId) {
+      comp.graph_.hnsw_->addPoint((char *)xb + row * d, labels[row], -1);
+    });
+  }
   auto build_index_stop = high_resolution_clock::now();
   fmt::print(
       "Finished building graph, took {} microseconds.\n",
