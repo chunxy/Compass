@@ -22,7 +22,7 @@ if __name__ == "__main__":
     data = data[indices][:, :2]
     # data.tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_2_10000.real.value.bin")
 
-    for i in range(len(real_ubs)):
+    for i in range(2):
       print(f"({data[:, i].min()}, {data[:, i].max()}) to {n} records.")
       if (data[:, i].size != n):
         print(f"Error: {dataset} data size mismatch: {data[:, i].size} != {n}")
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         i += 1
     # fix the upper bound
     # rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_2_10000.real.rg.bin")
-    plt.hist(passrates, bins=10)
+    plt.hist(passrates, bins=20, weights=np.ones_like(passrates) / passrates.size)
     plt.savefig(f"/home/chunxy/repos/Compass/data/distrib/{dataset}_2_10000.real.passrate.png")
     print(f"Real: {dataset} passrate: {passrates.mean():.4f}")
 

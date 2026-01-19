@@ -101,6 +101,7 @@ if __name__ == "__main__":
     # Check actual correlation
     correlation_matrix = np.corrcoef(data[:, 0], data[:, 1])
     print(f"{dataset} passrate: {passrates.mean():.4f}, correlation: {correlation_matrix[0, 1]:.4f}")
-    plt.hist(passrates, bins=20)
+    plt.hist(passrates, bins=20, weights=np.ones_like(passrates) / passrates.size)
     plt.savefig(f"/home/chunxy/repos/Compass/data/distrib/{dataset}_2_{corr_rg_ub}.anticorrelated.passrate.png")
+    plt.clf()
     print(f"{data[:, 1].min()}-{data[:, 1].max()} assigned to {n_queries} queries")

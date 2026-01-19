@@ -49,8 +49,9 @@ if __name__ == "__main__":
         i += 1
     # rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.onesided.rg.bin")
     print(f"Onesided: {dataset} passrate: {passrates.mean():.4f}")
-    plt.hist(passrates, bins=20)
+    plt.hist(passrates, bins=20, weights=np.ones_like(passrates) / passrates.size)
     plt.savefig(f"/home/chunxy/repos/Compass/data/distrib/{dataset}_1_{zipf_rg_ub}.onesided.passrate.png")
+    plt.clf()
 
     point_ub = 10
     rg = np.random.randint(1, point_ub, n_queries, dtype=np.int32)
@@ -66,8 +67,9 @@ if __name__ == "__main__":
 
     # rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.point.rg.bin")
     print(f"Point: {dataset} passrate: {passrates.mean():.4f}")
-    plt.hist(passrates, bins=20)
+    plt.hist(passrates, bins=20, weights=np.ones_like(passrates) / passrates.size)
     plt.savefig(f"/home/chunxy/repos/Compass/data/distrib/{dataset}_1_{zipf_rg_ub}.point.passrate.png")
+    plt.clf()
 
     rg = np.random.randint(1, point_ub, n_queries, dtype=np.int32)
     i = 0
@@ -82,5 +84,6 @@ if __name__ == "__main__":
 
     # rg.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/range/{dataset}_1_{zipf_rg_ub}.negation.rg.bin")
     print(f"Negation: {dataset} passrate: {passrates.mean():.4f}")
-    plt.hist(passrates, bins=20)
+    plt.hist(passrates, bins=20, weights=np.ones_like(passrates) / passrates.size)
     plt.savefig(f"/home/chunxy/repos/Compass/data/distrib/{dataset}_1_{zipf_rg_ub}.negation.passrate.png")
+    plt.clf()
