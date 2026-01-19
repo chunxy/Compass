@@ -407,7 +407,7 @@ def draw_qps_comp_wrt_recall_by_workload_camera(datasets, methods, anno, *, d_m_
       axs[0][i].set_xticklabels([])
       if i == 0:
         axs[0][i].set_ylabel('QPS')
-      axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize()))
+      axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize() if wtype != "point" else "Equality"))
       axs[1][i].set_xlabel('Recall')
       axs[1][i].set_xticks(xticks)
       if i == 0:
@@ -475,13 +475,13 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
 
   rg_d_b = {}
   for d in datasets:
-    fig, axs = plt.subplots(2, len(wtypes), layout='tight')
-    fig.set_size_inches(12, 4)
+    fig, axs = plt.subplots(2, len(wtypes) // 2, layout='tight')
+    fig.set_size_inches(6, 4.5)
     for ax in axs.flat:
       ax.set_box_aspect(1)
       ax.tick_params(axis='y', rotation=45)
 
-    for i, (da, wtype) in enumerate(zip(da_s, wtypes)):
+    for i, (da, wtype) in enumerate(zip(da_s[:len(wtypes) // 2], wtypes[:len(wtypes) // 2])):
       selector = df_all["workload"].str.endswith(f"_{wtype}")
       if not selector.any():
         continue
@@ -562,10 +562,105 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
       loc='outside lower center',
       bbox_to_anchor=(0.5, 0),
       fancybox=True,
-      ncol=len(unique_labels),
+      ncol=len(unique_labels) // 2,
     )
     # plt.grid(True)
-    path = Path(f"{prefix}/{d}-{anno}-QPS-Comp-Recall.jpg")
+    path = Path(f"{prefix}/{d}-{anno}-distrib-QPS-Comp-Recall.jpg")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=200)
+    plt.close("all")
+
+    fig, axs = plt.subplots(2, len(wtypes) // 2, layout='tight')
+    fig.set_size_inches(6, 4.5)
+    for ax in axs.flat:
+      ax.set_box_aspect(1)
+      ax.tick_params(axis='y', rotation=45)
+
+    for i, (da, wtype) in enumerate(zip(da_s[len(wtypes) // 2:], wtypes[len(wtypes) // 2:])):
+      selector = df_all["workload"].str.endswith(f"_{wtype}")
+      if not selector.any():
+        continue
+      df = df_all[selector]
+      data = df[df["dataset"] == d]
+      for m in d_m_b[d].keys() if d in d_m_b else methods:
+        marker = M_STYLE[m]
+        for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
+          if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
+            data_by_m_b = data[(data["method"] == m + "+Post") & (data["build"] == b)]
+          else:
+            data_by_m_b = data[(data["method"] == m) & (data["build"] == b)]
+          if m.startswith("Compass"):
+            for nrel in d_m_s.get(d, {}).get(m, {}).get("nrel", []):
+              selected_search = [f"efs_{efs}_nrel_{nrel}_batch_k_20_initial_efs_20_delta_efs_20" for efs in selected_efs]
+              data_by_m_b_nrel = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+              recall_qps = data_by_m_b_nrel[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+              recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
+              axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
+              axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}-nrel_{nrel}", **marker)
+
+              recall_ncomp = data_by_m_b_nrel[["recall", "ncomp", "initial_ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
+              recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
+              axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], **marker)
+              axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1] + recall_ncomp[:, 2], label=f"{m}-{b}-nrel_{nrel}", **marker)
+
+          else:
+            if m != "Prefiltering":
+              selected_search = [f"efs_{efs}" for efs in selected_efs]
+              data_by_m_b = data_by_m_b[data_by_m_b["search"].isin(selected_search)]
+            recall_qps = data_by_m_b[["recall", "qps"]].sort_values(["recall", "qps"], ascending=[True, False])
+            recall_qps = recall_qps[recall_qps["recall"].gt(xlim[0])].to_numpy()
+            axs[0][i].plot(recall_qps[:, 0], recall_qps[:, 1], **marker)
+            axs[0][i].scatter(recall_qps[:, 0], recall_qps[:, 1], label=f"{m}-{b}", **marker)
+            if m in {"Milvus", "Weaviate"}: continue # noqa: E701
+            recall_ncomp = data_by_m_b[["recall", "ncomp"]].sort_values(["recall", "ncomp"], ascending=[True, True])
+            recall_ncomp = recall_ncomp[recall_ncomp["recall"].gt(xlim[0])].to_numpy()
+            axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
+            axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
+
+      dt = d.split("-")[0].upper()
+      # axs[0][i].set_xlabel('Recall')
+      axs[0][i].set_xticks(xticks)
+      axs[0][i].set_xticklabels([])
+      if i == 0:
+        axs[0][i].set_ylabel('QPS')
+      # axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize()))
+      axs[0][i].set_title("{}".format(wtype.capitalize()))
+      axs[1][i].set_xlabel('Recall')
+      axs[1][i].set_xticks(xticks)
+      if i == 0:
+        axs[1][i].set_ylabel('# Comp')
+      auto_bottom, auto_top = axs[1][i].get_ylim()
+      axs[1][i].set_ylim(bottom=-200)
+      # axs[1][i].set_title("{}, {}".format(dt, wtype.capitalize()))
+
+    bottom = 0.05
+    plt.tight_layout(rect=[0, bottom, 1, 1], w_pad=0.05, h_pad=0.05)
+    unique_labels = {}
+    for ax in axs[0]:
+      handles, labels = ax.get_legend_handles_labels()
+      for handle, label in zip(handles, labels):
+        label = label.split("-")[0]
+        if label.startswith("Compass"):
+          label = label if label != "CompassPostKTh" else "Compass"
+        if label.startswith("SeRF"):
+          label = "SeRF"
+        if label.startswith("Navix"):
+          label = "NaviX"
+        if label not in unique_labels:
+          unique_labels[label] = handle
+      # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
+
+    # Put a legend below current axis
+    fig.legend(
+      unique_labels.values(),
+      unique_labels.keys(),
+      loc='outside lower center',
+      bbox_to_anchor=(0.5, 0),
+      fancybox=True,
+      ncol=len(unique_labels) // 2,
+    )
+    # plt.grid(True)
+    path = Path(f"{prefix}/{d}-{anno}-workload-QPS-Comp-Recall.jpg")
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=200)
     plt.close("all")
