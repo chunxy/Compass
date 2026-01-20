@@ -2651,6 +2651,24 @@ DataCard deep10m_1_30_float32_onesided{
     "onesided"
 };
 
+DataCard deep10m_1_60_float32_onesided{
+    "deep10m",
+    deep10m_bpath,
+    deep10m_qpath,
+    // reuse this field in revision
+    "/home/chunxy/repos/Compass/data/gt/deep10m_1_60.onesided.hybrid.gt",
+    96,
+    10000000,
+    10000,
+    100,
+    1,
+    60,
+    "float32",
+    // add this field in revision
+    "/home/chunxy/repos/Compass/data/attr/deep10m_1_30.skewed.value.bin",
+    "onesided"
+};
+
 DataCard deep10m_1_30_float32_point{
     "deep10m",
     deep10m_bpath,
@@ -2986,6 +3004,7 @@ std::map<std::string, DataCard> name_to_card{
     {"deep10m_2_20_float32_correlated", deep10m_2_20_float32_correlated},
     {"deep10m_2_20_float32_anticorrelated", deep10m_2_20_float32_anticorrelated},
     {"deep10m_1_30_float32_onesided", deep10m_1_30_float32_onesided},
+    {"deep10m_1_60_float32_onesided", deep10m_1_60_float32_onesided},
     {"deep10m_1_30_float32_point", deep10m_1_30_float32_point},
     {"deep10m_1_30_float32_negation", deep10m_1_30_float32_negation},
     {"flickr_2_180_float32_real", flickr_2_180_float32_real},
