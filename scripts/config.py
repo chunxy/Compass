@@ -536,7 +536,7 @@ D_ARGS = {
     "M_cg": [8],
   },
   "deep10m": {
-    "M": [16, 32],
+    "M": [16, 32, 64], # Every method gets M from this.
     "nlist": [20000, 50000, 100000],
     "M_cg": [8],
   }

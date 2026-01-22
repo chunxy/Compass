@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 datasets = {
-  "flickr": 4203901,
+  # "flickr": 4203901,
   "deep10m": 10000000,
 }
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # data = gen_zipf_distribution_int32(n, 2)
     # data.astype(np.float32).tofile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_1_{zipf_rg_ub}.newfilter.value.bin")
 
-    data = np.fromfile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_1_{zipf_rg_ub}.skewed.value.bin", dtype=np.float32)
+    data = np.fromfile(f"/home/chunxy/repos/Compass/data/attr/{dataset}_1_30.skewed.value.bin", dtype=np.float32)
     data = data.astype(np.int32)
     print(f"({data.min()}, {data.max()}) to {n} records.")
     if (data.size != n):
