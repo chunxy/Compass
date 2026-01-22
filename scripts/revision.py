@@ -469,6 +469,14 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
   df_all = df_all.fillna('')
 
   xlim, xticks = [0.8, 1], [0.8, 0.9, 1]
+  workload_ylim = {
+    "onesided": 20000,
+    "point": 20000,
+    "negation": 20000,
+    "skewed": 20000,
+    "correlated": 20000,
+    "anticorrelated": 20000,
+  }
 
   selected_efs = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
   selected_efs = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 250, 300, 350, 400, 500, 600, 800, 1000]
@@ -522,7 +530,6 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
             axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
             axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
 
-      dt = d.split("-")[0].upper()
       # axs[0][i].set_xlabel('Recall')
       axs[0][i].set_xticks(xticks)
       axs[0][i].set_xticklabels([])
@@ -535,7 +542,7 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
       if i == 0:
         axs[1][i].set_ylabel('# Comp')
       auto_bottom, auto_top = axs[1][i].get_ylim()
-      axs[1][i].set_ylim(bottom=-200)
+      axs[1][i].set_ylim(bottom=-200, top=min(auto_top, workload_ylim[wtype]))
       # axs[1][i].set_title("{}, {}".format(dt, wtype.capitalize()))
 
     bottom = 0.05
@@ -562,7 +569,7 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
       loc='outside lower center',
       bbox_to_anchor=(0.5, 0),
       fancybox=True,
-      ncol=len(unique_labels) // 2,
+      ncol=(len(unique_labels) + 1) // 2,
     )
     # plt.grid(True)
     path = Path(f"{prefix}/{d}-{anno}-distrib-QPS-Comp-Recall.jpg")
@@ -617,20 +624,19 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
             axs[1][i].plot(recall_ncomp[:, 0], recall_ncomp[:, 1], **marker)
             axs[1][i].scatter(recall_ncomp[:, 0], recall_ncomp[:, 1], label=f"{m}-{b}", **marker)
 
-      dt = d.split("-")[0].upper()
       # axs[0][i].set_xlabel('Recall')
       axs[0][i].set_xticks(xticks)
       axs[0][i].set_xticklabels([])
       if i == 0:
         axs[0][i].set_ylabel('QPS')
       # axs[0][i].set_title("{}, {}".format(dt, wtype.capitalize()))
-      axs[0][i].set_title("{}".format(wtype.capitalize()))
+      axs[0][i].set_title("{}".format("Equality" if wtype == "point" else wtype.capitalize()))
       axs[1][i].set_xlabel('Recall')
       axs[1][i].set_xticks(xticks)
       if i == 0:
         axs[1][i].set_ylabel('# Comp')
       auto_bottom, auto_top = axs[1][i].get_ylim()
-      axs[1][i].set_ylim(bottom=-200)
+      axs[1][i].set_ylim(bottom=-200, top=min(auto_top, workload_ylim[wtype]))
       # axs[1][i].set_title("{}, {}".format(dt, wtype.capitalize()))
 
     bottom = 0.05
@@ -657,7 +663,7 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
       loc='outside lower center',
       bbox_to_anchor=(0.5, 0),
       fancybox=True,
-      ncol=len(unique_labels) // 2,
+      ncol=(len(unique_labels) + 1) // 2,
     )
     # plt.grid(True)
     path = Path(f"{prefix}/{d}-{anno}-workload-QPS-Comp-Recall.jpg")

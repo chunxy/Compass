@@ -107,7 +107,12 @@ for d in LARGE_DATASETS:
   best_d_m_b[d]["Weaviate"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
 best_d_m_b["flickr"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
-best_d_m_b["deep10m"]["CompassPostKTh"] = ["M_32_efc_200_nlist_50000_M_cg_8"]
+best_d_m_b["deep10m"]["CompassPostKTh"] = [
+    "M_32_efc_200_nlist_50000_M_cg_8",
+    # "M_32_efc_200_nlist_20000_M_cg_8",
+    # "M_16_efc_200_nlist_50000_M_cg_8",
+    # "M_16_efc_200_nlist_20000_M_cg_8",
+]
 
 best_d_m_s = {d: {} for d in DATASETS}
 for d in LARGE_DATASETS:
@@ -123,19 +128,14 @@ for d in LARGE_DATASETS:
 for d in DATASETS:
   # best_d_m_s[d]["CompassPostK"] = {"nrel": [50]}
   best_d_m_s[d]["CompassPostKTh"] = {"nrel": [50]}
-  best_d_m_s[d]["CompassPostKThCh"] = {"nrel": [50]}
+  # best_d_m_s[d]["CompassPostKThCh"] = {"nrel": [50]}
   # best_d_m_s[d]["CompassPostKNavix"] = {"nrel": [50]}
   # best_d_m_s[d]["CompassGraph"] = {"nrel": [100, 200]}
 # best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [50, 100]}
-# best_d_m_s["crawl"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [50, 100]}
-best_d_m_s["glove100"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 # best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
-# best_d_m_s["video-dedup"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50, 100]}
-best_d_m_s["flickr"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 best_d_m_s["deep10m"]["CompassPostKTh"] = {"nrel": [50, 100]}
-best_d_m_s["deep10m"]["CompassPostKThCh"] = {"nrel": [50, 100]}
 
 
 # Compare clustering methods.
@@ -687,6 +687,7 @@ def camera_ready():
     best_d_m_b[d]["Navix"] = ["M_32_efc_200"]
     best_d_m_b[d]["Milvus"] = ["M_32_efc_200"]
     best_d_m_b[d]["Weaviate"] = ["M_32_efc_200"]
+    best_d_m_b[d]["Prefiltering"] = [""]
 
   for d in LARGE_DATASETS:
     best_d_m_s[d] = {}

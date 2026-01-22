@@ -1273,7 +1273,7 @@ def draw_qps_comp_wrt_ablation_param_by_selectivity_camera_shrinked(da, datasets
 
     which_to_xlabel = {
       "nrel": "$efi$",
-      "batch_k": "$batchk$",
+      "batch_k": "$stepsize$",
     }
     batchk_xticklabels = list(map(lambda x: f"{x}", d_m_s[d][m]["batch_k"]))
     if which == "batch_k":
