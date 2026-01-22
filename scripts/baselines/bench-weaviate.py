@@ -43,8 +43,6 @@ if __name__ == "__main__":
             )
 
             query_vectors = load_fvecs(card.query_path, card.n_queries, card.dim)[:N_QUERIES]
-            predicate = Filter.all_of([Filter.by_property(f"attr_{i}").greater_or_equal(card.interval[0][i]) for i in range(card.attr_dim)] +
-                                      [Filter.by_property(f"attr_{i}").less_or_equal(card.interval[1][i]) for i in range(card.attr_dim)])
 
             responses = [0 for i in range(N_QUERIES)]
             time_start = time.perf_counter_ns()
@@ -52,7 +50,10 @@ if __name__ == "__main__":
               # Search for top-10.
               responses[i] = db.query.near_vector(
                 near_vector=query_vector,
-                filters=predicate,
+                filters=(
+                  Filter.all_of([Filter.by_property(f"attr_{i}").greater_or_equal(card.interval[0][i]) for i in range(card.attr_dim)] +
+                                [Filter.by_property(f"attr_{i}").less_or_equal(card.interval[1][i]) for i in range(card.attr_dim)])
+                ),
                 limit=TOPK,
                 return_properties="vid",
               )

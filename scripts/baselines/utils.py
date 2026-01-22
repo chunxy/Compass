@@ -1,7 +1,7 @@
 import numpy as np
 
 METHODS = ["Weaviate", "Milvus"]
-N_QUERIES = 200
+N_QUERIES = 100
 TOPK = 10
 
 DATASET_NBASE = {
