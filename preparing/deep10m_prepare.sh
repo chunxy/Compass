@@ -1,0 +1,1 @@
+/home/chunxy/repos/Compass/build/Release/src/apps/generate-attributes --datacard deep10m_4_10000_float32
