@@ -1277,8 +1277,8 @@ def draw_qps_comp_wrt_ablation_param_by_selectivity_camera_shrinked(da, datasets
     }
     batchk_xticklabels = list(map(lambda x: f"{x}", d_m_s[d][m]["batch_k"]))
     if which == "batch_k":
-      batchk_xticklabels[-2] = "$w/o$\n$p.s.$"
-      batchk_xticklabels[-1] = "$w/o$\n$c.g.$"
+      batchk_xticklabels[-2] = "$w/o$\n$ps$"
+      batchk_xticklabels[-1] = "$w/o$\n$cg$"
     which_to_xticklabels = {
       "nrel": d_m_s[d][m]["nrel"],
       "batch_k": batchk_xticklabels,

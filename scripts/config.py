@@ -46,7 +46,8 @@ ivf_da_interval = {
   1: [*[((100, ), (r, )) for r in (200, 300, 600, 1100, 2100, 3100)]]
 }
 compass_graph_da_interval = {
-  1: [*[((100, ), (r, )) for r in range(2100, 10000, 1000)]],
+  1: [*[((100, ), (1100, )), ((100, ), (200, ))],
+      *[((100, ), (r, )) for r in range(2100, 10000, 1000)]],
 }
 postfiltering_da_interval = {
   1: [

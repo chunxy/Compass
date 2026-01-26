@@ -693,7 +693,7 @@ def draw_qps_comp_wrt_recall_by_real_dataset_camera(datasets, methods, anno, *, 
     df = df_all[selector]
 
     fig, axs = plt.subplots(1, len(datasets) * 2, layout='tight')
-    fig.set_size_inches(5.5, 3.5)
+    fig.set_size_inches(6.2, 2.4)
     for ax in axs.flat:
       ax.set_box_aspect(1)
       ax.tick_params(axis='y', rotation=45)
@@ -746,8 +746,8 @@ def draw_qps_comp_wrt_recall_by_real_dataset_camera(datasets, methods, anno, *, 
       axs[i * 2 + 1].set_ylim(-200, min(auto_top, dataset_comp_ylim[d]))
       axs[i * 2 + 1].set_title("{}, {}".format(dt, wtype.capitalize()))
 
-    bottom = 0.15
-    plt.tight_layout(rect=[0, bottom, 1, 1], w_pad=0.05, h_pad=0.05)
+    # bottom = 0.15
+    plt.tight_layout(rect=[0, 0, 0.8, 1], w_pad=0.1, h_pad=0.05)
     unique_labels = {}
     for ax in axs.flat:
       handles, labels = ax.get_legend_handles_labels()
@@ -762,15 +762,21 @@ def draw_qps_comp_wrt_recall_by_real_dataset_camera(datasets, methods, anno, *, 
         if label not in unique_labels:
           unique_labels[label] = handle
       # ax.legend(unique_labels.values(), unique_labels.keys(), loc="upper right")
-
-    # Put a legend below current axis
+    # # Put a legend below current axis
+    # fig.legend(
+    #   unique_labels.values(),
+    #   unique_labels.keys(),
+    #   loc='outside lower center',
+    #   bbox_to_anchor=(0.5, 0),
+    #   fancybox=True,
+    #   ncol=(len(unique_labels) + 1) // 2,
+    # )
+    # Put a legend on right
     fig.legend(
       unique_labels.values(),
       unique_labels.keys(),
-      loc='outside lower center',
-      bbox_to_anchor=(0.5, 0),
+      loc='outside right center',
       fancybox=True,
-      ncol=(len(unique_labels) + 1) // 2,
     )
     # plt.grid(True)
     path = Path(f"{prefix}/{d}-{anno}-{wtype}-QPS-Comp-Recall.jpg")

@@ -199,7 +199,7 @@ def summarize():
             averaged_qps += stat["aggregated"]["qps"]
         averaged_qps /= nsample
         qps[-1] = averaged_qps
-      elif e[1].startswith("CompassPost"):
+      elif e[1].startswith("Compass"):
         nsample, max_qps = min(len(jsons), 3), qps[-1]
         for i in range(2, nsample + 1):
           with open(jsons[-i]) as f:

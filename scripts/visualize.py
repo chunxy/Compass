@@ -730,12 +730,14 @@ def camera_ready():
     best_d_m_s[d]["CompassGraph"] = {"nrel": [50]}
     del best_d_m_b[d]["Navix"]
     del best_d_m_b[d]["SeRF"]
-    if "Milvus" in best_d_m_s[d]:
-      del best_d_m_s[d]["Milvus"]
-    if "Weaviate" in best_d_m_s[d]:
-      del best_d_m_s[d]["Weaviate"]
-    if "Prefiltering" in best_d_m_s[d]:
-      del best_d_m_s[d]["Prefiltering"]
+    if "Milvus" in best_d_m_b[d]:
+      del best_d_m_b[d]["Milvus"]
+    if "Weaviate" in best_d_m_b[d]:
+      del best_d_m_b[d]["Weaviate"]
+    if "Prefiltering" in best_d_m_b[d]:
+      del best_d_m_b[d]["Prefiltering"]
+    if "ACORN" in best_d_m_b[d]:
+      del best_d_m_b[d]["ACORN"]
   best_d_m_s["crawl"]["CompassGraph"] = {"nrel": [50]}
   best_d_m_s["glove100"]["CompassGraph"] = {"nrel": [100]}
   best_d_m_s["video-dedup"]["CompassGraph"] = {"nrel": [50]}
@@ -747,7 +749,7 @@ def camera_ready():
     d_m_b=best_d_m_b,
     d_m_s=best_d_m_s,
     prefix="camera-ready",
-    ranges=["20", "30"],
+    ranges=["1", "10", "30", "80"],
   )
 
   # Figure 2 (deprecated): disjunction on single attribute
