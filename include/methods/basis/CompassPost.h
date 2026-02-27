@@ -556,6 +556,7 @@ class CompassPost {
     // cg_.SetSearchParam(20, 20, 20);
 
     for (int q = 0; q < nq; q++) {
+      int btree_cand = 0;
 #ifndef BENCH
       auto q_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
@@ -613,6 +614,7 @@ class CompassPost {
             itr_beg = btrees_[clus].lower_bound(l_bound[0]);
             itr_end = btrees_[clus].upper_bound(u_bound[0]);
             while (itr_beg != itr_end) {
+              btree_cand++;
               auto arr = itr_beg->second.second;
               bool good = true;
               for (int i = 1; i < this->da_; i++) {
@@ -666,6 +668,7 @@ class CompassPost {
               itr_beg = btrees_[clus].lower_bound(l_bound[0]);
               itr_end = btrees_[clus].upper_bound(u_bound[0]);
               while (itr_beg != itr_end) {
+                btree_cand++;
                 auto arr = itr_beg->second.second;
                 bool good = true;
                 for (int i = 1; i < this->da_; i++) {
@@ -694,6 +697,7 @@ class CompassPost {
             auto btree_start = std::chrono::high_resolution_clock::system_clock::now();
 #endif
             while (itr_beg != itr_end) {
+              btree_cand++;
               auto arr = itr_beg->second.second;
               bool good = true;
               for (int i = 1; i < this->da_; i++) {
@@ -723,8 +727,16 @@ class CompassPost {
             // Should prioritize the graph search? No idea yet... Leave it this first.
             // vl->mass[tableid] = vl->curV;
             auto vect = this->graph_.hnsw_->getDataByInternalId(tableid);
+#ifndef BENCH
+            auto comp_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
             auto dist = this->graph_.hnsw_->fstdistfunc_(query_q, vect, this->graph_.hnsw_->dist_func_param_);
             bm.qmetrics[q].ncomp++;
+#ifndef BENCH
+            auto comp_stop = std::chrono::high_resolution_clock::system_clock::now();
+            bm.qmetrics[q].comp_latency +=
+                std::chrono::duration_cast<std::chrono::nanoseconds>(comp_stop - comp_start).count();
+#endif
             top_ivf.emplace(-dist, tableid);
             crel++;
           }
@@ -785,17 +797,20 @@ class CompassPost {
 
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].ncomp_graph = this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
 #ifndef BENCH
       fmt::print("twohop_count: {}\n", state.out_.twohop_count);
-      bm.qmetrics[q].nrecycled += state.out_.checked_count;
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
 #endif
       // graph_.Close(&state);
@@ -1057,18 +1072,20 @@ class CompassPost {
       }
 
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
-      bm.qmetrics[q].ncomp_cg += initialized ? this->nlist_ : 0;
+      bm.qmetrics[q].ncomp_graph = this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
 #ifndef BENCH
       fmt::print("twohop_count: {}\n", state.out_.twohop_count);
-      bm.qmetrics[q].nrecycled += state.out_.checked_count;
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
 #endif
       // graph_.Close(&state);
@@ -1345,17 +1362,20 @@ class CompassPost {
 
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].ncomp_graph = this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
 #ifndef BENCH
       fmt::print("twohop_count: {}\n", state.out_.twohop_count);
-      bm.qmetrics[q].nrecycled += state.out_.checked_count;
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
 #endif
       // graph_.Close(&state);
@@ -1639,17 +1659,20 @@ class CompassPost {
 
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].ncomp_graph = this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
 #ifndef BENCH
       fmt::print("twohop_count: {}\n", state.out_.twohop_count);
-      bm.qmetrics[q].nrecycled += state.out_.checked_count;
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
 #endif
       // graph_.Close(&state);
@@ -1894,17 +1917,20 @@ class CompassPost {
 
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].ncomp_graph = this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
 #ifndef BENCH
       fmt::print("twohop_count: {}\n", state.out_.twohop_count);
-      bm.qmetrics[q].nrecycled += state.out_.checked_count;
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
 #endif
       // graph_.Close(&state);
@@ -2116,18 +2142,22 @@ class CompassPost {
         nround++;
       }
 
+      bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
+      bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].ncomp_graph = this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
-      bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
 #ifndef BENCH
-      bm.qmetrics[q].nrecycled += state.out_.checked_count;
-      bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      fmt::print("twohop_count: {}\n", state.out_.twohop_count);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
 #endif
       // graph_.Close(&state);
@@ -2345,11 +2375,24 @@ class CompassPost {
         nround++;
       }
 
+      bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
+      bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].ncomp_graph = this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
-      bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
-      bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+#ifndef BENCH
+      fmt::print("twohop_count: {}\n", state.out_.twohop_count);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
+      bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
+      bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
+      bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
+      bm.qmetrics[q].filter_latency += state.out_.filter_time;
+#endif
 
       graph_.Close(&state);
       cg_.Close(&cg_state);
@@ -2572,11 +2615,24 @@ class CompassPost {
         nround++;
       }
 
+      bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
+      bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].ncomp_graph = this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
-      bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
-      bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+#ifndef BENCH
+      fmt::print("twohop_count: {}\n", state.out_.twohop_count);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
+      bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
+      bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
+      bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
+      bm.qmetrics[q].filter_latency += state.out_.filter_time;
+#endif
 
       graph_.Close(&state);
       cg_.Close(&cg_state);
@@ -2761,21 +2817,23 @@ class CompassPost {
         nround++;
       }
 
-      bm.qmetrics[q].ncomp += 0;  // No longer add from graph.
+      bm.qmetrics[q].ncomp += 0;
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
-      // #ifndef BENCH
-      //       fmt::print("twohop_count: {}\n", state.out_.twohop_count);
-      //       bm.qmetrics[q].nrecycled += state.out_.checked_count;
-      //       bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
-      //       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
-      //       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
-      //       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
-      //       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
-      //       bm.qmetrics[q].comp_latency += state.out_.comp_time;
-      //       bm.qmetrics[q].filter_latency += state.out_.filter_time;
-      // #endif
+#ifndef BENCH
+      fmt::print("twohop_count: {}\n", state.out_.twohop_count);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
+      bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
+      bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
+      bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
+      bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
+      bm.qmetrics[q].filter_latency += state.out_.filter_time;
+#endif
 
       while (top_candidates.size() > k) top_candidates.pop();
       results[q] = std::move(top_candidates);
@@ -3039,17 +3097,20 @@ class CompassPost {
 
       bm.qmetrics[q].ncomp += this->graph_.GetNcomp(&state);
       bm.qmetrics[q].ncomp_cg += this->cg_.GetNcomp(&cg_state);
+      bm.qmetrics[q].ncomp_graph = this->graph_.GetNcomp(&state);
       bm.qmetrics[q].nround = nround;
       bm.qmetrics[q].ncluster = clus_cnt;
 #ifndef BENCH
       fmt::print("twohop_count: {}\n", state.out_.twohop_count);
-      bm.qmetrics[q].nrecycled += state.out_.checked_count;
-      bm.qmetrics[q].ncomp_graph += this->graph_.GetNcomp(&state);
+      // bm.qmetrics[q].nrecycled;
+      bm.qmetrics[q].nfiltered_btree = btree_cand;
+      bm.qmetrics[q].nfiltered_graph = state.out_.checked_count;
       bm.qmetrics[q].twohop_latency += state.out_.twohop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.pop_time;
       bm.qmetrics[q].ihnsw_latency += state.out_.bk_time;
       bm.qmetrics[q].ihnsw_latency += cg_state.out_.pop_time;
       bm.qmetrics[q].comp_latency += state.out_.comp_time;
+      bm.qmetrics[q].comp_latency += cg_state.out_.comp_time;
       bm.qmetrics[q].filter_latency += state.out_.filter_time;
 #endif
       // graph_.Close(&state);

@@ -92,8 +92,12 @@ int main(int argc, char **argv) {
 
   nq = args.fast ? 200 : nq;
   vector<priority_queue<pair<float, labeltype>>> results(nq);
-  vector<int> num_computations(nq);
+  vector<int> num_computations(nq, 0);
   vector<long> latencies(nq);
+  vector<long> filter_latencies(nq, 0);
+  vector<long> comp_latencies(nq, 0);
+  vector<long> btree_latencies(nq);
+  vector<int> btree_cands(nq, 0);
   long long total_search_time = 0;
 
 #ifndef COMPASS_DEBUG
@@ -104,8 +108,10 @@ int main(int argc, char **argv) {
 
     auto beg = btree.lower_bound(args.l_bounds[j * c.attr_dim + 0]);
     auto end = btree.upper_bound(args.u_bounds[j * c.attr_dim + 0] + 1e-9);
+    int btree_cand = 0;
     num_computations[j] = 0;
     while (beg != end) {
+      btree_cand++;
       auto pair = beg->second;
       int i = pair.first;
       auto attr = pair.second;
@@ -115,6 +121,9 @@ int main(int argc, char **argv) {
         _mm_prefetch(xb + (beg->second.first) * d, _MM_HINT_T0);
       }
 #endif
+#ifndef BENCH
+      auto filter_start = high_resolution_clock::now();
+#endif
       bool ok = true;
       for (int dim = 1; dim < c.attr_dim; dim++) {
         if (attr[dim] < args.l_bounds[j * c.attr_dim + dim] || attr[dim] > args.u_bounds[j * c.attr_dim + dim]) {
@@ -122,16 +131,28 @@ int main(int argc, char **argv) {
           break;
         }
       }
+#ifndef BENCH
+      auto filter_end = high_resolution_clock::now();
+      filter_latencies[j] += duration_cast<nanoseconds>(filter_end - filter_start).count();
+#endif
       if (ok) {
+#ifndef BENCH
+        auto comp_start = high_resolution_clock::now();
+#endif
         num_computations[j]++;
         results[j].push(std::make_pair(space.get_dist_func()(xq + j * d, xb + i * d, space.get_dist_func_param()), i));
+#ifndef BENCH
+        auto comp_end = high_resolution_clock::now();
+        comp_latencies[j] += duration_cast<nanoseconds>(comp_end - comp_start).count();
+#endif
         if (results[j].size() > args.k) results[j].pop();
       }
     }
     auto search_stop = high_resolution_clock::now();
     auto search_time = duration_cast<microseconds>(search_stop - search_start).count();
     total_search_time += search_time;
-    latencies[j] = search_time;
+    latencies[j] = duration_cast<nanoseconds>(search_stop - search_start).count();
+    btree_cands[j] = btree_cand;
   }
 
   // statistics
@@ -182,7 +203,10 @@ int main(int argc, char **argv) {
     stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
     stat.num_computations[j] = num_computations[j];
     stat.num_rounds[j] = 0;
-    stat.latencies.push_back(latencies[j]);
+    stat.latencies[j] = latencies[j];
+    stat.filter_latencies[j] = filter_latencies[j];
+    stat.comp_latencies[j] = comp_latencies[j];
+    stat.ivf_ppsl_nums[j] = btree_cands[j];
     j++;
   }
 

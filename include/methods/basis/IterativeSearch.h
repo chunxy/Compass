@@ -87,7 +87,8 @@ class IterativeSearch {
         state->candidate_set_,
         state->result_set_,
         state->vl_,
-        state->ncomp_
+        state->ncomp_,
+        &state->out_
     );
 #ifndef BENCH
     end = std::chrono::high_resolution_clock::now();
@@ -394,12 +395,19 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k, batch_k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
-    state.ncomp_ = 0;
+    state.ncomp_ = 1;
     state.total_ = 0;
     {
       tableint curr_obj = this->hnsw_->enterpoint_node_;
+#ifndef BENCH
+      auto comp_start = std::chrono::high_resolution_clock::now();
+#endif
       dist_t curr_dist =
           this->hnsw_->fstdistfunc_(query, this->hnsw_->getDataByInternalId(curr_obj), this->hnsw_->dist_func_param_);
+#ifndef BENCH
+      auto comp_end = std::chrono::high_resolution_clock::now();
+      state.out_.comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_end - comp_start).count();
+#endif
 
       for (int level = this->hnsw_->maxlevel_; level > 0; level--) {
         bool changed = true;
@@ -415,9 +423,17 @@ class IterativeSearch {
             tableint cand = datal[i];
 
             if (cand < 0 || cand > this->hnsw_->max_elements_) throw std::runtime_error("cand error");
+#ifndef BENCH
+            auto comp_start = std::chrono::high_resolution_clock::now();
+#endif
+
             dist_t d =
                 this->hnsw_->fstdistfunc_(query, this->hnsw_->getDataByInternalId(cand), this->hnsw_->dist_func_param_);
             state.ncomp_++;
+#ifndef BENCH
+            auto comp_end = std::chrono::high_resolution_clock::now();
+            state.out_.comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_end - comp_start).count();
+#endif
 
             if (d < curr_dist) {
               curr_dist = d;
@@ -444,7 +460,7 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
-    state.ncomp_ = 0;
+    state.ncomp_ = 1;
     state.total_ = 0;
     {
       tableint curr_obj = this->hnsw_->enterpoint_node_;
@@ -504,13 +520,20 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
-    state.ncomp_ = 0;
+    state.ncomp_ = 1;
     state.total_ = 0;
     {
       tableint curr_obj = this->hnsw_->enterpoint_node_;
+#ifndef BENCH
+      auto comp_start = std::chrono::high_resolution_clock::now();
+#endif
+
       dist_t curr_dist =
           this->hnsw_->fstdistfunc_(query, this->hnsw_->getDataByInternalId(curr_obj), this->hnsw_->dist_func_param_);
-
+#ifndef BENCH
+      auto comp_end = std::chrono::high_resolution_clock::now();
+      state.out_.comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_end - comp_start).count();
+#endif
       for (int level = this->hnsw_->maxlevel_; level > 0; level--) {
         bool changed = true;
         while (changed) {
@@ -525,10 +548,16 @@ class IterativeSearch {
             tableint cand = datal[i];
 
             if (cand < 0 || cand > this->hnsw_->max_elements_) throw std::runtime_error("cand error");
+#ifndef BENCH
+            auto comp_start = std::chrono::high_resolution_clock::now();
+#endif
             dist_t d =
                 this->hnsw_->fstdistfunc_(query, this->hnsw_->getDataByInternalId(cand), this->hnsw_->dist_func_param_);
             state.ncomp_++;
-
+#ifndef BENCH
+            auto comp_end = std::chrono::high_resolution_clock::now();
+            state.out_.comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_end - comp_start).count();
+#endif
             if (d < curr_dist) {
               curr_dist = d;
               curr_obj = cand;
@@ -555,7 +584,7 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
-    state.ncomp_ = 0;
+    state.ncomp_ = 1;
     state.total_ = 0;
     {
       tableint curr_obj = this->hnsw_->enterpoint_node_;
@@ -606,7 +635,7 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
-    state.ncomp_ = 0;
+    state.ncomp_ = 1;
     state.total_ = 0;
     {
       tableint curr_obj = this->hnsw_->enterpoint_node_;
@@ -657,7 +686,7 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
-    state.ncomp_ = 0;
+    state.ncomp_ = 1;
     state.total_ = 0;
     {
       tableint curr_obj = this->hnsw_->enterpoint_node_;
@@ -706,7 +735,7 @@ class IterativeSearch {
     hnsw_->setEf(this->initial_efs_);
     IterativeSearchState<dist_t> state(query, k);
     state.vl_ = vl ? vl : hnsw_->visited_list_pool_->getFreeVisitedList();
-    state.ncomp_ = 0;
+    state.ncomp_ = 1;
     state.total_ = 0;
     {
       tableint curr_obj = this->hnsw_->enterpoint_node_;

@@ -42,7 +42,8 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
       std::priority_queue<std::pair<dist_t, labeltype>> &candidate_set,
       std::priority_queue<std::pair<dist_t, labeltype>> &result_set,
       VisitedList *vl,
-      int &ncomp
+      int &ncomp,
+      Out *out = nullptr
   ) {
     size_t efs = std::max(k, this->ef_);
     auto upper_bound = top_candidates.empty() ? std::numeric_limits<dist_t>::max() : top_candidates.top().first;
@@ -76,9 +77,17 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
         if (vl->mass[cand_nbr] == vl->curV) continue;
         vl->mass[cand_nbr] = vl->curV;
         ncomp++;
+#ifndef BENCH
+        auto comp_start = std::chrono::high_resolution_clock::now();
+#endif
         dist_t cand_nbr_dist =
             this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
-
+#ifndef BENCH
+        auto comp_end = std::chrono::high_resolution_clock::now();
+        if (out != nullptr) {
+          out->comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_end - comp_start).count();
+        }
+#endif
         if (top_candidates.size() < efs || cand_nbr_dist < upper_bound) {
           result_set.emplace(-cand_nbr_dist, cand_nbr);
           candidate_set.emplace(-cand_nbr_dist, cand_nbr);
@@ -430,8 +439,17 @@ class ReentrantHNSW : public HierarchicalNSW<dist_t> {
 #ifdef USE_SSE
           _mm_prefetch(this->getDataByInternalId(other_onehop_neighbors[i + 1]), _MM_HINT_T0);
 #endif
+#ifndef BENCH
+          auto comp_start = std::chrono::high_resolution_clock::system_clock::now();
+#endif
           dist_t cand_dist =
               this->fstdistfunc_(query_data, this->getDataByInternalId(cand_nbr), this->dist_func_param_);
+#ifndef BENCH
+          auto comp_stop = std::chrono::high_resolution_clock::system_clock::now();
+          if (out != nullptr) {
+            out->comp_time += std::chrono::duration_cast<std::chrono::nanoseconds>(comp_stop - comp_start).count();
+          }
+#endif
           if (top_candidates.size() < efs || cand_dist < upper_bound) {
             candidate_set.emplace(-cand_dist, cand_nbr);
             top_candidates.emplace(cand_dist, cand_nbr);

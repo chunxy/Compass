@@ -125,9 +125,10 @@ struct IvfGraph2dArgs {
 
 struct QueryMetric {
   // core statistics
-  int ncomp_cg;
-  int nround;
   int ncomp;
+  int ncomp_cg;
+  int ncomp_graph;
+  int nround;
   int ncluster;
 
   std::vector<bool> is_ivf_ppsl;
@@ -141,8 +142,9 @@ struct QueryMetric {
   long long twohop_latency;
   long long ihnsw_latency;
   long long comp_latency;
-  int ncomp_graph;
   int nrecycled;
+  int nfiltered_btree;
+  int nfiltered_graph;
 
   QueryMetric(int nb)
       : is_ivf_ppsl(nb, false),
@@ -155,12 +157,14 @@ struct QueryMetric {
         twohop_latency(0),
         ihnsw_latency(0),
         comp_latency(0),
-        ncomp_cg(0),
-        nround(0),
         ncomp(0),
+        ncomp_cg(0),
         ncomp_graph(0),
+        nround(0),
         ncluster(0),
-        nrecycled(0) {}
+        nrecycled(0),
+        nfiltered_btree(0),
+        nfiltered_graph(0) {}
 };
 
 struct BatchMetric {
