@@ -36,7 +36,7 @@ Paths like `checkpoints/`, `data/`, and `logs_*` are **not** exhaustive in git; 
 
 `src/benchmarks/bench-compass-post-k-th.cpp` builds the composite index (IVF, ranking, HNSW, cluster graph as applicable), runs **post-filtered** batched search with tunable search parameters, and writes structured logs (text + JSON) under the log root from `config.h`.
 
-**Typical invocation** (mirrors the `compass-post-k-th` entry in `.vscode/launch.json`): run the binary from the repository root, passing a **datacard** name and index/search hyperparameters. Example:
+**Typical invocation**: run the binary from the repository root, passing a **datacard** name and index/search hyperparameters. Example:
 
 ```bash
 ./build/Debug/src/benchmarks/bench-compass-post-k-th \
