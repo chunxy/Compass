@@ -45,7 +45,7 @@ Paths like `checkpoints/`, `data/`, and `logs_*` are **not** exhaustive in git; 
   --M 16 \
   --efc 200 \
   --nlist 5000 \
-  --efs 800 \
+  --efs 100 \
   --nrel 50 \
   --M_cg 4 \
   --batch_k 20 \
@@ -71,6 +71,3 @@ Replace `build/Debug/...` with your CMake output directory (`Release`, etc.). Th
 Configure and build with CMake (dependencies: Boost, fmt, OpenMP; Faiss builds from `thirdparty/`). Point `include/config.h` at your workspace and data layout, then build your chosen target (e.g. `bench-compass-post-k-th`) using CMake.
 
 
-## Note on sharing
-
-This repository is shared to help others **navigate** the layout and reproduce high-level workflows. It is not a full product or paper supplement; treat internals as research code.
