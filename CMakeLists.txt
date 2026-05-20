@@ -38,6 +38,8 @@ set(FAISS_ENABLE_GPU OFF)
 set(FAISS_ENABLE_PYTHON OFF)
 # add_compile_definitions(-DFAISS_ENABLE_GPU=OFF -DFAISS_ENABLE_PYTHON=OFF)
 
+set(BUILD_TESTING OFF CACHE BOOL "Build CTest targets (e.g. faiss tests)" FORCE)
+
 # include(FetchContent)
 # FetchContent_Declare(
 #   faiss

@@ -36,9 +36,7 @@ int main(int argc, char **argv) {
   int ng = c.n_groundtruth;  // number of computed groundtruth entries
 
   std::string method = "Postfiltering";
-  std::string workload = fmt::format(
-      HYBRID_WORKLOAD_TMPL, c.name, c.attr_range, fmt::join(args.l_bounds, "-"), fmt::join(args.u_bounds, "-"), args.k
-  );
+  std::string workload = fmt::format(HYBRID_WORKLOAD_REVISION_TMPL, c.name, c.attr_range, args.k, c.type);
   std::string build_param = fmt::format("M_{}_efc_{}", args.M, args.efc);
 
   // Load data.
@@ -48,19 +46,36 @@ int main(int argc, char **argv) {
   load_hybrid_data(c, xb, xq, gt, attrs);
   fmt::print("Finished loading data.\n");
 
-  // Load groundtruth for hybrid search.
+  // Load query range and groundtruth for hybrid search.
+  args.l_bounds.resize(c.n_queries * c.attr_dim);
+  args.u_bounds.resize(c.n_queries * c.attr_dim);
+  std::string rg_path = fmt::format(HYBRID_RG_REVISION_PATH_TMPL, c.name, c.attr_dim, c.attr_range, c.type);
+  auto rg = load_float32(rg_path, c.n_queries, c.attr_dim);
+  memcpy(args.l_bounds.data(), rg, c.n_queries * c.attr_dim * sizeof(float));
+  for (int i = 0; i < c.n_queries; i++) {
+    if (c.type == "onesided") {
+      args.u_bounds[i] = std::numeric_limits<float>::max();
+    } else if (c.type == "point") {
+      args.u_bounds[i] = args.l_bounds[i] + 1e-9;
+    }
+  }
+
+  if (c.attr_dim != 1) {
+    throw std::runtime_error("Must be 1d negation\n");
+    exit(1);
+  }
+
   vector<vector<labeltype>> hybrid_topks(nq);
-  load_hybrid_query_gt(c, args.l_bounds, args.u_bounds, args.k, hybrid_topks);
-  fmt::print("Finished loading groundtruth.\n");
+  load_hybrid_query_gt_revision(c, args.k, hybrid_topks);
+  fmt::print("Finished loading query range and groundtruth.\n");
 
   // Compute selectivity.
   int nsat;
-  stat_selectivity(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
+  stat_selectivity_revision(attrs, nb, c.attr_dim, args.l_bounds, args.u_bounds, nsat);
 
   L2Space space(d);
   HierarchicalNSW<float> comp(&space, nb, args.M, args.efc);
   fs::path ckp_root(CKPS);
-  // std::string checkpoint = fmt::format(COMPASS_CHECKPOINT_TMPL, M, efc, nlist);
   std::string graph_ckp = fmt::format(COMPASS_GRAPH_CHECKPOINT_TMPL, args.M, args.efc);
   fs::path ckp_dir = ckp_root / "CompassR1d" / c.name;
   if (fs::exists(ckp_dir / graph_ckp)) {
@@ -80,17 +95,13 @@ int main(int argc, char **argv) {
   std::iota(labels.begin(), labels.end(), 0);
   fmt::print("Finished loading indices.\n");
 
-  RangeQuery<float> pred(args.l_bounds.data(), args.u_bounds.data(), attrs, nb, c.attr_dim);
-  // vector<QueryMetric> metrics(args.batchsz, QueryMetric(nb));
-
   for (auto efs : args.efs) {
     time_t ts = time(nullptr);
     auto tm = localtime(&ts);
     std::string search_param = fmt::format("efs_{}", efs);
     std::string out_text = fmt::format("{:%Y-%m-%d-%H-%M-%S}.log", *tm);
     std::string out_json = fmt::format("{:%Y-%m-%d-%H-%M-%S}.json", *tm);
-    fs::path log_root(fmt::format(LOGS, args.k) + "_special");
-    // fs::path log_root(fmt::format(LOGS, args.k));
+    fs::path log_root(fmt::format(LOGS, args.k));
     fs::path log_dir = log_root / method / workload / build_param / search_param;
     fs::create_directories(log_dir);
     fmt::print("Saving to {}.\n", (log_dir / out_json).string());
@@ -101,6 +112,7 @@ int main(int argc, char **argv) {
 #endif
 
     comp.setEf(efs);
+    nq = args.fast ? 200 : nq;
     vector<priority_queue<pair<float, labeltype>>> results(nq);
     vector<int> num_computations(nq);
 #ifndef COMPASS_DEBUG
@@ -109,6 +121,9 @@ int main(int argc, char **argv) {
     Stat stat(nq);
     long long search_time = 0;
     for (int j = 0; j < nq; j++) {
+      RangeQuery<float> pred(
+          args.l_bounds.data() + j * c.attr_dim, args.u_bounds.data() + j * c.attr_dim, attrs, nb, c.attr_dim
+      );
       auto q_start = high_resolution_clock::now();
       int initial_comp = comp.metric_distance_computations.load();
       auto ret = comp.searchKnn(xq + j * d, efs, nullptr);
@@ -127,7 +142,7 @@ int main(int argc, char **argv) {
       stat.batch_time.push_back(q_time);
       stat.batch_overhead.push_back(0);
       stat.batch_cluster_search_time.push_back(0);
-      search_time +=  duration_cast<microseconds>(q_stop - q_start).count();
+      search_time += duration_cast<microseconds>(q_stop - q_start).count();
     }
 
     // statistics
@@ -180,7 +195,6 @@ int main(int argc, char **argv) {
         stat.linear_scan_rate[j] = (double)stat.ivf_ppsl_nums[j] / nsat;
         stat.num_computations[j] = num_computations[j];
         stat.num_rounds[j] = 0;
-        // stat.latencies.push_back(duration_cast<microseconds>(search_stop - search_start).count());
         j++;
       }
     }
