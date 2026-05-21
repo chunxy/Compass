@@ -111,7 +111,6 @@ int main(int argc, char **argv) {
     out = fopen((log_dir / out_text).c_str(), "w");
 #endif
 
-    comp.setEf(efs);
     nq = args.fast ? 200 : nq;
     vector<priority_queue<pair<float, labeltype>>> results(nq);
     vector<int> num_computations(nq);
@@ -125,16 +124,32 @@ int main(int argc, char **argv) {
           args.l_bounds.data() + j * c.attr_dim, args.u_bounds.data() + j * c.attr_dim, attrs, nb, c.attr_dim
       );
       auto q_start = high_resolution_clock::now();
-      int initial_comp = comp.metric_distance_computations.load();
-      auto ret = comp.searchKnn(xq + j * d, efs, nullptr);
-      num_computations[j] = comp.metric_distance_computations.load() - initial_comp;
-      while (!ret.empty()) {
-        auto top = ret.top();
-        if (pred(top.second)) {
-          results[j].push(top);
-          if (results[j].size() > args.k) results[j].pop();
+      int cur_efs = args.k;
+      while (cur_efs <= efs) {
+        comp.setEf(cur_efs);
+        int initial_comp = comp.metric_distance_computations.load();
+        auto ret = comp.searchKnn(xq + j * d, efs, nullptr);
+        num_computations[j] += comp.metric_distance_computations.load() - initial_comp;
+        while (!ret.empty()) {
+          auto top = ret.top();
+          if (pred(top.second)) {
+            results[j].push(top);
+            if (results[j].size() > args.k) results[j].pop();
+          }
+          ret.pop();
         }
-        ret.pop();
+        if (results[j].size() >= args.k) {
+          break;
+        } else {
+          results[j] = {};
+        }
+        cur_efs *= 2;
+        if (cur_efs == efs * 2) {
+          break;
+        }
+        if (efs < cur_efs) {
+          cur_efs = efs;
+        }
       }
       auto q_stop = high_resolution_clock::now();
       auto q_time = duration_cast<nanoseconds>(q_stop - q_start).count();

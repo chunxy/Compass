@@ -100,7 +100,6 @@ int main(int argc, char **argv) {
     out = fopen((log_dir / out_text).c_str(), "w");
 #endif
 
-    comp.setEf(efs);
     vector<priority_queue<pair<float, labeltype>>> results(nq);
     vector<int> num_computations(nq);
 #ifndef COMPASS_DEBUG
@@ -110,16 +109,32 @@ int main(int argc, char **argv) {
     long long search_time = 0;
     for (int j = 0; j < nq; j++) {
       auto q_start = high_resolution_clock::now();
-      int initial_comp = comp.metric_distance_computations.load();
-      auto ret = comp.searchKnn(xq + j * d, efs, nullptr);
-      num_computations[j] = comp.metric_distance_computations.load() - initial_comp;
-      while (!ret.empty()) {
-        auto top = ret.top();
-        if (pred(top.second)) {
-          results[j].push(top);
-          if (results[j].size() > args.k) results[j].pop();
+      int cur_efs = args.k;
+      while (cur_efs <= efs) {
+        comp.setEf(cur_efs);
+        int initial_comp = comp.metric_distance_computations.load();
+        auto ret = comp.searchKnn(xq + j * d, efs, nullptr);
+        num_computations[j] += comp.metric_distance_computations.load() - initial_comp;
+        while (!ret.empty()) {
+          auto top = ret.top();
+          if (pred(top.second)) {
+            results[j].push(top);
+            if (results[j].size() > args.k) results[j].pop();
+          }
+          ret.pop();
         }
-        ret.pop();
+        if (results[j].size() >= args.k) {
+          break;
+        } else {
+          results[j] = {};
+        }
+        cur_efs *= 2;
+        if (cur_efs == efs * 2) {
+          break;
+        }
+        if (efs < cur_efs) {
+          cur_efs = efs;
+        }
       }
       auto q_stop = high_resolution_clock::now();
       auto q_time = duration_cast<nanoseconds>(q_stop - q_start).count();
@@ -127,7 +142,7 @@ int main(int argc, char **argv) {
       stat.batch_time.push_back(q_time);
       stat.batch_overhead.push_back(0);
       stat.batch_cluster_search_time.push_back(0);
-      search_time +=  duration_cast<microseconds>(q_stop - q_start).count();
+      search_time += duration_cast<microseconds>(q_stop - q_start).count();
     }
 
     // statistics
