@@ -83,7 +83,8 @@ int main(int argc, char **argv) {
   std::iota(labels.begin(), labels.end(), 0);
   fmt::print("Finished loading indices.\n");
 
-  for (auto efs : args.efs) {
+  // for (auto efs : args.efs) {
+    const int efs = 1000;
     time_t ts = time(nullptr);
     auto tm = localtime(&ts);
     std::string search_param = fmt::format("efs_{}", efs);
@@ -205,5 +206,5 @@ int main(int argc, char **argv) {
     auto json = collate_stat(stat, nb, nsat, args.k, nq, search_time, args.nthread, out);
     std::ofstream ofs((log_dir / out_json).c_str());
     ofs.write(json.dump(4).c_str(), json.dump(4).length());
-  }
+  // }
 }
