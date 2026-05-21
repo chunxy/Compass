@@ -111,9 +111,9 @@ int main(int argc, char **argv) {
       auto q_start = high_resolution_clock::now();
       int cur_efs = args.k;
       while (cur_efs <= efs) {
-        comp.setEf(cur_efs);
+        comp.setEf(std::max(cur_efs, 100));
         int initial_comp = comp.metric_distance_computations.load();
-        auto ret = comp.searchKnn(xq + j * d, efs, nullptr);
+        auto ret = comp.searchKnn(xq + j * d, cur_efs, nullptr);
         num_computations[j] += comp.metric_distance_computations.load() - initial_comp;
         while (!ret.empty()) {
           auto top = ret.top();
