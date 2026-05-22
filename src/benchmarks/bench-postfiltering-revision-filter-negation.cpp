@@ -118,6 +118,7 @@ int main(int argc, char **argv) {
       int cur_efs = args.k;
       while (cur_efs <= efs) {
         comp.setEf(std::max(cur_efs, 100));
+        results[j] = {};
         int initial_comp = comp.metric_distance_computations.load();
         auto ret = comp.searchKnn(xq + j * d, cur_efs, nullptr);
         num_computations[j] += comp.metric_distance_computations.load() - initial_comp;
@@ -131,8 +132,6 @@ int main(int argc, char **argv) {
         }
         if (results[j].size() >= args.k) {
           break;
-        } else {
-          results[j] = {};
         }
         cur_efs *= 2;
         if (cur_efs == efs * 2) {
