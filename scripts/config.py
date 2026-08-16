@@ -3,6 +3,7 @@ from functools import reduce
 DATASETS = ["sift", "sift-dedup", "audio", "audio-dedup", "crawl", "gist", "gist-dedup", "video", "video-dedup", "glove100"]
 DATASETS = ["sift-dedup", "audio-dedup", "crawl", "gist-dedup", "video-dedup", "glove100"]
 LARGE_DATASETS = ["flickr", "deep10m"]
+LARGE_DATASETS = ["deep10m"]
 REAL_DATASETS = ["video-dedup"]
 ABLATION_DATASETS = ["crawl", "video-dedup", "gist-dedup", "glove100"]
 DA_S = [1, 2, 3, 4]
@@ -50,10 +51,19 @@ compass_graph_da_interval = {
       *[((100, ), (r, )) for r in range(2100, 10000, 1000)]],
 }
 postfiltering_da_interval = {
-  1: [
-    # *[((100, ), (r, )) for r in (200, 300, 600)], # temporarily removed to avoid figure scaling
-    *[((100, ), (r, )) for r in range(1100, 10000, 1000)],
-  ]
+  1: [*[((100, ), (r, )) for r in (200, 3100, 6100, 8100, 9100)], ((0, ), (10000, ))],
+  2: [
+    *[((100, 200), (r1, r2)) for r1, r2 in \
+      zip([3100, ], [3200, ])],
+  ],
+  3: [
+    *[((100, 200, 300), (r1, r2, r3)) for r1, r2, r3 in \
+      zip([3100], [3200], [3300])],
+  ],
+  4: [
+    *[((100, 200, 300, 400), (r1, r2, r3, r4)) for r1, r2, r3, r4 in \
+      zip([3100], [3200], [3300], [3400])],
+  ],
 }
 prefiltering_da_interval = {
   1: [*[((100, ), (r, )) for r in (200, 3100, 6100, 8100, 9100)], ((0, ), (10000, ))],
@@ -180,12 +190,12 @@ COMPASSX_METHODS = [
 SOTA_METHODS = ["iRangeGraph", "SeRF", "SeRF+OR", "SeRF+OR3", "SeRF+OR4"]
 BASE_METHODS = [
   "Prefiltering",
-  # "Postfiltering",
+  "Postfiltering",
   # "CompassPostK",
   "CompassPostKTh",
   # "CompassPostKThCh",
   # "CompassPostKNavix",
-  "Ivf",
+  # "Ivf",
   "CompassRelational",
   "CompassGraph",
   "Navix",
@@ -406,8 +416,9 @@ prefiltering_args = {}
 postfiltering_args = {
   "M": [16, 32],
   "efc": [200],
-  "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 220,
-          240, 260, 280, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
+  "efs": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110,
+          120, 140, 160, 180, 200, 220, 240, 260,
+          280, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000],
 }
 compass_post_args = {
   "M": [16, 32],
@@ -609,7 +620,7 @@ M_STYLE = {
     "marker": "*", "color": "black"
   },
   "Postfiltering": {
-    "marker": "p", "color": "green"
+    "marker": "*", "color": "orange"
   },
   "CompassPostK": {
     "marker": "s", "color": "blue"

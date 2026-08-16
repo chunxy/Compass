@@ -161,7 +161,7 @@ def summarize_revision():
   entries = []
   for d in DATASET_NBASE.keys():
     for card in REVISION_CARDS[d]:
-      for m in ["SeRF", "SeRF+Post", "CompassPostKTh", "ACORN", "Navix", "Milvus", "Weaviate", "Prefiltering"]:
+      for m in ["SeRF", "SeRF+Post", "CompassPostKTh", "ACORN", "Navix", "Milvus", "Weaviate", "Prefiltering", "Postfiltering"]:
         w = card.workload if not m.startswith("SeRF") else f"{d}_{10}_{card.wtype}"
         bt = "_".join([f"{bp}_{{}}" for bp in M_PARAM[m]["build"]])
         st = "_".join([f"{sp}_{{}}" for sp in M_PARAM[m]["search"]])
@@ -366,7 +366,12 @@ def draw_qps_comp_wrt_recall_by_workload_camera(datasets, methods, anno, *, d_m_
 
     for i, d in enumerate(datasets):
       data = df[df["dataset"] == d]
-      for m in d_m_b[d].keys() if d in d_m_b else methods:
+      methods = list(d_m_b[d].keys()) if d in d_m_b else methods
+      # Let the two appear on top.
+      methods.remove("Prefiltering")
+      methods.remove("Postfiltering")
+      methods += ["Prefiltering", "Postfiltering"]
+      for m in methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
@@ -454,6 +459,8 @@ def draw_qps_comp_wrt_recall_by_workload_camera(datasets, methods, anno, *, d_m_
         bbox_to_anchor=(0.5, 0),
         fancybox=True,
         ncol=len(unique_labels),
+        handletextpad=0.4,
+        columnspacing=0.5,
       )
       # plt.grid(True)
       path = Path(f"{prefix}/All-{anno}-{wtype}-QPS-Comp-Recall.jpg")
@@ -495,7 +502,11 @@ def draw_qps_comp_wrt_recall_by_large_dataset_camera(datasets, methods, anno, *,
         continue
       df = df_all[selector]
       data = df[df["dataset"] == d]
-      for m in d_m_b[d].keys() if d in d_m_b else methods:
+      # Let the two appear on top.
+      methods.remove("Prefiltering")
+      methods.remove("Postfiltering")
+      methods += ["Prefiltering", "Postfiltering"]
+      for m in methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           if da > 1 and (m == "SeRF" or m == "iRangeGraph"):
@@ -700,7 +711,11 @@ def draw_qps_comp_wrt_recall_by_real_dataset_camera(datasets, methods, anno, *, 
 
     for i, d in enumerate(datasets):
       data = df[df["dataset"] == d]
-      for m in d_m_b[d].keys() if d in d_m_b else methods:
+      # Let the two appear on top.
+      methods.remove("Prefiltering")
+      methods.remove("Postfiltering")
+      methods += ["Prefiltering", "Postfiltering"]
+      for m in methods:
         marker = M_STYLE[m]
         for b in d_m_b.get(d, {}).get(m, data[data["method"] == m].build.unique()):
           if da > 1 and (m == "SeRF" or m == "iRangeGraph"):

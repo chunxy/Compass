@@ -1047,6 +1047,8 @@ def draw_qps_comp_wrt_recall_by_selectivity_camera_shrinked(da, datasets, method
         bbox_to_anchor=(0.5, 0),
         fancybox=True,
         ncol=len(unique_labels),
+        handletextpad=0.4,
+        columnspacing=0.5,
       )
       # plt.grid(True)
       path = Path(f"{prefix}/Shrinked-All-{anno}-{rg}-QPS-Comp-Recall.jpg")
@@ -1463,6 +1465,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
         bbox_to_anchor=(0.5, 0),
         fancybox=True,
         ncol=len(unique_labels),
+        handletextpad=0.4,
+        columnspacing=0.5,
       )
       path = Path(f"{prefix}/Shrinked-Sel-{sel:.3g}-Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
       path.parent.mkdir(parents=True, exist_ok=True)
@@ -1549,6 +1553,8 @@ def draw_qps_comp_fixing_dimension_selectivity_by_dimension_camera_shrinked(data
         bbox_to_anchor=(0.5, 0),
         fancybox=True,
         ncol=len(unique_labels),
+        handletextpad=0.4,
+        columnspacing=0.5,
       )
       path = Path(f"{prefix}/Shrinked-Sel-{sel:.3g}-Recall-{rec_s[0]:.3g}-{rec_s[1]:.3g}-{anno}-All-QPS-Comp.jpg")
       path.parent.mkdir(parents=True, exist_ok=True)
@@ -1727,6 +1733,8 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
         bbox_to_anchor=(0.5, 0),
         fancybox=True,
         ncol=len(unique_labels),
+        handletextpad=0.4,
+        columnspacing=0.5,
       )
       path = Path(f"{prefix}/Shrinked-Sel-{sel:.3g}-Recall-{rec:.3g}-{anno}-All-QPS-Comp.jpg")
       path.parent.mkdir(parents=True, exist_ok=True)
@@ -1814,6 +1822,8 @@ def draw_qps_comp_with_disjunction_by_dimension_camera_shrinked(datasets, d_m_b,
         bbox_to_anchor=(0.5, 0),
         fancybox=True,
         ncol=len(unique_labels),
+        handletextpad=0.4,
+        columnspacing=0.5,
       )
       path = Path(f"{prefix}/Shrinked-Sel-{sel:.3g}-Recall-{rec_s[0]:.3g}-{rec_s[1]:.3g}-{anno}-All-QPS-Comp.jpg")
       path.parent.mkdir(parents=True, exist_ok=True)

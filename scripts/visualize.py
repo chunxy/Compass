@@ -106,7 +106,7 @@ for d in LARGE_DATASETS:
   best_d_m_b[d]["Milvus"] = ["M_32_efc_200"]
   best_d_m_b[d]["Weaviate"] = ["M_32_efc_200"]
   best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
-best_d_m_b["flickr"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+# best_d_m_b["flickr"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
 best_d_m_b["deep10m"]["CompassPostKTh"] = [
     "M_32_efc_200_nlist_50000_M_cg_8",
     # "M_32_efc_200_nlist_20000_M_cg_8",
@@ -134,7 +134,7 @@ for d in DATASETS:
 # best_d_m_s["crawl"]["CompassPostKTh"] = {"nrel": [50, 100]}
 best_d_m_s["glove100"]["CompassPostKTh"] = {"nrel": [50, 100]}
 # best_d_m_s["video-dedup"]["CompassPostKTh"] = {"nrel": [50, 100]}
-best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50, 100]}
+# best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50, 100]}
 best_d_m_s["deep10m"]["CompassPostKTh"] = {"nrel": [50, 100]}
 
 
@@ -604,12 +604,16 @@ def camera_ready():
   best_d_m_b = {d: {} for d in DATASETS}
   for d in ("sift-dedup", "audio-dedup"):
     best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_5000_M_cg_4"]
+    best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
   for d in ("gist-dedup", ):
     best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_4"]
+    best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
   for d in ("crawl", ):
     best_d_m_b[d]["CompassPostKTh"] = ["M_16_efc_200_nlist_10000_M_cg_8"]
+    best_d_m_b[d]["Postfiltering"] = ["M_16_efc_200"]
   for d in ("video-dedup", "glove100"):
     best_d_m_b[d]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+    best_d_m_b[d]["Postfiltering"] = ["M_32_efc_200"]
   for d in DATASETS:
     best_d_m_b[d]["SeRF"] = ["M_32_efc_200_efmax_500"]
     best_d_m_b[d]["ACORN"] = ["M_16_beta_64_gamma_100"]
@@ -679,8 +683,9 @@ def camera_ready():
   # Revision 2: new workloads on new large datasets
   for d in LARGE_DATASETS:
     best_d_m_b[d] = {}
-  best_d_m_b["flickr"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
+  # best_d_m_b["flickr"]["CompassPostKTh"] = ["M_32_efc_200_nlist_20000_M_cg_8"]
   best_d_m_b["deep10m"]["CompassPostKTh"] = ["M_32_efc_200_nlist_50000_M_cg_8"]
+  best_d_m_b["deep10m"]["Postfiltering"] = ["M_32_efc_200"]
   for d in LARGE_DATASETS:
     best_d_m_b[d]["SeRF"] = ["M_64_efc_200_efmax_500"]
     best_d_m_b[d]["ACORN"] = ["M_32_beta_64_gamma_100"]
@@ -691,7 +696,7 @@ def camera_ready():
 
   for d in LARGE_DATASETS:
     best_d_m_s[d] = {}
-  best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50]}
+  # best_d_m_s["flickr"]["CompassPostKTh"] = {"nrel": [50]}
   best_d_m_s["deep10m"]["CompassPostKTh"] = {"nrel": [50]}
 
   draw_qps_comp_wrt_recall_by_large_dataset_camera(
