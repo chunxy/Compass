@@ -576,6 +576,20 @@ DataCard crawl_1_10000_float32{
     "float32",
 };
 
+DataCard crawl_shuffle_1_10000_float32{
+    "crawl-shuffle",
+    crawl_bpath,
+    crawl_qpath,
+    crawl_gpath,
+    300,
+    1'989'995,
+    10'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
 DataCard crawl_2_10000_float32{
     "crawl",
     crawl_bpath,
@@ -732,6 +746,20 @@ DataCard glove100_1_100_int32{
 
 DataCard glove100_1_10000_float32{
     "glove100",
+    glove100_bpath,
+    glove100_qpath,
+    glove100_gpath,
+    100,
+    1'183'514,
+    10'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
+DataCard glove100_shuffle_1_10000_float32{
+    "glove100-shuffle",
     glove100_bpath,
     glove100_qpath,
     glove100_gpath,
@@ -1332,6 +1360,20 @@ DataCard video_dedup_1_10000_float32{
     "float32",
 };
 
+DataCard video_shuffle_1_10000_float32{
+    "video-shuffle",
+    video_dedup_bpath,
+    video_dedup_qpath,
+    video_dedup_gpath,
+    1024,
+    1'000'000,
+    10'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
 DataCard video_dedup_2_10000_float32{
     "video-dedup",
     video_dedup_bpath,
@@ -1572,6 +1614,20 @@ DataCard gist_dedup_1_100_int32{
 
 DataCard gist_dedup_1_10000_float32{
     "gist-dedup",
+    gist_dedup_bpath,
+    gist_dedup_qpath,
+    gist_dedup_gpath,
+    960,
+    1'000'000 - 17306,
+    1'000,
+    100,
+    1,
+    10000,
+    "float32",
+};
+
+DataCard gist_shuffle_1_10000_float32{
+    "gist-shuffle",
     gist_dedup_bpath,
     gist_dedup_qpath,
     gist_dedup_gpath,
@@ -3009,4 +3065,8 @@ std::map<std::string, DataCard> name_to_card{
     {"deep10m_1_30_float32_negation", deep10m_1_30_float32_negation},
     {"flickr_2_180_float32_real", flickr_2_180_float32_real},
     {"video-dedup_2_10000_float32_real", video_dedup_2_10000_float32_real},
+    {"gist-shuffle_1_10000_float32", gist_shuffle_1_10000_float32},
+    {"glove100-shuffle_1_10000_float32", glove100_shuffle_1_10000_float32},
+    {"crawl-shuffle_1_10000_float32", crawl_shuffle_1_10000_float32},
+    {"video-shuffle_1_10000_float32", video_shuffle_1_10000_float32},
 };
